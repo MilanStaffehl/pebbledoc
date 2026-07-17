@@ -1,0 +1,36 @@
+# .pre-commit-config.yaml
+repos:
+-   repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v4.4.0
+    hooks:
+    -   id: check-merge-conflict
+        stages: [pre-commit, pre-merge-commit]
+    -   id: end-of-file-fixer
+    -   id: trailing-whitespace
+-   repo: https://github.com/pre-commit/pygrep-hooks
+    rev: v1.10.0
+    hooks:
+    -   id: python-check-blanket-type-ignore
+        stages: [pre-commit, pre-merge-commit]
+    -   id: python-use-type-annotations
+        stages: [pre-commit, pre-merge-commit]
+-   repo: https://github.com/PyCQA/isort
+    rev: 6.0.1
+    hooks:
+    -   id: isort
+-   repo: https://github.com/astral-sh/ruff-pre-commit
+    rev: v0.11.13
+    hooks:
+    -   id: ruff-check
+        args: [ --fix ]
+        stages: [pre-commit, pre-merge-commit]
+    -   id: ruff-format
+        stages: [pre-commit, pre-merge-commit]
+-   repo: https://github.com/facebook/pyrefly-pre-commit
+    rev: 1.2.0.dev2
+    hooks:
+      - id: pyrefly-check
+        name: Pyrefly (type checking)
+        pass_filenames: false
+        language: system
+        entry: uv run pyrefly check
