@@ -301,6 +301,87 @@ def test_parse_docstring_comment() -> None:
     assert output == expected
 
 
+def test_parse_docstring_standalone_url() -> None:
+    """Test parsing a standalone URLs."""
+    default_config = config.MinidocConfig()
+    rst_str = "This is a paragraph including a link to https://github.com"
+    output = parsing.parse_docstring(rst_str, default_config)
+    # GitHub can auto-render valid links, nothing needs to be done.
+    expected = "This is a paragraph including a link to https://github.com\n\n"
+    assert output == expected
+
+
+def test_parse_docstring_external_hyperlink() -> None:
+    """Test parsing an external hyperlinks."""
+    default_config = config.MinidocConfig()
+    rst_str = "This text contains a link_ to GitHub.\n\n.. _link: https://github.com"
+    output = parsing.parse_docstring(rst_str, default_config)
+    expected = "This text contains a [link](https://github.com) to GitHub.\n\n"
+    assert output == expected
+
+    # link names with whitespace
+    default_config = config.MinidocConfig()
+    rst_str = (
+        "This text contains a `link to GitHub`_.\n\n"
+        ".. _link to GitHub: https://github.com"
+    )
+    output = parsing.parse_docstring(rst_str, default_config)
+    expected = "This text contains a [link to GitHub](https://github.com).\n\n"
+    assert output == expected
+
+
+def test_parse_docstring_internal_reference_target() -> None:
+    """Test parsing an internal reference to a dedicated target."""
+    default_config = config.MinidocConfig()
+    rst_str = (
+        "This text references an `internal reference`_.\n\n"
+        ".. _internal reference:\n\n"
+        "This is the target block."
+    )
+    output = parsing.parse_docstring(rst_str, default_config)
+    expected = (
+        "This text references an [internal reference](#internal-reference).\n\n"
+        '<a name="internal-reference"></a>\n'
+        "This is the target block.\n\n"
+    )
+    assert output == expected
+
+
+def test_parse_docstring_internal_reference_multiple_targets() -> None:
+    """Test parsing internal references targeting the same place."""
+    default_config = config.MinidocConfig()
+    rst_str = (
+        "This text references an `internal reference`_ and a "
+        "`second reference`_.\n\n"
+        ".. _internal reference:\n\n"
+        ".. _second reference:\n\n"
+        "This is the target block."
+    )
+    output = parsing.parse_docstring(rst_str, default_config)
+    expected = (
+        "This text references an [internal reference](#internal-reference) "
+        "and a [second reference](#second-reference).\n\n"
+        '<a name="internal-reference"></a>\n'
+        '<a name="second-reference"></a>\n'
+        "This is the target block.\n\n"
+    )
+    assert output == expected
+
+
+def test_parse_docstring_anonymous_reference() -> None:
+    """Test parsing an anonymous reference."""
+    default_config = config.MinidocConfig()
+    rst_str = (
+        "This text contains an `anonymous reference`__.\n\n.. __: https://github.com"
+    )
+    output = parsing.parse_docstring(rst_str, default_config)
+    expected = "This text contains an [anonymous reference](https://github.com).\n\n"
+    assert output == expected
+
+
+# TODO: Test for roles subscript and superscript
+
+
 # == ADMONITIONS =======================================================
 def assert_admonition(header: str, actual: str) -> None:
     """Assert the admonition looks as expected."""
@@ -424,81 +505,106 @@ def test_parse_docstring_admonition_plain(
     assert_admonition(header=header, actual=output)
 
 
-def test_parse_docstring_standalone_url() -> None:
-    """Test parsing a standalone URLs."""
+# == SPHINX-STYLE ROLES ================================================
+def test_parse_docstring_math_inline() -> None:
+    """Test parsing inline math."""
     default_config = config.MinidocConfig()
-    rst_str = "This is a paragraph including a link to https://github.com"
+    rst_str = "This text contains math: :math:`\\lambda = 2`."
     output = parsing.parse_docstring(rst_str, default_config)
-    # GitHub can auto-render valid links, nothing needs to be done.
-    expected = "This is a paragraph including a link to https://github.com\n\n"
+    expected = "This text contains math: $\\lambda = 2$.\n\n"
     assert output == expected
 
 
-def test_parse_docstring_external_hyperlink() -> None:
-    """Test parsing an external hyperlinks."""
-    default_config = config.MinidocConfig()
-    rst_str = "This text contains a link_ to GitHub.\n\n.. _link: https://github.com"
-    output = parsing.parse_docstring(rst_str, default_config)
-    expected = "This text contains a [link](https://github.com) to GitHub.\n\n"
-    assert output == expected
-
-    # link names with whitespace
+def test_parse_docstring_math_block() -> None:
+    """Test parsing a math block."""
     default_config = config.MinidocConfig()
     rst_str = (
-        "This text contains a `link to GitHub`_.\n\n"
-        ".. _link to GitHub: https://github.com"
-    )
-    output = parsing.parse_docstring(rst_str, default_config)
-    expected = "This text contains a [link to GitHub](https://github.com).\n\n"
-    assert output == expected
-
-
-def test_parse_docstring_internal_reference_target() -> None:
-    """Test parsing an internal reference to a dedicated target."""
-    default_config = config.MinidocConfig()
-    rst_str = (
-        "This text references an `internal reference`_.\n\n"
-        ".. _internal reference:\n\n"
-        "This is the target block."
+        "This is a preceding paragraph.\n\n"
+        ".. math::\n\n"
+        "    \\lambda = x^2 - \\sqrt{2} y\n\n"
+        "This is a closing paragraph."
     )
     output = parsing.parse_docstring(rst_str, default_config)
     expected = (
-        "This text references an [internal reference](#internal-reference).\n\n"
-        '<a name="internal-reference"></a>\n'
-        "This is the target block.\n\n"
+        "This is a preceding paragraph.\n\n"
+        "$$\n"
+        "\\lambda = x^2 - \\sqrt{2} y\n"
+        "$$\n\n"
+        "This is a closing paragraph.\n\n"
     )
     assert output == expected
 
 
-def test_parse_docstring_internal_reference_multiple_targets() -> None:
-    """Test parsing internal references targeting the same place."""
+def test_parse_docstring_code_inline() -> None:
+    """Test parsing inline code."""
     default_config = config.MinidocConfig()
-    rst_str = (
-        "This text references an `internal reference`_ and a "
-        "`second reference`_.\n\n"
-        ".. _internal reference:\n\n"
-        ".. _second reference:\n\n"
-        "This is the target block."
-    )
+    rst_str = "This text contains :code:`inline code`."
     output = parsing.parse_docstring(rst_str, default_config)
+    expected = "This text contains `inline code`.\n\n"
+    assert output == expected
+
+
+def test_parse_docstring_code_block_no_language() -> None:
+    """Test parsing a code block without specified language."""
+    default_config = config.MinidocConfig()
     expected = (
-        "This text references an [internal reference](#internal-reference) "
-        "and a [second reference](#second-reference).\n\n"
-        '<a name="internal-reference"></a>\n'
-        '<a name="second-reference"></a>\n'
-        "This is the target block.\n\n"
+        "This is a preceding paragraph.\n\n"
+        "```\n"
+        "pip install minidoc-md\n"
+        "```\n\n"
+        "This is a closing paragraph.\n\n"
     )
+
+    # rst standard directive
+    rst_str = (
+        "This is a preceding paragraph.\n\n"
+        ".. code::\n\n"
+        "    pip install minidoc-md\n\n"
+        "This is a closing paragraph."
+    )
+    output = parsing.parse_docstring(rst_str, default_config)
+    assert output == expected
+
+    # Sphinx-specific directive
+    rst_str = (
+        "This is a preceding paragraph.\n\n"
+        ".. code-block::\n\n"
+        "    pip install minidoc-md\n\n"
+        "This is a closing paragraph."
+    )
+    output = parsing.parse_docstring(rst_str, default_config)
     assert output == expected
 
 
-def test_parse_docstring_anonymous_reference() -> None:
-    """Test parsing an anonymous reference."""
+def test_parse_docstring_code_block_with_language() -> None:
+    """Test parsing a code block with a specified language."""
     default_config = config.MinidocConfig()
+    expected = (
+        "This is a preceding paragraph.\n\n"
+        "```Python\n"
+        "import numpy as np\n"
+        "```\n\n"
+        "This is a closing paragraph.\n\n"
+    )
+
+    # rst standard directive
     rst_str = (
-        "This text contains an `anonymous reference`__.\n\n.. __: https://github.com"
+        "This is a preceding paragraph.\n\n"
+        ".. code:: Python\n\n"
+        "    import numpy as np\n\n"
+        "This is a closing paragraph."
     )
     output = parsing.parse_docstring(rst_str, default_config)
-    expected = "This text contains an [anonymous reference](https://github.com).\n\n"
+    assert output == expected
+
+    # Sphinx-specific directive
+    rst_str = (
+        "This is a preceding paragraph.\n\n"
+        ".. code-block:: Python\n\n"
+        "    import numpy as np\n\n"
+        "This is a closing paragraph."
+    )
+    output = parsing.parse_docstring(rst_str, default_config)
     assert output == expected
 
 
