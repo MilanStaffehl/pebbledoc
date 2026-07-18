@@ -4,13 +4,23 @@ version = "0.1.0"
 description = "Lightweight API documentation generator for GitHub markdown."
 readme = "README.md"
 authors = [
-    { name = "Milan Staffehl", email = "milan-staffehl@gmx.de" }
+    { name = "Milan Staffehl" }
 ]
 requires-python = ">=3.13"
 dependencies = [
     "docutils>=0.23",
 ]
+keywords = [
+    "documentation",
+    "docs",
+    "rst",
+    "rest",
+    "restructuredtext",
+    "markdown",
+    "github-markdown",
+]
 
+# build system
 [build-system]
 requires = ["hatchling"]
 build-backend = "hatchling.build"
@@ -20,6 +30,16 @@ dev = [
     "pyrefly>=1.1.1",
     "pytest>=9.1.1",
 ]
+
+# urls
+[project.urls]
+Github = "https://github.com/MilanStaffehl/minidoc-md"
+Homepage = "https://github.com/MilanStaffehl/minidoc-md"
+Issues = "https://github.com/MilanStaffehl/minidoc-md/issues"
+
+# entry points
+[project.scripts]
+minidoc-md = "minidoc_md.cli:main"
 
 
 # tools
