@@ -5,7 +5,19 @@ from pathlib import Path
 
 import pytest
 
-from minidoc_md import config, parsing
+from minidoc_md import config, parsing, types
+
+_ADMONITION_NAMES = [
+    "attention",
+    "caution",
+    "danger",
+    "error",
+    "hint",
+    "important",
+    "note",
+    "tip",
+    "warning",
+]
 
 
 @pytest.fixture
@@ -287,6 +299,129 @@ def test_parse_docstring_comment() -> None:
         "This is a closing paragraph.\n\n"
     )
     assert output == expected
+
+
+# == ADMONITIONS =======================================================
+def assert_admonition(header: str, actual: str) -> None:
+    """Assert the admonition looks as expected."""
+    expected = (
+        "This is a preceding paragraph.\n\n"
+        f"> {header}\n"
+        ">\n"
+        "> This is the first line of the body.\n"
+        "> This is the second line of the body.\n"
+        ">\n"
+        "> This is a second paragraph.\n\n"
+        "This is a closing paragraph.\n\n"
+    )
+    assert actual == expected
+
+
+@pytest.mark.parametrize("admonition_name", _ADMONITION_NAMES)
+def test_parse_docstring_admonitions_classic(
+    admonition_name: str,
+) -> None:
+    """Test parsing an attention admonition in 'classic' mode."""
+    cfg = config.MinidocConfig("classic")
+    rst_str = (
+        "This is a preceding paragraph.\n\n"
+        f".. {admonition_name}::\n\n"
+        "    This is the first line of the body.\n"
+        "    This is the second line of the body.\n\n"
+        "    This is a second paragraph.\n\n"
+        "This is a closing paragraph."
+    )
+    output = parsing.parse_docstring(rst_str, cfg)
+    header = f"**{admonition_name.capitalize()}:**"
+    assert_admonition(header=header, actual=output)
+
+
+@pytest.mark.parametrize("admonition_name", _ADMONITION_NAMES)
+def test_parse_docstring_admonitions_github(
+    admonition_name: str,
+) -> None:
+    """Test parsing an attention admonition in 'github' mode."""
+    cfg = config.MinidocConfig("github")
+    rst_str = (
+        "This is a preceding paragraph.\n\n"
+        f".. {admonition_name}::\n\n"
+        "    This is the first line of the body.\n"
+        "    This is the second line of the body.\n\n"
+        "    This is a second paragraph.\n\n"
+        "This is a closing paragraph."
+    )
+    output = parsing.parse_docstring(rst_str, cfg)
+    header = f"[!{admonition_name.upper()}]"
+    assert_admonition(header=header, actual=output)
+
+
+@pytest.mark.parametrize("admonition_name", _ADMONITION_NAMES)
+def test_parse_docstring_admonitions_mix(
+    admonition_name: str,
+) -> None:
+    """Test parsing an attention admonition in 'mix' mode."""
+    cfg = config.MinidocConfig("mix")
+    rst_str = (
+        "This is a preceding paragraph.\n\n"
+        f".. {admonition_name}::\n\n"
+        "    This is the first line of the body.\n"
+        "    This is the second line of the body.\n\n"
+        "    This is a second paragraph.\n\n"
+        "This is a closing paragraph."
+    )
+    output = parsing.parse_docstring(rst_str, cfg)
+    if admonition_name in parsing._admonitions_map.keys():
+        header = f"**{admonition_name.capitalize()}:**"
+    else:
+        header = f"[!{admonition_name.upper()}]"
+    assert_admonition(header=header, actual=output)
+
+
+@pytest.mark.parametrize("admonition_name", _ADMONITION_NAMES)
+def test_parse_docstring_admonitions_map(
+    admonition_name: str,
+) -> None:
+    """Test parsing an attention admonition in 'map' mode."""
+    cfg = config.MinidocConfig("map")
+    rst_str = (
+        "This is a preceding paragraph.\n\n"
+        f".. {admonition_name}::\n\n"
+        "    This is the first line of the body.\n"
+        "    This is the second line of the body.\n\n"
+        "    This is a second paragraph.\n\n"
+        "This is a closing paragraph."
+    )
+    output = parsing.parse_docstring(rst_str, cfg)
+    if admonition_name in parsing._admonitions_map.keys():
+        admonition_name = parsing._admonitions_map[admonition_name]
+    header = f"[!{admonition_name.upper()}]"
+    assert_admonition(header=header, actual=output)
+
+
+_TEST_DATA = (
+    ("classic", "**Custom title:**"),
+    ("github", "[!CUSTOM TITLE]"),
+    ("mix", "**Custom title:**"),
+    ("map", "[!NOTE]"),
+)
+
+
+@pytest.mark.parametrize("strategy,header", _TEST_DATA)
+def test_parse_docstring_admonition_plain(
+    strategy: types.AdmonitionStrategy, header: str
+) -> None:
+    """Test parsing a general admonition."""
+    cfg = config.MinidocConfig(strategy)
+    rst_str = (
+        "This is a preceding paragraph.\n\n"
+        ".. admonition:: Custom title\n\n"
+        "    This is the first line of the body.\n"
+        "    This is the second line of the body.\n\n"
+        "    This is a second paragraph.\n\n"
+        "This is a closing paragraph."
+    )
+    output = parsing.parse_docstring(rst_str, cfg)
+    assert_admonition(header=header, actual=output)
 
 
 # TODO: test nesting of blocks that mix self.current_block

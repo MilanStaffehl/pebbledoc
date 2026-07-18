@@ -8,6 +8,7 @@ an equivalent Markdown string.
 """
 
 import re
+from collections.abc import Iterable
 from dataclasses import dataclass
 from typing import Literal, assert_never
 
@@ -21,6 +22,7 @@ _admonitions_map = {
     "error": "caution",
     "hint": "tip",
     "seealso": "note",
+    "admonition": "note",
 }
 
 
@@ -38,8 +40,102 @@ def _format_as_quote(text: str) -> str:
     return text
 
 
+def _parse_multiple_nodes(
+    children: Iterable[nodes.Node],
+    config: MinidocConfig,
+    document: nodes.document,
+) -> str:
+    """
+    Parse an iterable of nodes into Markdown format.
+
+    :param children: An iterable of doctree nodes that should be parsed
+        into Markdown.
+    :param config: The minidoc's configuration object for how to parse
+        the nodes.
+    :param document: The document to use for the visitor object.
+    :return: The nodes parsed as Markdown.
+    """
+    sub_visitor = SphinxRstVisitor(config, document)
+    for child in children:
+        child.walkabout(sub_visitor)
+    return sub_visitor.astext()
+
+
+def _render_admonition(
+    admonition_type: str,
+    admonition_node: nodes.Element,
+    config: MinidocConfig,
+    document: nodes.document,
+) -> str:
+    """
+    Render the given ``admonition_node`` as a Markdown admonition.
+
+    The function takes into account the admonition strategy from the
+    config object to format the given admonition node of the given title
+    into a Github-flavored Markdown admonition.
+
+    :param admonition_type: The name of the admonition type (e.g. ``note``,
+        ``attention``, ``warning``, etc.).
+    :param admonition_node: The doctree element node of the admonition.
+        Must have the content of the admonition as children.
+    :param config: The minidoc's configuration object for how to parse
+        the admonition.
+    :param document: The document to use for the visitor object.
+    :return: The admonition, parsed as a valid Github-flavored Markdown
+        admonition.
+    """
+    strategy = config.admonition_strategy
+
+    # handle custom titles
+    title = None
+    title_node = admonition_node.next_node(nodes.title)
+    if title_node is not None:
+        if strategy != "map":  # in map mode, titles are overridden
+            title = title_node.astext()
+        admonition_node.remove(title_node)  # avoid rendering twice
+
+    # handle cases for unsupported strategies
+    unsupported = admonition_type in _admonitions_map.keys()
+    if strategy == "mix":
+        strategy = "classic" if unsupported else "github"
+    if strategy == "map":
+        strategy = "github"
+        if unsupported:
+            admonition_type = _admonitions_map[admonition_type]
+
+    # find the correct header
+    header_title = title or admonition_type
+    if strategy == "github":
+        header = f"[!{header_title.upper()}]"
+    elif strategy == "classic":
+        header = f"**{header_title.capitalize()}:**"
+    else:
+        assert_never(strategy)
+
+    # find body and construct admonition
+    body = _parse_multiple_nodes(admonition_node.children, config, document)
+    admonition = _format_as_quote(f"{header}\n\n{body}")
+    return admonition + "\n"
+
+
 @dataclass
 class ListContext:
+    """
+    Context node for traversal of lists in the rst doctree.
+
+    Converting lists (both bullet lists and enumerated lists) requires
+    knowledge about both the width of the enumerating item (a dash or a
+    number of various width), and the nesting level. The visitor pattern
+    typically keeps no memory of previously visited items, so it is in
+    itself not able to accurately parse lists by just pre- and appending
+    characters.
+
+    To provide the necessary information to the visitor, it builds a
+    stack of previously visited list blocks. Instances of this class
+    provide a convenient wrapper around all relevant information about
+    each visited list block.
+    """
+
     list_type: Literal["bullet", "enum"]
     counter: int = 1
     marker_width: int = 0
@@ -61,6 +157,18 @@ class SphinxRstVisitor(nodes.SparseNodeVisitor):
         self.body: list[str] = []
         self.current_block: str = "paragraph"  # visited block type
         self.list_context: list[ListContext] = []
+
+    def astext(self) -> str:
+        """
+        After traversal, return the parsed document as a string.
+
+        The method takes the collected pieces of the document from visitor
+        traversal of a doctree and concatenates them into a single string.
+
+        :return: The parsed document as a string in Github-flavored
+            Markdown format.
+        """
+        return "".join(self.body)
 
     # Below follow the node visitation methods that are required to match
     # the minimum specs of minidoc-md, i.e. the most common rst features
@@ -141,11 +249,7 @@ class SphinxRstVisitor(nodes.SparseNodeVisitor):
         children = [c for c in node.children if not isinstance(c, nodes.attribution)]
 
         # walk children to parse their content
-        sub_visitor = SphinxRstVisitor(self.config, self.document)
-        for child in children:
-            child.walkabout(sub_visitor)
-        quote = sub_visitor.astext()
-
+        quote = _parse_multiple_nodes(children, self.config, self.document)
         # replace line beginnings with carets:
         quote = _format_as_quote(quote)
 
@@ -205,22 +309,59 @@ class SphinxRstVisitor(nodes.SparseNodeVisitor):
         self.body.append(f"{indent}{marker}")
 
     # ADMONITIONS
+    def visit_attention(self, node: nodes.attention) -> None:
+        admonition = _render_admonition("attention", node, self.config, self.document)
+        self.body.append(admonition)
+        raise nodes.SkipNode
+
+    def visit_caution(self, node: nodes.caution) -> None:
+        admonition = _render_admonition("caution", node, self.config, self.document)
+        self.body.append(admonition)
+        raise nodes.SkipNode
+
+    def visit_danger(self, node: nodes.danger) -> None:
+        admonition = _render_admonition("danger", node, self.config, self.document)
+        self.body.append(admonition)
+        raise nodes.SkipNode
+
+    def visit_error(self, node: nodes.error) -> None:
+        admonition = _render_admonition("error", node, self.config, self.document)
+        self.body.append(admonition)
+        raise nodes.SkipNode
+
+    def visit_hint(self, node: nodes.hint) -> None:
+        admonition = _render_admonition("hint", node, self.config, self.document)
+        self.body.append(admonition)
+        raise nodes.SkipNode
+
+    def visit_important(self, node: nodes.important) -> None:
+        admonition = _render_admonition("important", node, self.config, self.document)
+        self.body.append(admonition)
+        raise nodes.SkipNode
+
+    def visit_note(self, node: nodes.note) -> None:
+        admonition = _render_admonition("note", node, self.config, self.document)
+        self.body.append(admonition)
+        raise nodes.SkipNode
+
+    def visit_tip(self, node: nodes.tip) -> None:
+        admonition = _render_admonition("tip", node, self.config, self.document)
+        self.body.append(admonition)
+        raise nodes.SkipNode
+
+    def visit_warning(self, node: nodes.warning) -> None:
+        admonition = _render_admonition("warning", node, self.config, self.document)
+        self.body.append(admonition)
+        raise nodes.SkipNode
+
+    def visit_admonition(self, node: nodes.admonition) -> None:
+        admonition = _render_admonition("admonition", node, self.config, self.document)
+        self.body.append(admonition)
+        raise nodes.SkipNode
 
     # EXCEPTIONAL NODES
     def visit_system_message(self, node: nodes.system_message) -> None:
         raise nodes.SkipNode
-
-    def astext(self) -> str:
-        """
-        After traversal, return the parsed document as a string.
-
-        The method takes the collected pieces of the document from visitor
-        traversal of a doctree and concatenates them into a single string.
-
-        :return: The parsed document as a string in Github-flavored
-            Markdown format.
-        """
-        return "".join(self.body)
 
 
 def parse_docstring(docstring: str, config: MinidocConfig) -> str:

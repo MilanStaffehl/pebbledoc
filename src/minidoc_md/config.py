@@ -9,4 +9,4 @@ from .types import AdmonitionStrategy
 
 @dataclass
 class MinidocConfig:
-    admonition_type: AdmonitionStrategy = "mix"
+    admonition_strategy: AdmonitionStrategy = "mix"
