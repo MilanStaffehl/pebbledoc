@@ -15,6 +15,7 @@ from typing import Literal, assert_never
 from docutils import core, nodes
 
 from .config import MinidocConfig
+from .roles import SphinxRef
 
 _admonitions_map = {
     "attention": "important",
@@ -372,6 +373,20 @@ class SphinxRstVisitor(nodes.SparseNodeVisitor):
     def visit_admonition(self, node: nodes.admonition) -> None:
         admonition = _render_admonition("admonition", node, self.config, self.document)
         self.body.append(admonition)
+        raise nodes.SkipNode
+
+    # CUSTOM NODES
+    def visit_SphinxRef(self, node: SphinxRef) -> None:
+        target = node.get("target", "")
+        # Turn into a valid GitHub refernce target: We interpret these
+        # roles as references to headers containing only the member name
+        # itself, not the full reference, so we normalize accordingly:
+        target = target.split(".")[-1]  # only member name
+        target = re.sub(r"[^a-z0-9\s\-_]", "", target.lower())
+        target = target.strip().replace(" ", "-")
+        target = target.replace("_", "-")
+        display_name = node.astext()
+        self.body.append(f"[`{display_name}`](#{target})")
         raise nodes.SkipNode
 
     # EXCEPTIONAL NODES

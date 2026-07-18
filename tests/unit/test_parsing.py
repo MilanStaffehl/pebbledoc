@@ -608,6 +608,80 @@ def test_parse_docstring_code_block_with_language() -> None:
     assert output == expected
 
 
+_SPHINX_ROLES = [
+    "mod",
+    "func",
+    "deco",
+    "data",
+    "const",
+    "class",
+    "meth",
+    "attr",
+    "type",
+    "exc",
+    "obj",
+]
+
+
+@pytest.mark.parametrize("role", _SPHINX_ROLES)
+def test_parse_docstring_sphinx_role_simple(role: str) -> None:
+    """Test parsing a simple sphinx role."""
+    default_config = config.MinidocConfig()
+    rst_str = f"This text contains a Sphinx ref (:{role}:`target_name`)."
+    output = parsing.parse_docstring(rst_str, default_config)
+    expected = "This text contains a Sphinx ref ([`target_name`](#target-name)).\n\n"
+    assert output == expected
+
+
+@pytest.mark.parametrize("role", _SPHINX_ROLES)
+def test_parse_docstring_sphinx_role_path(role: str) -> None:
+    """Test parsing a sphinx role with a full target path."""
+    default_config = config.MinidocConfig()
+    rst_str = (
+        f"This text contains a Sphinx ref (:{role}:`my_module.submodule.target_name`)."
+    )
+    output = parsing.parse_docstring(rst_str, default_config)
+    expected = (
+        "This text contains a Sphinx ref ([`my_module.submodule.target_name`]"
+        "(#target-name)).\n\n"
+    )
+    assert output == expected
+
+
+@pytest.mark.parametrize("role", _SPHINX_ROLES)
+def test_parse_docstring_sphinx_role_shorthand(role: str) -> None:
+    """Test parsing a sphinx role with a path, but shown shortened."""
+    default_config = config.MinidocConfig()
+    rst_str = (
+        f"This text contains a Sphinx ref (:{role}:`~my_module.submodule.target_name`)."
+    )
+    output = parsing.parse_docstring(rst_str, default_config)
+    expected = "This text contains a Sphinx ref ([`target_name`](#target-name)).\n\n"
+    assert output == expected
+
+
+@pytest.mark.parametrize("role", _SPHINX_ROLES)
+def test_parse_docstring_sphinx_disable_reference(role: str) -> None:
+    """Test parsing a sphinx role which disables reference."""
+    default_config = config.MinidocConfig()
+
+    # simple reference
+    rst_str = f"This text contains a Sphinx ref (:{role}:`!target_name`)."
+    output = parsing.parse_docstring(rst_str, default_config)
+    expected = "This text contains a Sphinx ref ([`target_name`](#)).\n\n"
+    assert output == expected
+
+    # full path
+    rst_str = (
+        f"This text contains a Sphinx ref (:{role}:`!my_module.submodule.target_name`)."
+    )
+    output = parsing.parse_docstring(rst_str, default_config)
+    expected = (
+        "This text contains a Sphinx ref ([`my_module.submodule.target_name`](#)).\n\n"
+    )
+    assert output == expected
+
+
 # == NESTED BLOCKS =====================================================
 # TODO: test nesting of blocks that mix self.current_block
 # TODO: mixing of block quotes and lists
