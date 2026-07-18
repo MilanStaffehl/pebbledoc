@@ -228,10 +228,13 @@ class SphinxRstVisitor(nodes.SparseNodeVisitor):
     def visit_reference(self, node: nodes.reference) -> None:
         hyperlink = node.get("refuri", None)
         reference = node.get("refid", None)
-        name = node["name"]
+        name = node.get("name", None)
         target = hyperlink if hyperlink else f"#{reference}"
         if target is None:
             raise ValueError(f"Invalid hyperlink: {node.pformat()}")
+        if name is None:
+            self.body.append(target)
+            raise nodes.SkipNode
         self.body.append(f"[{name}]({target})")
         raise nodes.SkipNode  # skip duplicating link name
 
