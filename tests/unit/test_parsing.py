@@ -424,7 +424,76 @@ def test_parse_docstring_admonition_plain(
     assert_admonition(header=header, actual=output)
 
 
+def test_parse_docstring_standalone_url() -> None:
+    """Test parsing a standalone URLs."""
+    default_config = config.MinidocConfig()
+    rst_str = "This is a paragraph including a link to https://github.com"
+    output = parsing.parse_docstring(rst_str, default_config)
+    # GitHub can auto-render valid links, nothing needs to be done.
+    expected = "This is a paragraph including a link to https://github.com\n\n"
+    assert output == expected
+
+
+def test_parse_docstring_external_hyperlink() -> None:
+    """Test parsing an external hyperlinks."""
+    default_config = config.MinidocConfig()
+    rst_str = "This text contains a link_ to GitHub.\n\n.. _link: https://github.com"
+    output = parsing.parse_docstring(rst_str, default_config)
+    expected = "This text contains a [link](https://github.com) to GitHub.\n\n"
+    assert output == expected
+
+    # link names with whitespace
+    default_config = config.MinidocConfig()
+    rst_str = (
+        "This text contains a `link to GitHub`_.\n\n"
+        ".. _link to GitHub: https://github.com"
+    )
+    output = parsing.parse_docstring(rst_str, default_config)
+    expected = "This text contains a [link to GitHub](https://github.com).\n\n"
+    assert output == expected
+
+
+def test_parse_docstring_internal_reference_target() -> None:
+    """Test parsing an internal reference to a dedicated target."""
+    default_config = config.MinidocConfig()
+    rst_str = (
+        "This text references an `internal reference`_.\n\n"
+        ".. _internal reference:\n\n"
+        "This is the target block."
+    )
+    output = parsing.parse_docstring(rst_str, default_config)
+    expected = (
+        "This text references an [internal reference](#internal-reference).\n\n"
+        '<a name="internal-reference"></a>\n'
+        "This is the target block.\n\n"
+    )
+    assert output == expected
+
+
+def test_parse_docstring_internal_reference_multiple_targets() -> None:
+    """Test parsing internal references targeting the same place."""
+    default_config = config.MinidocConfig()
+    rst_str = (
+        "This text references an `internal reference`_ and a "
+        "`second reference`_.\n\n"
+        ".. _internal reference:\n\n"
+        ".. _second reference:\n\n"
+        "This is the target block."
+    )
+    output = parsing.parse_docstring(rst_str, default_config)
+    expected = (
+        "This text references an [internal reference](#internal-reference) "
+        "and a [second reference](#second-reference).\n\n"
+        '<a name="internal-reference"></a>\n'
+        '<a name="second-reference"></a>\n'
+        "This is the target block.\n\n"
+    )
+    assert output == expected
+
+
+# == NESTED BLOCKS =====================================================
 # TODO: test nesting of blocks that mix self.current_block
+# TODO: mixing of block quotes and lists
 
 
 # == FULL DOCSTRING ====================================================
@@ -433,5 +502,4 @@ def test_parse_docstring(mock_docstring: str, expected_output_base: str) -> None
     default_config = config.MinidocConfig()
     output = parsing.parse_docstring(mock_docstring, default_config)
     assert isinstance(output, str)
-    print(output)
     assert output == expected_output_base

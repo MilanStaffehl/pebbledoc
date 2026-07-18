@@ -224,6 +224,21 @@ class SphinxRstVisitor(nodes.SparseNodeVisitor):
     def depart_math_block(self, node: nodes.math_block) -> None:
         self.body.append("\n$$\n\n")
 
+    def visit_reference(self, node: nodes.reference) -> None:
+        hyperlink = node.get("refuri", None)
+        reference = node.get("refid", None)
+        name = node["name"]
+        target = hyperlink if hyperlink else f"#{reference}"
+        if target is None:
+            raise ValueError(f"Invalid hyperlink: {node.pformat()}")
+        self.body.append(f"[{name}]({target})")
+        raise nodes.SkipNode  # skip duplicating link name
+
+    def visit_target(self, node: nodes.target) -> None:
+        ref_id = node.get("refid", None)
+        if ref_id is not None:
+            self.body.append(f'<a name="{ref_id}"></a>\n')
+
     # BLOCKS
     def visit_literal_block(self, node: nodes.literal_block) -> None:
         classes = node["classes"]
@@ -383,7 +398,7 @@ def parse_docstring(docstring: str, config: MinidocConfig) -> str:
     doctree = core.publish_doctree(docstring, settings_overrides=settings)
     # dump(doctree)
     # print("\n")
-    # print(doctree.pformat())
+    print(doctree.pformat())
     visitor = SphinxRstVisitor(config, doctree)
     doctree.walkabout(visitor)
     return visitor.astext()
