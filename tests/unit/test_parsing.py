@@ -491,6 +491,17 @@ def test_parse_docstring_internal_reference_multiple_targets() -> None:
     assert output == expected
 
 
+def test_parse_docstring_anonymous_reference() -> None:
+    """Test parsing an anonymous reference."""
+    default_config = config.MinidocConfig()
+    rst_str = (
+        "This text contains an `anonymous reference`__.\n\n.. __: https://github.com"
+    )
+    output = parsing.parse_docstring(rst_str, default_config)
+    expected = "This text contains an [anonymous reference](https://github.com).\n\n"
+    assert output == expected
+
+
 # == NESTED BLOCKS =====================================================
 # TODO: test nesting of blocks that mix self.current_block
 # TODO: mixing of block quotes and lists

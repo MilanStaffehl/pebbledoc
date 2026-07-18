@@ -236,7 +236,7 @@ class SphinxRstVisitor(nodes.SparseNodeVisitor):
 
     def visit_target(self, node: nodes.target) -> None:
         ref_id = node.get("refid", None)
-        if ref_id is not None:
+        if ref_id is not None:  # render only internal targets
             self.body.append(f'<a name="{ref_id}"></a>\n')
 
     # BLOCKS
