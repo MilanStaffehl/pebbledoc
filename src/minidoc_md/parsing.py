@@ -7,6 +7,7 @@ the :func:`parse_docstring` function. It takes a docstring and parses it into
 an equivalent Markdown string.
 """
 
+import re
 from dataclasses import dataclass
 from typing import Literal, assert_never
 
@@ -21,6 +22,20 @@ _admonitions_map = {
     "hint": "tip",
     "seealso": "note",
 }
+
+
+def _format_as_quote(text: str) -> str:
+    """
+    Format the text as a block quote, by prefixing every line with a ``>``.
+
+    :param text: Arbitrary text to format as block quote. Should already
+        be in rst format.
+    :return: The ``text`` formatted as a block quote.
+    """
+    text = text.removesuffix("\n")
+    text = re.sub(r"(.+\n)", r"> \1", text)
+    text = re.sub(r"\n\n", r"\n>\n", text)
+    return text
 
 
 @dataclass
@@ -88,6 +103,12 @@ class SphinxRstVisitor(nodes.SparseNodeVisitor):
     def depart_literal(self, node: nodes.literal) -> None:
         self.body.append("`")
 
+    def visit_title_reference(self, node: nodes.title_reference) -> None:
+        self.body.append("`")  # interpreted text treated as literal
+
+    def depart_title_reference(self, node: nodes.title_reference) -> None:
+        self.body.append("`")
+
     # DIRECTIVES
     def visit_math_block(self, node: nodes.math_block) -> None:
         self.body.append("$$\n")
@@ -114,6 +135,37 @@ class SphinxRstVisitor(nodes.SparseNodeVisitor):
 
     def depart_doctest_block(self, node: nodes.doctest_block) -> None:
         self.body.append("\n```\n\n")
+
+    def visit_block_quote(self, node: nodes.block_quote) -> None:
+        attribution = node.next_node(nodes.attribution)
+        children = [c for c in node.children if not isinstance(c, nodes.attribution)]
+
+        # walk children to parse their content
+        sub_visitor = SphinxRstVisitor(self.config, self.document)
+        for child in children:
+            child.walkabout(sub_visitor)
+        quote = sub_visitor.astext()
+
+        # replace line beginnings with carets:
+        quote = _format_as_quote(quote)
+
+        # render attribution if present
+        if attribution is not None:
+            quote += f">\n> -- {attribution.astext()}\n\n"
+        else:
+            quote += "\n"
+
+        self.body.append(quote)
+        raise nodes.SkipNode
+
+    def depart_block_quote(self, node: nodes.block_quote) -> None:
+        self.current_block = "paragraph"
+
+    def visit_comment(self, node: nodes.comment) -> None:
+        self.body.append("<!-- ")
+
+    def depart_comment(self, node: nodes.comment) -> None:
+        self.body.append(" -->\n\n")
 
     # LISTS AND ENUMERATIONS
     def visit_bullet_list(self, node: nodes.bullet_list) -> None:
