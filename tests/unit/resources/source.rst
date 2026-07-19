@@ -9,10 +9,10 @@ The refinement minimizes the residual
 
 .. math::
 
-    \\| A x - b \\|_2^2 + \\lambda \\| x \\|_2^2
+    \| A x - b \|_2^2 + \lambda \| x \|_2^2
 
-where :math:`\\lambda` is the regularization ``threshold`` parameter. For a
-single element, the update rule is :math:`x_{i+1} = x_i - \\alpha \\nabla f(x_i)`.
+where :math:`\lambda` is the regularization ``threshold`` parameter. For a
+single element, the update rule is :math:`x_{i+1} = x_i - \alpha \nabla f(x_i)`.
 
 Typical usage:
 
@@ -53,7 +53,6 @@ Related considerations:
 - See also `related discussion <#notes>`_ below
 
 .. note::
-    :collapsible: open
 
    This function mutates ``data`` in place when ``normalize=True``.
    Pass a copy if you need to preserve the original matrix.

@@ -175,6 +175,8 @@ def _render_admonition(
     else:
         assert_never(strategy)
 
+    # remove Sphinx-specific :collapsible: option
+
     # find body and construct admonition
     body = _parse_multiple_nodes(admonition_node.children, config, document)
     admonition = _format_as_quote(f"{header}\n\n{body}")
@@ -541,6 +543,14 @@ def parse_docstring(docstring: str, config: MinidocConfig) -> str:
     """
     Parse rst docstring to Github-flavored Markdown string.
 
+    .. note::
+
+        The returned string always ends on an empty line, i.e. the last
+        character is always a single line break. Even when the last node
+        of the doctree for the docstring is a paragraph, and paragraphs
+        are rendered with a double line break at the end, this double
+        line break is normalized away into a single empty line.
+
     :param docstring: Docstring of the member to parse, already normalized
         using ``inspect.cleandoc()``.
     :param config: MinidocConfig object instantiated with the user-specified
@@ -554,15 +564,7 @@ def parse_docstring(docstring: str, config: MinidocConfig) -> str:
         "raw_enabled": False,
     }
     doctree = core.publish_doctree(docstring, settings_overrides=settings)
-    # dump(doctree)
-    # print("\n")
-    print(doctree.pformat())
     visitor = SphinxRstVisitor(config, doctree)
     doctree.walkabout(visitor)
-    return visitor.astext()
-
-
-def dump(node, indent=0):
-    print(" " * indent, type(node).__name__)
-    for child in node.children:
-        dump(child, indent + 2)
+    md_text = visitor.astext().rstrip("\n\n")
+    return md_text + "\n"

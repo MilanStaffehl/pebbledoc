@@ -12,7 +12,7 @@ $$
 $$
 
 where $\lambda$ is the regularization `threshold` parameter. For a
-single element, the update rule is $x_{i+1} = x_i - \\alpha \\nabla f(x_i)$.
+single element, the update rule is $x_{i+1} = x_i - \alpha \nabla f(x_i)$.
 
 Typical usage:
 

@@ -19,6 +19,13 @@ _ADMONITION_NAMES = [
     "warning",
 ]
 
+_ADMONITION_TEST_DATA = (
+    ("classic", "**Custom title:**"),
+    ("github", "[!CUSTOM TITLE]"),
+    ("mix", "**Custom title:**"),
+    ("map", "[!NOTE]"),
+)
+
 
 @pytest.fixture
 def mock_docstring() -> str:
@@ -42,7 +49,7 @@ def test_parse_docstring_paragraph() -> None:
     default_config = config.MinidocConfig()
     rst_str = "This is a simple paragraph."
     output = parsing.parse_docstring(rst_str, default_config)
-    expected = "This is a simple paragraph.\n\n"
+    expected = "This is a simple paragraph.\n"
     assert output == expected
 
 
@@ -51,7 +58,7 @@ def test_parse_docstring_paragraph_with_line_break() -> None:
     default_config = config.MinidocConfig()
     rst_str = "This is a simple paragraph.\nIt is wrapped at the line end."
     output = parsing.parse_docstring(rst_str, default_config)
-    expected = "This is a simple paragraph.\nIt is wrapped at the line end.\n\n"
+    expected = "This is a simple paragraph.\nIt is wrapped at the line end.\n"
     assert output == expected
 
 
@@ -60,7 +67,7 @@ def test_parse_docstring_emphasize() -> None:
     default_config = config.MinidocConfig()
     rst_str = "This paragraph has *emphasized* text."
     output = parsing.parse_docstring(rst_str, default_config)
-    expected = "This paragraph has *emphasized* text.\n\n"
+    expected = "This paragraph has *emphasized* text.\n"
     assert output == expected
 
 
@@ -69,7 +76,7 @@ def test_parse_docstring_strong() -> None:
     default_config = config.MinidocConfig()
     rst_str = "This paragraph has **strong emphasize**."
     output = parsing.parse_docstring(rst_str, default_config)
-    expected = "This paragraph has **strong emphasize**.\n\n"
+    expected = "This paragraph has **strong emphasize**.\n"
     assert output == expected
 
 
@@ -78,7 +85,7 @@ def test_parse_docstring_interpreted_text() -> None:
     default_config = config.MinidocConfig()
     rst_str = "This text contains `interpreted` text."
     output = parsing.parse_docstring(rst_str, default_config)
-    expected = "This text contains `interpreted` text.\n\n"
+    expected = "This text contains `interpreted` text.\n"
     assert output == expected
 
 
@@ -87,7 +94,7 @@ def test_parse_docstring_simple_bullet_list() -> None:
     default_config = config.MinidocConfig()
     rst_str = "- List item one.\n- List item two.\n- List item three.\n"
     output = parsing.parse_docstring(rst_str, default_config)
-    assert output == rst_str + "\n"  # result is identical, plus line break
+    assert output == rst_str
 
 
 def test_parse_docstring_nested_bullet_list() -> None:
@@ -109,7 +116,7 @@ def test_parse_docstring_nested_bullet_list() -> None:
         "- List item two.\n"
         "  - Nested item one.\n"
         "  - Nested item two.\n"
-        "- List item three.\n\n"
+        "- List item three.\n"
     )
     assert output == expected
 
@@ -119,7 +126,7 @@ def test_parse_docstring_simple_enumerated_list() -> None:
     default_config = config.MinidocConfig()
     rst_str = "1. List item one.\n2. List item two.\n3. List item three.\n"
     output = parsing.parse_docstring(rst_str, default_config)
-    assert output == rst_str + "\n"  # result is identical, plus line break
+    assert output == rst_str
 
 
 def test_parse_docstring_nested_enumerated_list() -> None:
@@ -141,7 +148,7 @@ def test_parse_docstring_nested_enumerated_list() -> None:
         "2. List item two.\n"
         "   1. Nested item one.\n"
         "   2. Nested item two.\n"
-        "3. List item three.\n\n"
+        "3. List item three.\n"
     )
     assert output == expected
 
@@ -151,7 +158,7 @@ def test_parse_docstring_enumerated_list_later_start() -> None:
     default_config = config.MinidocConfig()
     rst_str = "4. List item one.\n5. List item two.\n6. List item three.\n"
     output = parsing.parse_docstring(rst_str, default_config)
-    assert output == rst_str + "\n"  # result is identical, plus line break
+    assert output == rst_str
 
 
 def test_parse_docstring_mixed_nested_lists() -> None:
@@ -175,7 +182,7 @@ def test_parse_docstring_mixed_nested_lists() -> None:
         "2. List item two.\n"
         "   - Nested item one.\n"
         "   - Nested item two.\n"
-        "3. List item three.\n\n"
+        "3. List item three.\n"
     )
     assert output == expected
 
@@ -196,7 +203,7 @@ def test_parse_docstring_mixed_nested_lists() -> None:
         "- List item two.\n"
         "  1. Nested item one.\n"
         "  2. Nested item two.\n"
-        "- List item three.\n\n"
+        "- List item three.\n"
     )
     assert output == expected
 
@@ -217,7 +224,7 @@ def test_parse_docstring_literal_block() -> None:
         "This is a literal block.\n"
         "It should render as such.\n"
         "```\n\n"
-        "This is a closing paragraph.\n\n"
+        "This is a closing paragraph.\n"
     )
     assert output == expected
 
@@ -241,7 +248,7 @@ def test_parse_docstring_block_quote() -> None:
         ">\n"
         "> This is a second paragraph in\n"
         "> the block quote.\n\n"
-        "This is a closing paragraph.\n\n"
+        "This is a closing paragraph.\n"
     )
     assert output == expected
 
@@ -263,7 +270,7 @@ def test_parse_docstring_block_quote_with_attribution() -> None:
         "> It should render as such.\n"
         ">\n"
         "> -- Albert Einstein\n\n"
-        "This is a closing paragraph.\n\n"
+        "This is a closing paragraph.\n"
     )
     assert output == expected
 
@@ -288,7 +295,7 @@ def test_parse_docstring_doctest_block() -> None:
         ">>> x.sum()\n"
         "6.0\n"
         "```\n\n"
-        "Here is a follow-up paragraph.\n\n"
+        "Here is a follow-up paragraph.\n"
     )
     assert output == expected
 
@@ -305,7 +312,7 @@ def test_parse_docstring_comment() -> None:
     expected = (
         "This is a preceding paragraph.\n\n"
         "<!-- This is a comment block. -->\n\n"
-        "This is a closing paragraph.\n\n"
+        "This is a closing paragraph.\n"
     )
     assert output == expected
 
@@ -316,7 +323,7 @@ def test_parse_docstring_standalone_url() -> None:
     rst_str = "This is a paragraph including a link to https://github.com"
     output = parsing.parse_docstring(rst_str, default_config)
     # GitHub can auto-render valid links, nothing needs to be done.
-    expected = "This is a paragraph including a link to https://github.com\n\n"
+    expected = "This is a paragraph including a link to https://github.com\n"
     assert output == expected
 
 
@@ -325,7 +332,7 @@ def test_parse_docstring_external_hyperlink() -> None:
     default_config = config.MinidocConfig()
     rst_str = "This text contains a link_ to GitHub.\n\n.. _link: https://github.com"
     output = parsing.parse_docstring(rst_str, default_config)
-    expected = "This text contains a [link](https://github.com) to GitHub.\n\n"
+    expected = "This text contains a [link](https://github.com) to GitHub.\n"
     assert output == expected
 
     # link names with whitespace
@@ -335,7 +342,7 @@ def test_parse_docstring_external_hyperlink() -> None:
         ".. _link to GitHub: https://github.com"
     )
     output = parsing.parse_docstring(rst_str, default_config)
-    expected = "This text contains a [link to GitHub](https://github.com).\n\n"
+    expected = "This text contains a [link to GitHub](https://github.com).\n"
     assert output == expected
 
 
@@ -351,7 +358,7 @@ def test_parse_docstring_internal_reference_target() -> None:
     expected = (
         "This text references an [internal reference](#internal-reference).\n\n"
         '<a name="internal-reference"></a>\n'
-        "This is the target block.\n\n"
+        "This is the target block.\n"
     )
     assert output == expected
 
@@ -372,7 +379,7 @@ def test_parse_docstring_internal_reference_multiple_targets() -> None:
         "and a [second reference](#second-reference).\n\n"
         '<a name="internal-reference"></a>\n'
         '<a name="second-reference"></a>\n'
-        "This is the target block.\n\n"
+        "This is the target block.\n"
     )
     assert output == expected
 
@@ -384,7 +391,7 @@ def test_parse_docstring_anonymous_reference() -> None:
         "This text contains an `anonymous reference`__.\n\n.. __: https://github.com"
     )
     output = parsing.parse_docstring(rst_str, default_config)
-    expected = "This text contains an [anonymous reference](https://github.com).\n\n"
+    expected = "This text contains an [anonymous reference](https://github.com).\n"
     assert output == expected
 
 
@@ -402,7 +409,7 @@ def assert_admonition(header: str, actual: str) -> None:
         "> This is the second line of the body.\n"
         ">\n"
         "> This is a second paragraph.\n\n"
-        "This is a closing paragraph.\n\n"
+        "This is a closing paragraph.\n"
     )
     assert actual == expected
 
@@ -488,15 +495,7 @@ def test_parse_docstring_admonitions_map(
     assert_admonition(header=header, actual=output)
 
 
-_TEST_DATA = (
-    ("classic", "**Custom title:**"),
-    ("github", "[!CUSTOM TITLE]"),
-    ("mix", "**Custom title:**"),
-    ("map", "[!NOTE]"),
-)
-
-
-@pytest.mark.parametrize("strategy,header", _TEST_DATA)
+@pytest.mark.parametrize("strategy,header", _ADMONITION_TEST_DATA)
 def test_parse_docstring_admonition_plain(
     strategy: types.AdmonitionStrategy, header: str
 ) -> None:
@@ -512,9 +511,6 @@ def test_parse_docstring_admonition_plain(
     )
     output = parsing.parse_docstring(rst_str, cfg)
     assert_admonition(header=header, actual=output)
-
-
-# TODO: test that options are stripped from admonition (such as :collapsible:)
 
 
 # == FIELD LISTS =======================================================
@@ -540,7 +536,7 @@ def test_parse_docstring_param_field_list() -> None:
         "**Raises:**\n\n"
         "- `KeyError`: When a key is not found in a `dict`.\n"
         "- `ValueError`: When the math ain't mathin.\n\n"
-        "**Returns:**\n\nA series of return values.\n\n"
+        "**Returns:**\n\nA series of return values.\n"
     )
     assert output == expected
 
@@ -567,7 +563,7 @@ def test_parse_docstring_param_field_list_inline_markup() -> None:
         "longer and more *extravagant*! It also contains a list:\n"
         "  - Bullet list item one.\n"
         "  - Bullet list item two.\n\n"
-        "**Returns:**\n\nA series of return values.\n\n"
+        "**Returns:**\n\nA series of return values.\n"
     )
     assert output == expected
 
@@ -585,7 +581,7 @@ def test_parse_docstring_param_field_list_return() -> None:
         "This is the last paragraph of the docstring.\n\n"
         "**Parameters:**\n\n"
         "- `a`: This is a description of parameter `a`.\n\n"
-        "**Returns:**\n\nA series of return values.\n\n"
+        "**Returns:**\n\nA series of return values.\n"
     )
     assert output == expected
 
@@ -612,7 +608,7 @@ def test_parse_docstring_regular_field_list() -> None:
         "- **author:** Author McAuthorface\n"
         "- **year:** 2026\n"
         "- **publisher:** Self-published\n\n"
-        "This is a follow-up paragraph.\n\n"
+        "This is a follow-up paragraph.\n"
     )
     assert output == expected
 
@@ -647,7 +643,7 @@ def test_parse_docstring_param_field_list_multiple_returns() -> None:
         "**Parameters:**\n\n"
         "- `a`: This is a description of parameter `a`.\n\n"
         "**Returns:**\n\nA series of return values.\n"
-        "Another note is that the values are important.\n\n"
+        "Another note is that the values are important.\n"
     )
     assert output == expected
 
@@ -658,7 +654,7 @@ def test_parse_docstring_math_inline() -> None:
     default_config = config.MinidocConfig()
     rst_str = "This text contains math: :math:`\\lambda = 2`."
     output = parsing.parse_docstring(rst_str, default_config)
-    expected = "This text contains math: $\\lambda = 2$.\n\n"
+    expected = "This text contains math: $\\lambda = 2$.\n"
     assert output == expected
 
 
@@ -677,7 +673,7 @@ def test_parse_docstring_math_block() -> None:
         "$$\n"
         "\\lambda = x^2 - \\sqrt{2} y\n"
         "$$\n\n"
-        "This is a closing paragraph.\n\n"
+        "This is a closing paragraph.\n"
     )
     assert output == expected
 
@@ -687,7 +683,7 @@ def test_parse_docstring_code_inline() -> None:
     default_config = config.MinidocConfig()
     rst_str = "This text contains :code:`inline code`."
     output = parsing.parse_docstring(rst_str, default_config)
-    expected = "This text contains `inline code`.\n\n"
+    expected = "This text contains `inline code`.\n"
     assert output == expected
 
 
@@ -699,7 +695,7 @@ def test_parse_docstring_code_block_no_language() -> None:
         "```\n"
         "pip install minidoc-md\n"
         "```\n\n"
-        "This is a closing paragraph.\n\n"
+        "This is a closing paragraph.\n"
     )
 
     # rst standard directive
@@ -731,7 +727,7 @@ def test_parse_docstring_code_block_with_language() -> None:
         "```Python\n"
         "import numpy as np\n"
         "```\n\n"
-        "This is a closing paragraph.\n\n"
+        "This is a closing paragraph.\n"
     )
 
     # rst standard directive
@@ -776,7 +772,7 @@ def test_parse_docstring_sphinx_role_simple(role: str) -> None:
     default_config = config.MinidocConfig()
     rst_str = f"This text contains a Sphinx ref (:{role}:`target_name`)."
     output = parsing.parse_docstring(rst_str, default_config)
-    expected = "This text contains a Sphinx ref ([`target_name`](#target-name)).\n\n"
+    expected = "This text contains a Sphinx ref ([`target_name`](#target-name)).\n"
     assert output == expected
 
 
@@ -790,7 +786,7 @@ def test_parse_docstring_sphinx_role_path(role: str) -> None:
     output = parsing.parse_docstring(rst_str, default_config)
     expected = (
         "This text contains a Sphinx ref ([`my_module.submodule.target_name`]"
-        "(#target-name)).\n\n"
+        "(#target-name)).\n"
     )
     assert output == expected
 
@@ -803,7 +799,7 @@ def test_parse_docstring_sphinx_role_shorthand(role: str) -> None:
         f"This text contains a Sphinx ref (:{role}:`~my_module.submodule.target_name`)."
     )
     output = parsing.parse_docstring(rst_str, default_config)
-    expected = "This text contains a Sphinx ref ([`target_name`](#target-name)).\n\n"
+    expected = "This text contains a Sphinx ref ([`target_name`](#target-name)).\n"
     assert output == expected
 
 
@@ -815,7 +811,7 @@ def test_parse_docstring_sphinx_disable_reference(role: str) -> None:
     # simple reference
     rst_str = f"This text contains a Sphinx ref (:{role}:`!target_name`)."
     output = parsing.parse_docstring(rst_str, default_config)
-    expected = "This text contains a Sphinx ref ([`target_name`](#)).\n\n"
+    expected = "This text contains a Sphinx ref ([`target_name`](#)).\n"
     assert output == expected
 
     # full path
@@ -824,7 +820,7 @@ def test_parse_docstring_sphinx_disable_reference(role: str) -> None:
     )
     output = parsing.parse_docstring(rst_str, default_config)
     expected = (
-        "This text contains a Sphinx ref ([`my_module.submodule.target_name`](#)).\n\n"
+        "This text contains a Sphinx ref ([`my_module.submodule.target_name`](#)).\n"
     )
     assert output == expected
 
@@ -837,7 +833,7 @@ def test_parse_docstring_version_added() -> None:
         "> :heavy_plus_sign: Added in version 1.0.0: This is the feature "
         "that was added.\n\n"
         "> :heavy_plus_sign: Added in version 2.0.0\n\n"
-        "This is a closing paragraph.\n\n"
+        "This is a closing paragraph.\n"
     )
 
     # old version
@@ -871,7 +867,7 @@ def test_parse_docstring_version_changed() -> None:
         "> :recycle: Changed in version 1.0.0: This is the feature "
         "that was changed.\n\n"
         "> :recycle: Changed in version 2.0.0\n\n"
-        "This is a closing paragraph.\n\n"
+        "This is a closing paragraph.\n"
     )
 
     # old version
@@ -905,7 +901,7 @@ def test_parse_docstring_version_deprecated() -> None:
         "> :warning: Deprecated since version 1.0.0: This is the feature "
         "that was deprecated.\n\n"
         "> :warning: Deprecated since version 2.0.0\n\n"
-        "This is a closing paragraph.\n\n"
+        "This is a closing paragraph.\n"
     )
 
     # old version
@@ -939,7 +935,7 @@ def test_parse_docstring_version_removed() -> None:
         "> :x: Removed in version 1.0.0: This is the feature "
         "that was removed.\n\n"
         "> :x: Removed in version 2.0.0\n\n"
-        "This is a closing paragraph.\n\n"
+        "This is a closing paragraph.\n"
     )
 
     # old version
@@ -966,7 +962,7 @@ def test_parse_docstring_version_removed() -> None:
 
 
 # == NESTED BLOCKS =====================================================
-# TODO: mixing of block quotes, field lists and lists
+# TODO: mixing of block quotes, field lists, version notices, admonitions and lists
 
 
 # == FULL DOCSTRING ====================================================
