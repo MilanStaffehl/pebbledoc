@@ -7,6 +7,7 @@ the :func:`parse_docstring` function. It takes a docstring and parses it into
 an equivalent Markdown string.
 """
 
+import copy
 import re
 from collections.abc import Iterable
 from dataclasses import dataclass
@@ -27,6 +28,51 @@ _admonitions_map = {
 }
 
 
+class MixedFieldListError(Exception):
+    """
+    Raised when a field list contains mixed fields.
+
+    Fields are considered mixed when the field list contains both the
+    Sphinx-specific parameter field list names ``param``, ``return``,
+    ``returns``, ``raise``, or ``raises``, while also containing other,
+    non-specific fields.
+    """
+
+    pass
+
+
+@dataclass
+class ListContext:
+    """
+    Context node for traversal of lists in the rst doctree.
+
+    Converting lists (both bullet lists and enumerated lists) requires
+    knowledge about both the width of the enumerating item (a dash or a
+    number of various width), and the nesting level. The visitor pattern
+    typically keeps no memory of previously visited items, so it is in
+    itself not able to accurately parse lists by just pre- and appending
+    characters.
+
+    To provide the necessary information to the visitor, it builds a
+    stack of previously visited list blocks. Instances of this class
+    provide a convenient wrapper around all relevant information about
+    each visited list block.
+    """
+
+    list_type: Literal["bullet", "enum"]
+    counter: int = 1
+    marker_width: int = 0
+
+    def __post_init__(self) -> None:
+        """Automatically determine initial marker width."""
+        if self.list_type == "bullet":
+            self.marker_width = 2
+        elif self.list_type == "enum":
+            self.marker_width = 3
+        else:
+            raise ValueError(f"Invalid list_type: {self.list_type}")
+
+
 def _format_as_quote(text: str) -> str:
     """
     Format the text as a block quote, by prefixing every line with a ``>``.
@@ -45,6 +91,8 @@ def _parse_multiple_nodes(
     children: Iterable[nodes.Node],
     config: MinidocConfig,
     document: nodes.document,
+    current_block_context: str | None = None,
+    current_list_context: list[ListContext] | None = None,
 ) -> str:
     """
     Parse an iterable of nodes into Markdown format.
@@ -54,9 +102,22 @@ def _parse_multiple_nodes(
     :param config: The minidoc's configuration object for how to parse
         the nodes.
     :param document: The document to use for the visitor object.
+    :param current_block_context: A context to add to the block content of the
+        new visitor. This is useful to set the block context when the
+        children nodes appear inside a context that is not a simple
+        paragraph and therefore need to be formatted differently.
+    :param current_list_context: The current list context. This is useful
+        to ensure that lists inside the children nodes are rendered
+        correctly when they are already nested inside a list. It is best
+        to pass a copy of the original visitors list context, as this
+        context will be altered.
     :return: The nodes parsed as Markdown.
     """
     sub_visitor = SphinxRstVisitor(config, document)
+    if current_block_context is not None:
+        sub_visitor.block_context.append(current_block_context)
+    if current_list_context is not None:
+        sub_visitor.list_context = current_list_context
     for child in children:
         child.walkabout(sub_visitor)
     return sub_visitor.astext()
@@ -119,45 +180,13 @@ def _render_admonition(
     return admonition + "\n"
 
 
-@dataclass
-class ListContext:
-    """
-    Context node for traversal of lists in the rst doctree.
-
-    Converting lists (both bullet lists and enumerated lists) requires
-    knowledge about both the width of the enumerating item (a dash or a
-    number of various width), and the nesting level. The visitor pattern
-    typically keeps no memory of previously visited items, so it is in
-    itself not able to accurately parse lists by just pre- and appending
-    characters.
-
-    To provide the necessary information to the visitor, it builds a
-    stack of previously visited list blocks. Instances of this class
-    provide a convenient wrapper around all relevant information about
-    each visited list block.
-    """
-
-    list_type: Literal["bullet", "enum"]
-    counter: int = 1
-    marker_width: int = 0
-
-    def __post_init__(self) -> None:
-        """Automatically determine initial marker width."""
-        if self.list_type == "bullet":
-            self.marker_width = 2
-        elif self.list_type == "enum":
-            self.marker_width = 3
-        else:
-            raise ValueError(f"Invalid list_type: {self.list_type}")
-
-
 class SphinxRstVisitor(nodes.SparseNodeVisitor):
     def __init__(self, config: MinidocConfig, document: nodes.document) -> None:
         super().__init__(document)
         self.config: MinidocConfig = config
         self.body: list[str] = []
-        self.current_block: str = "paragraph"  # visited block type
-        self.list_context: list[ListContext] = []
+        self.block_context: list[str] = ["paragraph"]  # visited block type
+        self.list_context: list[ListContext] = []  # list nesting level
 
     def astext(self) -> str:
         """
@@ -180,13 +209,18 @@ class SphinxRstVisitor(nodes.SparseNodeVisitor):
         pass
 
     def depart_paragraph(self, node: nodes.paragraph) -> None:
-        if self.current_block == "paragraph":
+        current_block = self.block_context[-1]
+        if current_block == "paragraph":
             self.body.append("\n\n")
         else:
             self.body.append("\n")
 
     def visit_Text(self, node: nodes.Text) -> None:
-        self.body.append(node.astext())
+        text = node.astext()
+        # remove stylistic line breaks (e.g. wrapped lines) from field lists
+        if self.block_context[-1] == "field_list":
+            text = text.replace("\n", " ")
+        self.body.append(text)
 
     def visit_emphasis(self, node: nodes.emphasis) -> None:
         self.body.append("*")
@@ -231,7 +265,7 @@ class SphinxRstVisitor(nodes.SparseNodeVisitor):
         name = node.get("name", None)
         target = hyperlink if hyperlink else f"#{reference}"
         if target is None:
-            raise ValueError(f"Invalid hyperlink: {node.pformat()}")
+            target = "#"  # link with no target
         if name is None:
             self.body.append(target)
             raise nodes.SkipNode
@@ -281,9 +315,6 @@ class SphinxRstVisitor(nodes.SparseNodeVisitor):
         self.body.append(quote)
         raise nodes.SkipNode
 
-    def depart_block_quote(self, node: nodes.block_quote) -> None:
-        self.current_block = "paragraph"
-
     def visit_comment(self, node: nodes.comment) -> None:
         self.body.append("<!-- ")
 
@@ -292,24 +323,24 @@ class SphinxRstVisitor(nodes.SparseNodeVisitor):
 
     # LISTS AND ENUMERATIONS
     def visit_bullet_list(self, node: nodes.bullet_list) -> None:
-        self.current_block = "bullet_list"
+        self.block_context.append("bullet_list")
         self.list_context.append(ListContext("bullet"))
 
     def depart_bullet_list(self, node: nodes.bullet_list) -> None:
         self.list_context.pop()
+        self.block_context.pop()
         if not self.list_context:
-            self.current_block = "paragraph"
             self.body.append("\n")
 
     def visit_enumerated_list(self, node: nodes.enumerated_list) -> None:
-        self.current_block = "enumerated_list"
+        self.block_context.append("enumerated_list")
         start = node.get("start", 1)
         self.list_context.append(ListContext("enum", start))
 
     def depart_enumerated_list(self, node: nodes.enumerated_list) -> None:
         self.list_context.pop()
+        self.block_context.pop()
         if not self.list_context:
-            self.current_block = "paragraph"
             self.body.append("\n")
 
     def visit_list_item(self, node: nodes.list_item) -> None:
@@ -385,12 +416,90 @@ class SphinxRstVisitor(nodes.SparseNodeVisitor):
         # roles as references to headers containing only the member name
         # itself, not the full reference, so we normalize accordingly:
         target = target.split(".")[-1]  # only member name
+        target = target.removeprefix("_")  # private methods need to be stripped
         target = re.sub(r"[^a-z0-9\s\-_]", "", target.lower())
         target = target.strip().replace(" ", "-")
         target = target.replace("_", "-")
         display_name = node.astext()
         self.body.append(f"[`{display_name}`](#{target})")
         raise nodes.SkipNode
+
+    # FIELD LISTS
+    def visit_field_list(self, node: nodes.field_list) -> None:
+        # since we render field lists as bullet lists, we need to add a
+        # corresponding list context elem,ent to the stack:
+        self.list_context.append(ListContext("bullet"))
+        self.block_context.append("field_list")
+        groups = {"Parameters": [], "Raises": [], "Returns": []}
+        normal_fields = []
+
+        for field_node in node.findall(nodes.field):
+            name_node = field_node.next_node(nodes.field_name)
+            body_node = field_node.next_node(nodes.field_body)
+
+            # should never happen, but the type system technically allows it:
+            if name_node is None:
+                raise AttributeError(
+                    f"Field node missing field name: {field_node.pformat()}"
+                )
+
+            field_name = name_node.astext()
+            name_parts = field_name.split(maxsplit=1)
+            kind = name_parts[0]
+            arg_name = name_parts[1] if len(name_parts) > 1 else ""
+            identifier = f"`{arg_name}`: " if arg_name else ""
+
+            # parse body text as regular rst, if one exists
+            if body_node is None:
+                body = ""
+            else:
+                body = _parse_multiple_nodes(
+                    body_node.children,
+                    self.config,
+                    self.document,
+                    current_block_context="field_list",
+                    current_list_context=copy.copy(self.list_context),
+                )
+            # Nodes with body have the body as a paragraph node and as such
+            # end on a line break. We implicitly rely on this later, so we
+            # must add a line break for empty bodies here as well:
+            if not body:
+                body = "\n"
+
+            # cover known cases
+            if kind == "param":
+                groups["Parameters"].append(f"- {identifier}{body}")
+            elif kind in ["raise", "raises"]:
+                groups["Raises"].append(f"- {identifier}{body}")
+            elif kind in ["return", "returns"]:
+                groups["Returns"].append(f"{body}")
+            else:
+                # normal field list
+                normal_fields.append(f"- **{field_name}:** {body}")
+
+        # prevent mixing of parameter field lists and normal field lists
+        if normal_fields and any([f for f in groups.values()]):
+            raise MixedFieldListError(
+                f"Parameter field list contained unsupported fields: \n{normal_fields}"
+            )
+
+        # otherwise, handle field lists
+        if normal_fields:
+            self.body.append("".join(normal_fields))
+            self.body.append("\n")
+            raise nodes.SkipChildren
+
+        # format parameter lists
+        for group_name, group_content in groups.items():
+            if group_content:
+                self.body.append(f"**{group_name}:**\n\n")
+                self.body.append("".join(group_content))
+                self.body.append("\n")
+        raise nodes.SkipChildren
+
+    def depart_field_list(self, node: nodes.field_list) -> None:
+        self.block_context.pop()
+        self.list_context.pop()
 
     # EXCEPTIONAL NODES
     def visit_system_message(self, node: nodes.system_message) -> None:
@@ -416,7 +525,7 @@ def parse_docstring(docstring: str, config: MinidocConfig) -> str:
     doctree = core.publish_doctree(docstring, settings_overrides=settings)
     # dump(doctree)
     # print("\n")
-    print(doctree.pformat())
+    # print(doctree.pformat())
     visitor = SphinxRstVisitor(config, doctree)
     doctree.walkabout(visitor)
     return visitor.astext()

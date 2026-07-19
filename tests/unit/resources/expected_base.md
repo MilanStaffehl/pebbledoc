@@ -1,10 +1,9 @@
 Process a matrix using iterative refinement.
 
 This function applies **iterative refinement** to a matrix using the
-algorithm described in [`_refine_step`](#refine-step), with *emphasis* on
-numerical stability. It is a companion to [`MatrixProcessor`](#matrixprocessor)
-and relies on [`MatrixProcessor.default_tolerance`](#default-tolerance) for its
-stopping condition.
+algorithm described in [`_refine_step`](#refine-step), with *emphasis* on numerical
+stability. It is a companion to [`MatrixProcessor`](#matrixprocessor) and relies on
+[`MatrixProcessor.default_tolerance`](#default-tolerance) for its stopping condition.
 
 The refinement minimizes the residual
 
@@ -54,17 +53,17 @@ Related considerations:
 > This function mutates `data` in place when `normalize=True`.
 > Pass a copy if you need to preserve the original matrix.
 
-> [!DANGER]
+> **Danger:**
 >
 > Do not use this function on matrices containing NaN values — the
 > refinement loop will not terminate and may hang the process.
 
+> :x: Removed in version 2.1.0: Support for tensors was moved to [`tensors`](#tensors).
+
 **Parameters:**
 
-- `data`: A **required** list of `float` lists representing the input matrix.
-  See [`_validate_matrix`](#validate-matrix) for shape constraints.
-- `threshold`: Convergence threshold as a `float`. Lower values increase
-  precision at the cost of more iterations:
+- `data`: A **required** list of `float` lists representing the input matrix. See [`_validate_matrix`](#validate-matrix) for shape constraints.
+- `threshold`: Convergence threshold as a `float`. Lower values increase precision at the cost of more iterations:
   - `0.5` -- fast, low precision (default)
   - `0.1` -- balanced
   - `0.01` -- slow, high precision
@@ -77,5 +76,4 @@ Related considerations:
 
 **Returns:**
 
-The refined matrix as a nested `list`, with the same shape as the input. See
-[`output_format`](#output-format) for alternate return types.
+The refined matrix as a nested `list`, with the same shape as the input. See [`MatrixProcessor.output_format`](#output-format) for alternate return types.

@@ -63,6 +63,10 @@ Related considerations:
    Do not use this function on matrices containing NaN values — the
    refinement loop will not terminate and may hang the process.
 
+.. version-removed:: 2.1.0
+
+        Support for tensors was moved to :mod:`tensors`.
+
 :param data: A **required** list of ``float`` lists representing the
     input matrix. See :meth:`_validate_matrix` for shape constraints.
 :param threshold: Convergence threshold as a ``float``. Lower values

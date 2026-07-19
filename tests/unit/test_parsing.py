@@ -46,6 +46,15 @@ def test_parse_docstring_paragraph() -> None:
     assert output == expected
 
 
+def test_parse_docstring_paragraph_with_line_break() -> None:
+    """Test parsing a paragraph with a stylistic line break (line wrap)."""
+    default_config = config.MinidocConfig()
+    rst_str = "This is a simple paragraph.\nIt is wrapped at the line end."
+    output = parsing.parse_docstring(rst_str, default_config)
+    expected = "This is a simple paragraph.\nIt is wrapped at the line end.\n\n"
+    assert output == expected
+
+
 def test_parse_docstring_emphasize() -> None:
     """Test parsing a paragraph with emphasized text."""
     default_config = config.MinidocConfig()
@@ -505,6 +514,144 @@ def test_parse_docstring_admonition_plain(
     assert_admonition(header=header, actual=output)
 
 
+# TODO: test that options are stripped from admonition (such as :collapsible:)
+
+
+# == FIELD LISTS =======================================================
+def test_parse_docstring_param_field_list() -> None:
+    """Test parsing a parameter field list."""
+    cfg = config.MinidocConfig()
+    rst_str = (
+        "This is the last paragraph of the docstring.\n\n"
+        ":param a: This is a description of parameter ``a``.\n"
+        ":param b: This is a description of parameter ``b``\n"
+        "    which is a bit longer and more *extravagant*!\n"
+        ":raises KeyError: When a key is not found in a ``dict``.\n"
+        ":raise ValueError: When the math ain't mathin.\n"
+        ":returns: A series of return values."
+    )
+    output = parsing.parse_docstring(rst_str, cfg)
+    expected = (
+        "This is the last paragraph of the docstring.\n\n"
+        "**Parameters:**\n\n"
+        "- `a`: This is a description of parameter `a`.\n"
+        "- `b`: This is a description of parameter `b` which is a bit "
+        "longer and more *extravagant*!\n\n"
+        "**Raises:**\n\n"
+        "- `KeyError`: When a key is not found in a `dict`.\n"
+        "- `ValueError`: When the math ain't mathin.\n\n"
+        "**Returns:**\n\nA series of return values.\n\n"
+    )
+    assert output == expected
+
+
+def test_parse_docstring_param_field_list_inline_markup() -> None:
+    """Test parsing a parameter field list with complicated inline markup."""
+    cfg = config.MinidocConfig()
+    rst_str = (
+        "This is the last paragraph of the docstring.\n\n"
+        ":param a: This is a description of parameter ``a``.\n"
+        ":param b: This is a description of parameter ``b``\n"
+        "    which is a bit longer and more *extravagant*! It also\n"
+        "    contains a list:\n\n"
+        "    - Bullet list item one.\n"
+        "    - Bullet list item two.\n\n"
+        ":returns: A series of return values."
+    )
+    output = parsing.parse_docstring(rst_str, cfg)
+    expected = (
+        "This is the last paragraph of the docstring.\n\n"
+        "**Parameters:**\n\n"
+        "- `a`: This is a description of parameter `a`.\n"
+        "- `b`: This is a description of parameter `b` which is a bit "
+        "longer and more *extravagant*! It also contains a list:\n"
+        "  - Bullet list item one.\n"
+        "  - Bullet list item two.\n\n"
+        "**Returns:**\n\nA series of return values.\n\n"
+    )
+    assert output == expected
+
+
+def test_parse_docstring_param_field_list_return() -> None:
+    """Test that the alternative keyword ``return`` is also accepted."""
+    cfg = config.MinidocConfig()
+    rst_str = (
+        "This is the last paragraph of the docstring.\n\n"
+        ":param a: This is a description of parameter ``a``.\n"
+        ":return: A series of return values."
+    )
+    output = parsing.parse_docstring(rst_str, cfg)
+    expected = (
+        "This is the last paragraph of the docstring.\n\n"
+        "**Parameters:**\n\n"
+        "- `a`: This is a description of parameter `a`.\n\n"
+        "**Returns:**\n\nA series of return values.\n\n"
+    )
+    assert output == expected
+
+
+def test_parse_docstring_regular_field_list() -> None:
+    """Test parsing a regular field list."""
+    cfg = config.MinidocConfig()
+    rst_str = (
+        "This is a preceding paragraph.\n\n"
+        ":field Mark: This is the body text for Mark.\n"
+        ":field Peter:\n"
+        ":field: This guy has no name, it seems. Still, it should work.\n"
+        ":author: Author McAuthorface\n"
+        ":year: 2026\n"
+        ":publisher: Self-published\n\n"
+        "This is a follow-up paragraph."
+    )
+    output = parsing.parse_docstring(rst_str, cfg)
+    expected = (
+        "This is a preceding paragraph.\n\n"
+        "- **field Mark:** This is the body text for Mark.\n"
+        "- **field Peter:** \n"
+        "- **field:** This guy has no name, it seems. Still, it should work.\n"
+        "- **author:** Author McAuthorface\n"
+        "- **year:** 2026\n"
+        "- **publisher:** Self-published\n\n"
+        "This is a follow-up paragraph.\n\n"
+    )
+    assert output == expected
+
+
+def test_parse_docstring_no_mixed_field_lists() -> None:
+    """Assert mixing normal fields with parameter fields is prohibited."""
+    cfg = config.MinidocConfig()
+    rst_str = (
+        "This is the last paragraph of the docstring.\n\n"
+        ":param a: This is a description of parameter ``a``.\n"
+        ":field unsupported: This should cause trouble.\n"
+        ":author: Troublemaker McAuthorface\n"
+        ":return: A series of return values."
+    )
+    with pytest.raises(parsing.MixedFieldListError):
+        parsing.parse_docstring(rst_str, cfg)
+
+
+def test_parse_docstring_param_field_list_multiple_returns() -> None:
+    """Test behavior when :returns: is given more than once."""
+    cfg = config.MinidocConfig()
+    rst_str = (
+        "This is the last paragraph of the docstring.\n\n"
+        ":param a: This is a description of parameter ``a``.\n"
+        ":return: A series of return values.\n"
+        ":returns: Another note is that the values are important."
+    )
+    output = parsing.parse_docstring(rst_str, cfg)
+    # current behavior: simply concatenate
+    expected = (
+        "This is the last paragraph of the docstring.\n\n"
+        "**Parameters:**\n\n"
+        "- `a`: This is a description of parameter `a`.\n\n"
+        "**Returns:**\n\nA series of return values.\n"
+        "Another note is that the values are important.\n\n"
+    )
+    assert output == expected
+
+
 # == SPHINX-STYLE ROLES ================================================
 def test_parse_docstring_math_inline() -> None:
     """Test parsing inline math."""
@@ -682,6 +829,9 @@ def test_parse_docstring_sphinx_disable_reference(role: str) -> None:
     assert output == expected
 
 
+# TODO: Support for version notices such as deprecated, versionadded, etc.
+
+
 # == NESTED BLOCKS =====================================================
 # TODO: test nesting of blocks that mix self.current_block
 # TODO: mixing of block quotes and lists
@@ -692,5 +842,6 @@ def test_parse_docstring(mock_docstring: str, expected_output_base: str) -> None
     """Test the parsing function with the default config."""
     default_config = config.MinidocConfig()
     output = parsing.parse_docstring(mock_docstring, default_config)
+    print(output)
     assert isinstance(output, str)
     assert output == expected_output_base
