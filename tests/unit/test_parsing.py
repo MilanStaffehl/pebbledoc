@@ -829,12 +829,144 @@ def test_parse_docstring_sphinx_disable_reference(role: str) -> None:
     assert output == expected
 
 
-# TODO: Support for version notices such as deprecated, versionadded, etc.
+def test_parse_docstring_version_added() -> None:
+    """Test parsing a text block with a "version added" directive."""
+    default_config = config.MinidocConfig()
+    expected = (
+        "This is a preceding paragraph.\n\n"
+        "> :heavy_plus_sign: Added in version 1.0.0: This is the feature "
+        "that was added.\n\n"
+        "> :heavy_plus_sign: Added in version 2.0.0\n\n"
+        "This is a closing paragraph.\n\n"
+    )
+
+    # old version
+    rst_str = (
+        "This is a preceding paragraph.\n\n"
+        ".. versionadded:: 1.0.0\n\n"
+        "    This is the feature that was added.\n\n"
+        ".. versionadded:: 2.0.0\n\n"
+        "This is a closing paragraph."
+    )
+    output = parsing.parse_docstring(rst_str, default_config)
+    assert output == expected
+
+    # new version
+    rst_str = (
+        "This is a preceding paragraph.\n\n"
+        ".. version-added:: 1.0.0\n\n"
+        "    This is the feature that was added.\n\n"
+        ".. version-added:: 2.0.0\n\n"
+        "This is a closing paragraph."
+    )
+    output = parsing.parse_docstring(rst_str, default_config)
+    assert output == expected
+
+
+def test_parse_docstring_version_changed() -> None:
+    """Test parsing a text block with a "version changed" directive."""
+    default_config = config.MinidocConfig()
+    expected = (
+        "This is a preceding paragraph.\n\n"
+        "> :recycle: Changed in version 1.0.0: This is the feature "
+        "that was changed.\n\n"
+        "> :recycle: Changed in version 2.0.0\n\n"
+        "This is a closing paragraph.\n\n"
+    )
+
+    # old version
+    rst_str = (
+        "This is a preceding paragraph.\n\n"
+        ".. versionchanged:: 1.0.0\n\n"
+        "    This is the feature that was changed.\n\n"
+        ".. versionchanged:: 2.0.0\n\n"
+        "This is a closing paragraph."
+    )
+    output = parsing.parse_docstring(rst_str, default_config)
+    assert output == expected
+
+    # new version
+    rst_str = (
+        "This is a preceding paragraph.\n\n"
+        ".. version-changed:: 1.0.0\n\n"
+        "    This is the feature that was changed.\n\n"
+        ".. version-changed:: 2.0.0\n\n"
+        "This is a closing paragraph."
+    )
+    output = parsing.parse_docstring(rst_str, default_config)
+    assert output == expected
+
+
+def test_parse_docstring_version_deprecated() -> None:
+    """Test parsing a text block with a "deprecated" directive."""
+    default_config = config.MinidocConfig()
+    expected = (
+        "This is a preceding paragraph.\n\n"
+        "> :warning: Deprecated since version 1.0.0: This is the feature "
+        "that was deprecated.\n\n"
+        "> :warning: Deprecated since version 2.0.0\n\n"
+        "This is a closing paragraph.\n\n"
+    )
+
+    # old version
+    rst_str = (
+        "This is a preceding paragraph.\n\n"
+        ".. deprecated:: 1.0.0\n\n"
+        "    This is the feature that was deprecated.\n\n"
+        ".. deprecated:: 2.0.0\n\n"
+        "This is a closing paragraph."
+    )
+    output = parsing.parse_docstring(rst_str, default_config)
+    assert output == expected
+
+    # new version
+    rst_str = (
+        "This is a preceding paragraph.\n\n"
+        ".. version-deprecated:: 1.0.0\n\n"
+        "    This is the feature that was deprecated.\n\n"
+        ".. version-deprecated:: 2.0.0\n\n"
+        "This is a closing paragraph."
+    )
+    output = parsing.parse_docstring(rst_str, default_config)
+    assert output == expected
+
+
+def test_parse_docstring_version_removed() -> None:
+    """Test parsing a text block with a "version removed" directive."""
+    default_config = config.MinidocConfig()
+    expected = (
+        "This is a preceding paragraph.\n\n"
+        "> :x: Removed in version 1.0.0: This is the feature "
+        "that was removed.\n\n"
+        "> :x: Removed in version 2.0.0\n\n"
+        "This is a closing paragraph.\n\n"
+    )
+
+    # old version
+    rst_str = (
+        "This is a preceding paragraph.\n\n"
+        ".. versionremoved:: 1.0.0\n\n"
+        "    This is the feature that was removed.\n\n"
+        ".. versionremoved:: 2.0.0\n\n"
+        "This is a closing paragraph."
+    )
+    output = parsing.parse_docstring(rst_str, default_config)
+    assert output == expected
+
+    # new version
+    rst_str = (
+        "This is a preceding paragraph.\n\n"
+        ".. version-removed:: 1.0.0\n\n"
+        "    This is the feature that was removed.\n\n"
+        ".. version-removed:: 2.0.0\n\n"
+        "This is a closing paragraph."
+    )
+    output = parsing.parse_docstring(rst_str, default_config)
+    assert output == expected
 
 
 # == NESTED BLOCKS =====================================================
-# TODO: test nesting of blocks that mix self.current_block
-# TODO: mixing of block quotes and lists
+# TODO: mixing of block quotes, field lists and lists
 
 
 # == FULL DOCSTRING ====================================================

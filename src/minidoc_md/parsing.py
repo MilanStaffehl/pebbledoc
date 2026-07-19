@@ -16,6 +16,7 @@ from typing import Literal, assert_never
 from docutils import core, nodes
 
 from .config import MinidocConfig
+from .directives import VersionNotice
 from .roles import SphinxRef
 
 _admonitions_map = {
@@ -424,6 +425,36 @@ class SphinxRstVisitor(nodes.SparseNodeVisitor):
         self.body.append(f"[`{display_name}`](#{target})")
         raise nodes.SkipNode
 
+    def visit_VersionNotice(self, node: VersionNotice) -> None:
+        version_labels = {
+            "versionadded": ":heavy_plus_sign: Added in version",
+            "version-added": ":heavy_plus_sign: Added in version",
+            "versionchanged": ":recycle: Changed in version",
+            "version-changed": ":recycle: Changed in version",
+            "version-deprecated": ":warning: Deprecated since version",
+            "deprecated": ":warning: Deprecated since version",
+            "versionremoved": ":x: Removed in version",
+            "version-removed": ":x: Removed in version",
+        }
+
+        kind = node.get("type")
+        version = node.get("version")
+        if kind is None or kind not in version_labels.keys():
+            raise ValueError(f"Unsupported version notice type: {kind}")
+        if version is None:
+            raise AttributeError(
+                f"Version notice has no version attribute: {node.pformat()}"
+            )
+
+        if len(node.children) > 0:
+            content = _parse_multiple_nodes(node.children, self.config, self.document)
+            body_str = f": {content}"
+        else:
+            body_str = "\n\n"  # no paragraph node, must add manually
+
+        self.body.append(f"> {version_labels[kind]} {version}{body_str}")
+        raise nodes.SkipNode
+
     # FIELD LISTS
     def visit_field_list(self, node: nodes.field_list) -> None:
         # since we render field lists as bullet lists, we need to add a
@@ -451,9 +482,9 @@ class SphinxRstVisitor(nodes.SparseNodeVisitor):
 
             # parse body text as regular rst, if one exists
             if body_node is None:
-                body = ""
+                body_str = ""
             else:
-                body = _parse_multiple_nodes(
+                body_str = _parse_multiple_nodes(
                     body_node.children,
                     self.config,
                     self.document,
@@ -463,19 +494,19 @@ class SphinxRstVisitor(nodes.SparseNodeVisitor):
             # Nodes with body have the body as a paragraph node and as such
             # end on a line break. We implicitly rely on this later, so we
             # must add a line break for empty bodies here as well:
-            if not body:
-                body = "\n"
+            if not body_str:
+                body_str = "\n"
 
             # cover known cases
             if kind == "param":
-                groups["Parameters"].append(f"- {identifier}{body}")
+                groups["Parameters"].append(f"- {identifier}{body_str}")
             elif kind in ["raise", "raises"]:
-                groups["Raises"].append(f"- {identifier}{body}")
+                groups["Raises"].append(f"- {identifier}{body_str}")
             elif kind in ["return", "returns"]:
-                groups["Returns"].append(f"{body}")
+                groups["Returns"].append(f"{body_str}")
             else:
                 # normal field list
-                normal_fields.append(f"- **{field_name}:** {body}")
+                normal_fields.append(f"- **{field_name}:** {body_str}")
 
         # prevent mixing of parameter field lists and normal field lists
         if normal_fields and any([f for f in groups.values()]):
@@ -525,7 +556,7 @@ def parse_docstring(docstring: str, config: MinidocConfig) -> str:
     doctree = core.publish_doctree(docstring, settings_overrides=settings)
     # dump(doctree)
     # print("\n")
-    # print(doctree.pformat())
+    print(doctree.pformat())
     visitor = SphinxRstVisitor(config, doctree)
     doctree.walkabout(visitor)
     return visitor.astext()
@@ -533,6 +564,5 @@ def parse_docstring(docstring: str, config: MinidocConfig) -> str:
 
 def dump(node, indent=0):
     print(" " * indent, type(node).__name__)
-
     for child in node.children:
         dump(child, indent + 2)

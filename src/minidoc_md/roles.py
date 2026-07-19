@@ -92,6 +92,11 @@ def _sphinx_ref_role(
 
 
 def register_sphinx_reference_roles() -> None:
+    """
+    Register all known Sphinx Python-domain roles.
+
+    :return: None.
+    """
     sphinx_roles = [
         "mod",
         "func",
