@@ -10,15 +10,13 @@ GitHub-flavored Markdown.
 
 from __future__ import annotations
 
-import importlib
 import inspect
-import sys
 from collections.abc import Callable
 from dataclasses import dataclass, field, fields, is_dataclass
-from pathlib import Path
 from types import ModuleType
 from typing import Any
 
+from . import util
 from .config import MinidocConfig
 from .parsing import parse_docstring
 
@@ -337,6 +335,7 @@ def _member_module(
 
     # find children, create their nodes
     children = []
+    sub_modules = []
     for member_name in public_members:
         member = getattr(module, member_name)
         # avoid including external members (unfortunately, re-exported
@@ -351,7 +350,7 @@ def _member_module(
             children.append(_member_class(member_name, member))
         elif inspect.ismodule(member):
             new_parent = _parent_name(name, parent_name)
-            children.append(_member_module(member_name, member, config, new_parent))
+            sub_modules.append(_member_module(member_name, member, config, new_parent))
         else:
             if not config.document_constants:
                 continue  # skip constants
@@ -365,14 +364,41 @@ def _member_module(
         signature="",  # modules get no signature section
         raw_docstring=doc,
         header_level=2,  # modules always have h2 header
-        children=children,
+        children=children + sub_modules,  # submodules follow other members
     )
     return node
 
 
-def document_package(
+def _build_toc(root: Member, config: MinidocConfig) -> str:
+    """
+    Build a table of contents from the root member node of a package.
+
+    Given a root member node, assembled with for example
+    :func:`_member_module`, this function builds a table of contents with
+    links to the names of all members, and returns it as string. The
+    function will only create the list of sections, not the TOC header.
+
+    :param root: The root :class:`Member` node of a package for which to
+        build a table of contents.
+    :param config: The Minidoc config object.
+    :return: A nested list of links, pointing to the header of the section
+        for each of the children of ``root``.
+    """
+    # First entry for the root node
+    toc = f"> - [`{root.name}`](#{util.name_to_ref(root.name)})\n"
+    # then iteratively add children, descending into submodules
+    for child in root.children:
+        if child.kind == "module":
+            toc += _build_toc(child, config)  # descend into submodules
+        else:
+            ref_target = util.name_to_ref(child.name)
+            toc += f">   - [`{child.name}`](#{ref_target})\n"
+    return toc
+
+
+def markdown_documentation(
     package_name: str,
-    source_directory: Path | None,
+    package_obj: ModuleType,
     config: MinidocConfig,
 ) -> str:
     """
@@ -388,15 +414,10 @@ def document_package(
     them builds a full API documentation, formatted as GitHub-flavored
     Markdown. The resulting string is returned.
 
-    :param package_name: Name of the package to document. Must be the
-        same name that would be imported in Python code via ``import
-        package_name``. Package must either be installed in the current
-        environment, or a ``source_directory`` must be given.
-    :param source_directory: If the package is not installed in the
-        current environment, specifying the source directory is required.
-        The source directory is then temporarily added to the path, and
-        the package imported from there. The path entry will be removed
-        after the function finishes.
+    :param package_name: The name of the package as it should appear in
+        the header of the document.
+    :param package_obj: The package to document as a Python object,
+        retrieved for example using ``importlib.import_module``.
     :param config: A filled Minidoc-MD config object, detailing how to
         parse the found docstrings and how to arrange them into the final
         document.
@@ -404,15 +425,23 @@ def document_package(
         flavored Markdown, ready for use as a single-file documentation
         or insertion into a template.
     """
-    if source_directory is not None:
-        sys.path.insert(0, str(source_directory))
-    try:
-        package = importlib.import_module(package_name)
-        root = _member_module(package_name, package, config, package_name)
-        document = _document_member(root, config)
-    except:
-        raise
-    finally:
-        if source_directory is not None:
-            sys.path.remove(str(source_directory))
-    return document
+    # Build header
+    header = f"# {package_name} documentation\n\n"
+
+    root = _member_module(package_name, package_obj, config, package_name)
+    main_body = _document_member(root, config)
+
+    # build first paragraph if module provides none
+    if not root.raw_docstring:
+        intro = f"This document lists the full public API of {package_name}.\n\n"
+    else:
+        intro = ""
+
+    # build TOC
+    if config.include_toc:
+        toc = "> #### Table of contents\n"
+        toc += _build_toc(root, config)
+    else:
+        toc = ""
+
+    return f"{header}{intro}{toc}{main_body}"

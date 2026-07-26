@@ -15,6 +15,7 @@ from typing import Literal, assert_never
 
 from docutils import core, nodes
 
+from . import util
 from .config import MinidocConfig
 from .directives import VersionNotice
 from .roles import SphinxRef
@@ -419,10 +420,7 @@ class SphinxRstVisitor(nodes.SparseNodeVisitor):
         # roles as references to headers containing only the member name
         # itself, not the full reference, so we normalize accordingly:
         target = target.split(".")[-1]  # only member name
-        target = target.removeprefix("_")  # private methods need to be stripped
-        target = re.sub(r"[^a-z0-9\s\-_]", "", target.lower())
-        target = target.strip().replace(" ", "-")
-        target = target.replace("_", "-")
+        target = util.name_to_ref(target)
         display_name = node.astext()
         self.body.append(f"[`{display_name}`](#{target})")
         raise nodes.SkipNode

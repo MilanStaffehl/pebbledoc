@@ -1,7 +1,10 @@
 """Tests for the minidoc module."""
 
+from __future__ import annotations
+
 import importlib
 import sys
+from dataclasses import dataclass, field
 from pathlib import Path
 from types import ModuleType
 from unittest.mock import Mock
@@ -657,3 +660,49 @@ def test_member_module_no_constants(mock_module: ModuleType) -> None:
     assert node.raw_docstring == "Another parent class docstring."
     assert node.header_level == 3
     assert len(node.children) == 0
+
+
+# == FUNCTIONS FOR BUILDING THE DOCS ===================================
+
+
+def test_build_toc() -> None:
+    """Test the function to create TOC lists."""
+
+    @dataclass
+    class MockMember:
+        name: str
+        kind: str
+        children: list[MockMember] = field(default_factory=list)
+
+    # build a small mock hierarchy
+    subsubmember_1 = MockMember("sub-sub-member 1", "class")
+    subsubmember_2 = MockMember("sub-sub-member 2", "function")
+    subsubmodule = MockMember(
+        "subsubmodule", "module", [subsubmember_1, subsubmember_2]
+    )
+    submember_1 = MockMember("sub-member 1", "class")
+    submember_2 = MockMember("sub-member 2", "function")
+    submodule = MockMember(
+        "submodule", "module", [submember_1, submember_2, subsubmodule]
+    )
+    member_1 = MockMember("member 1", "class")
+    member_2 = MockMember("member 2", "function")
+    module = MockMember("module", "class", [member_1, member_2, submodule])
+
+    # test the function
+    test_config = config.MinidocConfig()
+    toc = minidoc._build_toc(module, test_config)  # pyrefly: ignore[bad-argument-type]
+
+    # check output
+    expected = (
+        "> - [`module`](#module)\n"
+        ">   - [`member 1`](#member-1)\n"
+        ">   - [`member 2`](#member-2)\n"
+        "> - [`submodule`](#submodule)\n"
+        ">   - [`sub-member 1`](#sub-member-1)\n"
+        ">   - [`sub-member 2`](#sub-member-2)\n"
+        "> - [`subsubmodule`](#subsubmodule)\n"
+        ">   - [`sub-sub-member 1`](#sub-sub-member-1)\n"
+        ">   - [`sub-sub-member 2`](#sub-sub-member-2)\n"
+    )
+    assert toc == expected

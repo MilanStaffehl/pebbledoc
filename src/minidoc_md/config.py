@@ -13,3 +13,4 @@ class MinidocConfig:
 
     document_constants: bool = True
     module_docstring: bool = True
+    include_toc: bool = True
