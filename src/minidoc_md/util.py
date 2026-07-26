@@ -19,8 +19,6 @@ def name_to_ref(name: str) -> str:
     :return: The reference target that points to a header using ``name``
         as title.
     """
-    target = name.removeprefix("_")  # private methods need to be stripped
-    target = re.sub(r"[^a-z0-9\s\-_]", "", target.lower())
+    target = re.sub(r"[^a-z0-9\s\-_]", "", name.lower())
     target = target.strip().replace(" ", "-")
-    target = target.replace("_", "-")
     return target

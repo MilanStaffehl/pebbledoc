@@ -49,7 +49,8 @@ def test_document_member_all_fields(patch_parse_docstring: Mock) -> None:
 
     output = minidoc._document_member(test_member, test_config)
     expected = (
-        "### `test_member`\n\n"
+        '<a name="test_member"></a>\n'
+        "### `parent.test_member`\n\n"
         "```Python\n"
         "test_member = pytest.mock.Mock()\n"
         "```\n\n"
@@ -74,7 +75,8 @@ def test_document_member_no_docstring(patch_parse_docstring: Mock) -> None:
 
     output = minidoc._document_member(test_member, test_config)
     expected = (
-        "### `test_member`\n\n```Python\ntest_member = pytest.mock.Mock()\n```\n\n"
+        '<a name="test_member"></a>\n'
+        "### `parent.test_member`\n\n```Python\ntest_member = pytest.mock.Mock()\n```\n\n"
     )
     assert output == expected
     patch_parse_docstring.assert_not_called()
@@ -95,7 +97,10 @@ def test_document_member_no_signature(patch_parse_docstring: Mock) -> None:
     )
 
     output = minidoc._document_member(test_member, test_config)
-    expected = "### `test_member`\n\nThis is a test docstring.\n\n"
+    expected = (
+        '<a name="test_member"></a>\n'
+        "### `parent.test_member`\n\nThis is a test docstring.\n\n"
+    )
     assert output == expected
     patch_parse_docstring.assert_called_once_with(test_docstring, test_config)
 
@@ -118,7 +123,8 @@ def test_document_member_header_level(patch_parse_docstring: Mock) -> None:
         output = minidoc._document_member(test_member, test_config)
         header_prefix = "#" * lvl
         expected = (
-            f"{header_prefix} `test_member`\n\n"
+            '<a name="test_member"></a>\n'
+            f"{header_prefix} `parent.test_member`\n\n"
             "```Python\n"
             "test_member = pytest.mock.Mock()\n"
             "```\n\n"
@@ -161,17 +167,20 @@ def test_document_member_children(patch_parse_docstring: Mock) -> None:
 
     output = minidoc._document_member(test_member, test_config)
     expected = (
-        "### `test_member`\n\n"
+        '<a name="test_member"></a>\n'
+        "### `parent.test_member`\n\n"
         "```Python\n"
         "test_member = pytest.mock.Mock()\n"
         "```\n\n"
         "This is a test docstring.\n\n"
-        "#### `child_one`\n\n"
+        '<a name="child_one"></a>\n'
+        "#### `parent.test_member.child_one`\n\n"
         "```Python\n"
         "test_member = pytest.mock.Mock()\n"
         "```\n\n"
         "This is child one's docstring.\n\n"
-        "#### `child_two`\n\n"
+        '<a name="child_two"></a>\n'
+        "#### `parent.test_member.child_two`\n\n"
         "```Python\n"
         "test_member = pytest.mock.Mock()\n"
         "```\n\n"
@@ -196,7 +205,7 @@ def test_document_member_children(patch_parse_docstring: Mock) -> None:
 def check_constant_mock_constant(node: minidoc.Member) -> None:
     """Check node for representing constant "MOCK_CONSTANT"."""
     assert node.name == "MOCK_CONSTANT"
-    assert node.parent == ""
+    assert node.parent == "mock_module"
     assert node.kind == "constant"
     assert node.signature == "MOCK_CONSTANT: float = 3.12"
     assert node.raw_docstring == ""  # TODO: retrieve docstring
@@ -206,7 +215,7 @@ def check_constant_mock_constant(node: minidoc.Member) -> None:
 def check_constant_undocumented(node: minidoc.Member) -> None:
     """Check node for representing constant "UNDOCUMENTED"."""
     assert node.name == "UNDOCUMENTED"
-    assert node.parent == ""
+    assert node.parent == "mock_module"
     assert node.kind == "constant"
     assert node.signature == "UNDOCUMENTED: bool = False"
     assert node.raw_docstring == ""  # TODO: retrieve docstring
@@ -216,7 +225,7 @@ def check_constant_undocumented(node: minidoc.Member) -> None:
 def check_function_mock_function(node: minidoc.Member) -> None:
     """Check node for representing function "mock_function"."""
     assert node.name == "mock_function"
-    assert node.parent == ""
+    assert node.parent == "mock_module"
     assert node.kind == "routine"
     assert node.signature == (
         "mock_function(param_a: int, param_b: str, optional: int | None = None) -> str"
@@ -235,7 +244,7 @@ def check_function_mock_function(node: minidoc.Member) -> None:
 def check_function_function_with_custom_type(node: minidoc.Member) -> None:
     """Check node for representing function "function_with_custom_type"."""
     assert node.name == "function_with_custom_type"
-    assert node.parent == ""
+    assert node.parent == "mock_module"
     assert node.kind == "routine"
     assert node.signature == (
         "function_with_custom_type(param: MockClass) -> MockDataclass"
@@ -251,7 +260,7 @@ def check_function_function_with_custom_type(node: minidoc.Member) -> None:
 def check_method_public_method(node: minidoc.Member) -> None:
     """Check node for representing method "public_method"."""
     assert node.name == "public_method"
-    assert node.parent == "MockClass"
+    assert node.parent == "mock_module.MockClass"
     assert node.kind == "method"
     assert node.signature == (
         "MockClass.public_method(self, param_c: bool, "
@@ -269,7 +278,7 @@ def check_method_public_method(node: minidoc.Member) -> None:
 def check_method_class_method(node: minidoc.Member) -> None:
     """Check node for representing class "class_method"."""
     assert node.name == "class_method"
-    assert node.parent == "MockClass"
+    assert node.parent == "mock_module.MockClass"
     assert node.kind == "method"
     assert node.signature == (
         "@classmethod\nMockClass.class_method(cls, param: int) -> int"
@@ -283,7 +292,7 @@ def check_method_class_method(node: minidoc.Member) -> None:
 def check_method_static_method(node: minidoc.Member) -> None:
     """Check node for representing static method "static_method"."""
     assert node.name == "static_method"
-    assert node.parent == "MockClass"
+    assert node.parent == "mock_module.MockClass"
     assert node.kind == "method"
     assert node.signature == (
         "@staticmethod\nMockClass.static_method(param: int) -> int"
@@ -297,7 +306,7 @@ def check_method_static_method(node: minidoc.Member) -> None:
 def check_classvar_class_var(node: minidoc.Member) -> None:
     """Check node for representing class "class_var"."""
     assert node.name == "class_var"
-    assert node.parent == "MockClass"
+    assert node.parent == "mock_module.MockClass"
     assert node.kind == "classvar"
     assert node.signature == "MockClass.class_var: ClassVar[int] = 0"
     assert node.raw_docstring == ""
@@ -307,7 +316,7 @@ def check_classvar_class_var(node: minidoc.Member) -> None:
 def check_classvar_undocumented(node: minidoc.Member) -> None:
     """Check node for representing class "undocumented"."""
     assert node.name == "undocumented"
-    assert node.parent == "MockClass"
+    assert node.parent == "mock_module.MockClass"
     assert node.kind == "classvar"
     assert node.signature == "MockClass.undocumented: ClassVar[bool] = False"
     assert node.raw_docstring == ""
@@ -317,7 +326,7 @@ def check_classvar_undocumented(node: minidoc.Member) -> None:
 def check_property_property_editable(node: minidoc.Member) -> None:
     """Check node for representing property "property_editable"."""
     assert node.name == "property_editable"
-    assert node.parent == "MockClass"
+    assert node.parent == "mock_module.MockClass"
     assert node.kind == "property"
     assert node.signature == "@property\nMockClass.property_editable: int"
     assert node.raw_docstring == (
@@ -329,7 +338,7 @@ def check_property_property_editable(node: minidoc.Member) -> None:
 def check_property_property_readonly(node: minidoc.Member) -> None:
     """Check node for representing property "property_readonly"."""
     assert node.name == "property_readonly"
-    assert node.parent == "MockClass"
+    assert node.parent == "mock_module.MockClass"
     assert node.kind == "property"
     assert node.signature == "@property\nMockClass.property_readonly: int"
     assert node.raw_docstring == (
@@ -341,7 +350,7 @@ def check_property_property_readonly(node: minidoc.Member) -> None:
 def check_class_mock_class(node: minidoc.Member) -> None:
     """Check node for representing class "MockClass"."""
     assert node.name == "MockClass"
-    assert node.parent == ""
+    assert node.parent == "mock_module"
     assert node.kind == "class"
     assert node.signature == "MockClass(object)"
     assert node.raw_docstring == "Mock class docstring."
@@ -361,7 +370,7 @@ def check_class_mock_class(node: minidoc.Member) -> None:
 def check_class_child_class(node: minidoc.Member) -> None:
     """Check node for representing class "ChildClass"."""
     assert node.name == "ChildClass"
-    assert node.parent == ""
+    assert node.parent == "mock_module"
     assert node.kind == "class"
     assert node.signature == "ChildClass(MockClass)"
     assert node.raw_docstring == "Child class docstring."
@@ -377,7 +386,7 @@ def check_class_child_class(node: minidoc.Member) -> None:
 def check_class_grandchild_class(node: minidoc.Member) -> None:
     """Check node for representing class "GrandChildClass"."""
     assert node.name == "GrandchildClass"
-    assert node.parent == ""
+    assert node.parent == "mock_module"
     assert node.kind == "class"
     assert node.signature == "GrandchildClass(ChildClass)"
     assert node.raw_docstring == "Grandchild class docstring."
@@ -388,7 +397,7 @@ def check_class_grandchild_class(node: minidoc.Member) -> None:
 def check_class_multiple_parents(node: minidoc.Member) -> None:
     """Check node for representing class "MultipleParents"."""
     assert node.name == "MultipleParents"
-    assert node.parent == ""
+    assert node.parent == "mock_module"
     assert node.kind == "class"
     assert node.signature == "MultipleParents(MockClass, AnotherParent)"
     assert node.raw_docstring == "Multiple parents class docstring."
@@ -399,7 +408,7 @@ def check_class_multiple_parents(node: minidoc.Member) -> None:
 def check_class_mock_dataclass(node: minidoc.Member) -> None:
     """Check node for representing dataclass "MockDataclass"."""
     assert node.name == "MockDataclass"
-    assert node.parent == ""
+    assert node.parent == "mock_module"
     assert node.kind == "dataclass"
     assert node.signature == "@dataclass\nMockDataclass(object)"
     assert node.raw_docstring == "Mock dataclass docstring."
@@ -408,14 +417,14 @@ def check_class_mock_dataclass(node: minidoc.Member) -> None:
 
     # Check children
     assert node.children[0].name == "class_var"
-    assert node.children[0].parent == "MockDataclass"
+    assert node.children[0].parent == "mock_module.MockDataclass"
     assert node.children[0].kind == "classvar"
     assert node.children[0].signature == "MockDataclass.class_var: ClassVar[int] = 0"
     assert node.children[0].raw_docstring == ""
     assert node.children[0].header_level == 4
 
     assert node.children[1].name == "undocumented"
-    assert node.children[1].parent == "MockDataclass"
+    assert node.children[1].parent == "mock_module.MockDataclass"
     assert node.children[1].kind == "classvar"
     assert (
         node.children[1].signature
@@ -425,7 +434,7 @@ def check_class_mock_dataclass(node: minidoc.Member) -> None:
     assert node.children[1].header_level == 4
 
     assert node.children[2].name == "public_method"
-    assert node.children[2].parent == "MockDataclass"
+    assert node.children[2].parent == "mock_module.MockDataclass"
     assert node.children[2].kind == "method"
     assert node.children[2].signature == (
         "MockDataclass.public_method(self, param_c: bool, "
@@ -445,26 +454,34 @@ def check_class_mock_dataclass(node: minidoc.Member) -> None:
 
 def test_member_constant_with_docstring(mock_module: ModuleType) -> None:
     """Test the function for a member with a constant value."""
-    output = minidoc._member_constant("MOCK_CONSTANT", mock_module.MOCK_CONSTANT)
+    output = minidoc._member_constant(
+        "MOCK_CONSTANT", mock_module.MOCK_CONSTANT, "mock_module"
+    )
     check_constant_mock_constant(output)
 
 
 def test_member_constant_no_docstring(mock_module: ModuleType) -> None:
     """Test the function for a member with a constant value."""
-    output = minidoc._member_constant("UNDOCUMENTED", mock_module.UNDOCUMENTED)
+    output = minidoc._member_constant(
+        "UNDOCUMENTED", mock_module.UNDOCUMENTED, "mock_module"
+    )
     check_constant_undocumented(output)
 
 
 def test_member_function(mock_module: ModuleType) -> None:
     """Test the function for a member function."""
-    output = minidoc._member_function("mock_function", mock_module.mock_function)
+    output = minidoc._member_function(
+        "mock_function", mock_module.mock_function, "mock_module"
+    )
     check_function_mock_function(output)
 
 
 def test_member_function_custom_types(mock_module: ModuleType) -> None:
     """Test the function for a member function with non-builtin types."""
     output = minidoc._member_function(
-        "function_with_custom_type", mock_module.function_with_custom_type
+        "function_with_custom_type",
+        mock_module.function_with_custom_type,
+        "mock_module",
     )
     check_function_function_with_custom_type(output)
 
@@ -472,7 +489,10 @@ def test_member_function_custom_types(mock_module: ModuleType) -> None:
 def test_member_method_basic(mock_module: ModuleType) -> None:
     """Test the function for a method."""
     output = minidoc._member_method(
-        "public_method", mock_module.MockClass.public_method, "MockClass", None
+        "public_method",
+        mock_module.MockClass.public_method,
+        "mock_module.MockClass",
+        None,
     )
     check_method_public_method(output)
 
@@ -480,10 +500,13 @@ def test_member_method_basic(mock_module: ModuleType) -> None:
 def test_member_method_decorated(mock_module: ModuleType) -> None:
     """Test the function for a decorated method."""
     output = minidoc._member_method(
-        "public_method", mock_module.MockClass.public_method, "MockClass", "decorator"
+        "public_method",
+        mock_module.MockClass.public_method,
+        "mock_module.MockClass",
+        "decorator",
     )
     assert output.name == "public_method"
-    assert output.parent == "MockClass"
+    assert output.parent == "mock_module.MockClass"
     assert output.kind == "method"
     assert output.signature == (
         "@decorator\nMockClass.public_method(self, param_c: bool, "
@@ -501,7 +524,10 @@ def test_member_method_decorated(mock_module: ModuleType) -> None:
 def test_member_method_classmethod(mock_module: ModuleType) -> None:
     """Test the function for a class method."""
     output = minidoc._member_method(
-        "class_method", mock_module.MockClass.class_method, "MockClass", "classmethod"
+        "class_method",
+        mock_module.MockClass.class_method,
+        "mock_module.MockClass",
+        "classmethod",
     )
     check_method_class_method(output)
 
@@ -511,7 +537,7 @@ def test_member_method_staticmethod(mock_module: ModuleType) -> None:
     output = minidoc._member_method(
         "static_method",
         mock_module.MockClass.static_method,
-        "MockClass",
+        "mock_module.MockClass",
         "staticmethod",
     )
     check_method_static_method(output)
@@ -520,7 +546,7 @@ def test_member_method_staticmethod(mock_module: ModuleType) -> None:
 def test_member_classvar(mock_module: ModuleType) -> None:
     """Test the function for a classvar."""
     output = minidoc._member_classvar(
-        "class_var", mock_module.MockClass.class_var, "MockClass"
+        "class_var", mock_module.MockClass.class_var, "mock_module.MockClass"
     )
     check_classvar_class_var(output)
 
@@ -528,7 +554,7 @@ def test_member_classvar(mock_module: ModuleType) -> None:
 def test_member_classvar_no_docs(mock_module: ModuleType) -> None:
     """Test the function for a classvar without docstring."""
     output = minidoc._member_classvar(
-        "undocumented", mock_module.MockClass.undocumented, "MockClass"
+        "undocumented", mock_module.MockClass.undocumented, "mock_module.MockClass"
     )
     check_classvar_undocumented(output)
 
@@ -536,38 +562,46 @@ def test_member_classvar_no_docs(mock_module: ModuleType) -> None:
 def test_member_property(mock_module: ModuleType) -> None:
     """Test the function for a property."""
     output = minidoc._member_property(
-        "property_editable", mock_module.MockClass.property_editable, "MockClass"
+        "property_editable",
+        mock_module.MockClass.property_editable,
+        "mock_module.MockClass",
     )
     check_property_property_editable(output)
 
 
 def test_member_class_normal(mock_module: ModuleType) -> None:
     """Test the function for a class."""
-    output = minidoc._member_class("MockClass", mock_module.MockClass)
+    output = minidoc._member_class("MockClass", mock_module.MockClass, "mock_module")
     check_class_mock_class(output)
 
 
 def test_member_class_inheritance(mock_module: ModuleType) -> None:
     """Test the function for a class with a parent class."""
-    output = minidoc._member_class("ChildClass", mock_module.ChildClass)
+    output = minidoc._member_class("ChildClass", mock_module.ChildClass, "mock_module")
     check_class_child_class(output)
 
 
 def test_member_class_inheritance_chain(mock_module: ModuleType) -> None:
     """Test the function for a class further down an inheritance chain."""
-    output = minidoc._member_class("GrandchildClass", mock_module.GrandchildClass)
+    output = minidoc._member_class(
+        "GrandchildClass", mock_module.GrandchildClass, "mock_module"
+    )
     check_class_grandchild_class(output)
 
 
 def test_member_class_multiple_inheritance(mock_module: ModuleType) -> None:
     """Test the function for a class with multiple parents."""
-    output = minidoc._member_class("MultipleParents", mock_module.MultipleParents)
+    output = minidoc._member_class(
+        "MultipleParents", mock_module.MultipleParents, "mock_module"
+    )
     check_class_multiple_parents(output)
 
 
 def test_member_class_dataclass(mock_module: ModuleType) -> None:
     """Test the function for a dataclass."""
-    output = minidoc._member_class("MockDataclass", mock_module.MockDataclass)
+    output = minidoc._member_class(
+        "MockDataclass", mock_module.MockDataclass, "mock_module"
+    )
     check_class_mock_dataclass(output)
 
 
@@ -602,7 +636,7 @@ def test_member_module(mock_module: ModuleType) -> None:
     # check AnotherParent class
     node = output.children[6]
     assert node.name == "AnotherParent"
-    assert node.parent == ""
+    assert node.parent == "mock_module"
     assert node.kind == "class"
     assert node.signature == "AnotherParent(object)"
     assert node.raw_docstring == "Another parent class docstring."
@@ -622,9 +656,9 @@ def test_member_module_parent(mock_module: ModuleType) -> None:
     assert output.signature == ""
     assert output.raw_docstring == "Mock module docstring."
     assert output.header_level == 2
-    for child in output.children:
-        print(child)
     assert len(output.children) == 10
+    for child in output.children:
+        assert child.parent == "parent.mock_module"
 
 
 def test_member_module_no_constants(mock_module: ModuleType) -> None:
@@ -654,7 +688,7 @@ def test_member_module_no_constants(mock_module: ModuleType) -> None:
     # check AnotherParent class
     node = output.children[4]
     assert node.name == "AnotherParent"
-    assert node.parent == ""
+    assert node.parent == "mock_module"
     assert node.kind == "class"
     assert node.signature == "AnotherParent(object)"
     assert node.raw_docstring == "Another parent class docstring."
@@ -672,22 +706,23 @@ def test_build_toc() -> None:
     class MockMember:
         name: str
         kind: str
+        parent: str
         children: list[MockMember] = field(default_factory=list)
 
     # build a small mock hierarchy
-    subsubmember_1 = MockMember("sub-sub-member 1", "class")
-    subsubmember_2 = MockMember("sub-sub-member 2", "function")
+    subsubmember_1 = MockMember("sub-sub-member 1", "class", "subsubparent")
+    subsubmember_2 = MockMember("sub-sub-member 2", "function", "subsubparent")
     subsubmodule = MockMember(
-        "subsubmodule", "module", [subsubmember_1, subsubmember_2]
+        "subsubmodule", "module", "submodule", [subsubmember_1, subsubmember_2]
     )
-    submember_1 = MockMember("sub-member 1", "class")
-    submember_2 = MockMember("sub-member 2", "function")
+    submember_1 = MockMember("sub-member 1", "class", "subparent")
+    submember_2 = MockMember("sub-member 2", "function", "subparent")
     submodule = MockMember(
-        "submodule", "module", [submember_1, submember_2, subsubmodule]
+        "submodule", "module", "module", [submember_1, submember_2, subsubmodule]
     )
-    member_1 = MockMember("member 1", "class")
-    member_2 = MockMember("member 2", "function")
-    module = MockMember("module", "class", [member_1, member_2, submodule])
+    member_1 = MockMember("member 1", "class", "module")
+    member_2 = MockMember("member 2", "function", "module")
+    module = MockMember("module", "class", "", [member_1, member_2, submodule])
 
     # test the function
     test_config = config.MinidocConfig()
@@ -696,13 +731,13 @@ def test_build_toc() -> None:
     # check output
     expected = (
         "> - [`module`](#module)\n"
-        ">   - [`member 1`](#member-1)\n"
-        ">   - [`member 2`](#member-2)\n"
-        "> - [`submodule`](#submodule)\n"
-        ">   - [`sub-member 1`](#sub-member-1)\n"
-        ">   - [`sub-member 2`](#sub-member-2)\n"
-        "> - [`subsubmodule`](#subsubmodule)\n"
-        ">   - [`sub-sub-member 1`](#sub-sub-member-1)\n"
-        ">   - [`sub-sub-member 2`](#sub-sub-member-2)\n"
+        ">   - [`module.member 1`](#modulemember-1)\n"
+        ">   - [`module.member 2`](#modulemember-2)\n"
+        "> - [`module.submodule`](#modulesubmodule)\n"
+        ">   - [`subparent.sub-member 1`](#subparentsub-member-1)\n"
+        ">   - [`subparent.sub-member 2`](#subparentsub-member-2)\n"
+        "> - [`submodule.subsubmodule`](#submodulesubsubmodule)\n"
+        ">   - [`subsubparent.sub-sub-member 1`](#subsubparentsub-sub-member-1)\n"
+        ">   - [`subsubparent.sub-sub-member 2`](#subsubparentsub-sub-member-2)\n"
     )
     assert toc == expected

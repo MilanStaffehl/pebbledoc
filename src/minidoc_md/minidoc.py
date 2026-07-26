@@ -94,8 +94,11 @@ def _document_member(member: Member, config: MinidocConfig) -> str:
     :return: Documentation section for ``member`` as a string, formatted
         as GitHub-flavored Markdown.
     """
-    snippet = f"{'#' * member.header_level} "
-    snippet += f"`{member.name}`\n\n"
+    # add an anchor for references without the full name
+    snippet = f'<a name="{util.name_to_ref(member.name)}"></a>\n'
+    snippet += f"{'#' * member.header_level} "
+    header = _parent_name(member.name, member.parent)
+    snippet += f"`{header}`\n\n"
     if member.signature:
         snippet += f"```Python\n{member.signature}\n```\n\n"
     if member.raw_docstring:
@@ -107,7 +110,7 @@ def _document_member(member: Member, config: MinidocConfig) -> str:
     return snippet
 
 
-def _member_constant(name: str, constant: object) -> Member:
+def _member_constant(name: str, constant: object, parent: str) -> Member:
     """
     Create a :class:`Member` node for a constant.
 
@@ -120,7 +123,7 @@ def _member_constant(name: str, constant: object) -> Member:
     sig = f"{name}: {type(constant).__name__} = {constant}"
     node = Member(
         name=name,
-        parent="",  # no parent in header
+        parent=parent,
         kind="constant",
         signature=sig,
         raw_docstring="",  # empty for now, retrieval complicated
@@ -129,7 +132,7 @@ def _member_constant(name: str, constant: object) -> Member:
     return node
 
 
-def _member_function(name: str, function: Callable[..., Any]) -> Member:
+def _member_function(name: str, function: Callable[..., Any], parent: str) -> Member:
     """
     Create a :class:`Member` node for a function.
 
@@ -142,7 +145,7 @@ def _member_function(name: str, function: Callable[..., Any]) -> Member:
     doc = inspect.getdoc(function) or ""
     node = Member(
         name=name,
-        parent="",  # functions need no parent
+        parent=parent,
         kind="routine",
         signature=f"{name}{sig}",
         raw_docstring=doc,
@@ -171,7 +174,8 @@ def _member_method(
     sig = ""
     if decorator:
         sig += f"@{decorator}\n"
-    sig += f"{parent}.{name}"
+    parent_class = parent.split(".")[-1]
+    sig += f"{parent_class}.{name}"
     sig += _signature_str(inspect.signature(method), decorator == "classmethod")
     doc = inspect.getdoc(method) or ""
     node = Member(
@@ -203,7 +207,8 @@ def _member_property(name: str, property_: property, parent: str) -> Member:
             annotation = ""
         else:
             annotation = f": {return_annotation}"
-    sig = f"@property\n{parent}.{name}{annotation}"
+    parent_class = parent.split(".")[-1]
+    sig = f"@property\n{parent_class}.{name}{annotation}"
     doc = inspect.getdoc(property_) or ""
     node = Member(
         name=name,
@@ -226,7 +231,8 @@ def _member_classvar(name: str, classvar: object, parent: str) -> Member:
     :return: A :class:`Member` node for the class, filled with all
         relevant data.
     """
-    sig = f"{parent}.{name}: ClassVar[{type(classvar).__name__}] = {classvar}"
+    parent_class = parent.split(".")[-1]
+    sig = f"{parent_class}.{name}: ClassVar[{type(classvar).__name__}] = {classvar}"
     node = Member(
         name=name,
         parent=parent,
@@ -238,7 +244,7 @@ def _member_classvar(name: str, classvar: object, parent: str) -> Member:
     return node
 
 
-def _member_class(name: str, klass: type) -> Member:
+def _member_class(name: str, klass: type, parent: str) -> Member:
     """
     Create a :class:`Member` node for a class.
 
@@ -266,6 +272,7 @@ def _member_class(name: str, klass: type) -> Member:
     # find all public members of the class
     class_members = [m for m in klass.__dict__.keys() if not m.startswith("_")]
     children = []
+    new_parent = _parent_name(name, parent)
     for child_name in class_members:
         obj = getattr(klass, child_name)
         child_kind = klass.__dict__[child_name]
@@ -276,20 +283,20 @@ def _member_class(name: str, klass: type) -> Member:
                 decorator = "classmethod"
             else:
                 decorator = None
-            children.append(_member_method(child_name, obj, name, decorator))
+            children.append(_member_method(child_name, obj, new_parent, decorator))
         elif isinstance(child_kind, property):
-            children.append(_member_property(child_name, obj, name))
+            children.append(_member_property(child_name, obj, new_parent))
         elif inspect.isclass(child_kind):
-            children.append(_member_class(child_name, obj))
+            children.append(_member_class(child_name, obj, new_parent))
         elif child_name in fields_set:
             continue  # we do not document fields with defaults
         else:
-            children.append(_member_classvar(child_name, obj, name))
+            children.append(_member_classvar(child_name, obj, new_parent))
 
     # construct the node
     node = Member(
         name=name,
-        parent="",  # no parent in header for classes
+        parent=parent,
         kind=kind,
         signature=sig,
         raw_docstring=doc,
@@ -304,7 +311,7 @@ def _member_module(
     module: ModuleType,
     config: MinidocConfig,
     library_name: str,
-    parent_name: str = "",
+    parent: str = "",
 ) -> Member:
     """
     Create a :class:`Member` node for a module.
@@ -317,7 +324,7 @@ def _member_module(
     :param library_name: The top level package under which the current
         module exists, i.e. the name of the project that is being
         documented.
-    :param parent_name: The name of the parent module, or an empty string
+    :param parent: The name of the parent module, or an empty string
         if there is no parent module.
     :return: A :class:`Member` node for the module, filled with all
         relevant data.
@@ -336,6 +343,7 @@ def _member_module(
     # find children, create their nodes
     children = []
     sub_modules = []
+    new_parent = _parent_name(name, parent)
     for member_name in public_members:
         member = getattr(module, member_name)
         # avoid including external members (unfortunately, re-exported
@@ -345,21 +353,22 @@ def _member_module(
         if not is_local and not is_constant:
             continue  # do not include external members into docs
         if inspect.isfunction(member):
-            children.append(_member_function(member_name, member))
+            children.append(_member_function(member_name, member, new_parent))
         elif inspect.isclass(member):
-            children.append(_member_class(member_name, member))
+            children.append(_member_class(member_name, member, new_parent))
         elif inspect.ismodule(member):
-            new_parent = _parent_name(name, parent_name)
-            sub_modules.append(_member_module(member_name, member, config, new_parent))
+            sub_modules.append(
+                _member_module(member_name, member, config, library_name, new_parent)
+            )
         else:
             if not config.document_constants:
                 continue  # skip constants
-            children.append(_member_constant(member_name, member))
+            children.append(_member_constant(member_name, member, new_parent))
 
     # create module member node
     node = Member(
         name=name,
-        parent=parent_name,
+        parent=parent,
         kind="module",
         signature="",  # modules get no signature section
         raw_docstring=doc,
@@ -385,14 +394,16 @@ def _build_toc(root: Member, config: MinidocConfig) -> str:
         for each of the children of ``root``.
     """
     # First entry for the root node
-    toc = f"> - [`{root.name}`](#{util.name_to_ref(root.name)})\n"
+    full_name = _parent_name(root.name, root.parent)
+    toc = f"> - [`{full_name}`](#{util.name_to_ref(full_name)})\n"
     # then iteratively add children, descending into submodules
     for child in root.children:
+        full_name = _parent_name(child.name, child.parent)
         if child.kind == "module":
             toc += _build_toc(child, config)  # descend into submodules
         else:
-            ref_target = util.name_to_ref(child.name)
-            toc += f">   - [`{child.name}`](#{ref_target})\n"
+            ref_target = util.name_to_ref(full_name)
+            toc += f">   - [`{full_name}`](#{ref_target})\n"
     return toc
 
 
@@ -441,6 +452,7 @@ def markdown_documentation(
     if config.include_toc:
         toc = "> #### Table of contents\n"
         toc += _build_toc(root, config)
+        toc += "\n\n"
     else:
         toc = ""
 

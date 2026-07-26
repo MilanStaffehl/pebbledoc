@@ -1,9 +1,9 @@
 Process a matrix using iterative refinement.
 
 This function applies **iterative refinement** to a matrix using the
-algorithm described in [`_refine_step`](#refine-step), with *emphasis* on numerical
+algorithm described in [`_refine_step`](#_refine_step), with *emphasis* on numerical
 stability. It is a companion to [`MatrixProcessor`](#matrixprocessor) and relies on
-[`MatrixProcessor.default_tolerance`](#default-tolerance) for its stopping condition.
+[`MatrixProcessor.default_tolerance`](#matrixprocessordefault_tolerance) for its stopping condition.
 
 The refinement minimizes the residual
 
@@ -62,7 +62,7 @@ Related considerations:
 
 **Parameters:**
 
-- `data`: A **required** list of `float` lists representing the input matrix. See [`_validate_matrix`](#validate-matrix) for shape constraints.
+- `data`: A **required** list of `float` lists representing the input matrix. See [`_validate_matrix`](#_validate_matrix) for shape constraints.
 - `threshold`: Convergence threshold as a `float`. Lower values increase precision at the cost of more iterations:
   - `0.5` -- fast, low precision (default)
   - `0.1` -- balanced
@@ -76,4 +76,4 @@ Related considerations:
 
 **Returns:**
 
-The refined matrix as a nested `list`, with the same shape as the input. See [`MatrixProcessor.output_format`](#output-format) for alternate return types.
+The refined matrix as a nested `list`, with the same shape as the input. See [`MatrixProcessor.output_format`](#matrixprocessoroutput_format) for alternate return types.

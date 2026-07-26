@@ -419,7 +419,6 @@ class SphinxRstVisitor(nodes.SparseNodeVisitor):
         # Turn into a valid GitHub refernce target: We interpret these
         # roles as references to headers containing only the member name
         # itself, not the full reference, so we normalize accordingly:
-        target = target.split(".")[-1]  # only member name
         target = util.name_to_ref(target)
         display_name = node.astext()
         self.body.append(f"[`{display_name}`](#{target})")
