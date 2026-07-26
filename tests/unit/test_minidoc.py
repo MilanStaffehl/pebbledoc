@@ -25,7 +25,7 @@ def patch_parse_docstring(mocker: MockerFixture) -> Mock:
 @pytest.fixture
 def mock_module() -> ModuleType:
     """Return the test mock package."""
-    sys.path.insert(0, str(Path(__file__).parent))
+    sys.path.insert(0, str(Path(__file__).parent / "resources"))
     module = importlib.import_module("mock_module")
     return module
 
@@ -622,3 +622,38 @@ def test_member_module_parent(mock_module: ModuleType) -> None:
     for child in output.children:
         print(child)
     assert len(output.children) == 10
+
+
+def test_member_module_no_constants(mock_module: ModuleType) -> None:
+    """Test the function for a module."""
+    test_config = config.MinidocConfig(document_constants=False)
+    output = minidoc._member_module(
+        "mock_module", mock_module, test_config, "mock_module", ""
+    )
+    assert output.name == "mock_module"
+    assert output.parent == ""
+    assert output.kind == "module"
+    assert output.signature == ""
+    assert output.raw_docstring == "Mock module docstring."
+    assert output.header_level == 2
+    assert len(output.children) == 8
+
+    # check children
+    check_function_mock_function(output.children[0])
+    check_class_mock_class(output.children[1])
+    check_class_child_class(output.children[2])
+    check_class_grandchild_class(output.children[3])
+    # missing here: the class "AnotherParent", verified below
+    check_class_multiple_parents(output.children[5])
+    check_class_mock_dataclass(output.children[6])
+    check_function_function_with_custom_type(output.children[7])
+
+    # check AnotherParent class
+    node = output.children[4]
+    assert node.name == "AnotherParent"
+    assert node.parent == ""
+    assert node.kind == "class"
+    assert node.signature == "AnotherParent(object)"
+    assert node.raw_docstring == "Another parent class docstring."
+    assert node.header_level == 3
+    assert len(node.children) == 0
