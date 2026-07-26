@@ -198,7 +198,7 @@ def _member_property(name: str, property_: property, parent: str) -> Member:
         relevant data.
     """
     if property_.fget is None:
-        annotation = ": Any"
+        annotation = ": Any"  # TODO: handle more consistently
     else:
         return_annotation = inspect.signature(property_.fget).return_annotation
         if return_annotation is inspect.Parameter.empty:
@@ -353,6 +353,8 @@ def _member_module(
             new_parent = _parent_name(name, parent_name)
             children.append(_member_module(member_name, member, config, new_parent))
         else:
+            if not config.document_constants:
+                continue  # skip constants
             children.append(_member_constant(member_name, member))
 
     # create module member node
