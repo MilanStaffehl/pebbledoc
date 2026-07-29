@@ -44,6 +44,27 @@ minidoc-md = "minidoc_md.cli:main"
 
 
 # tools
+[tool.ruff]
+line-length = 79
+
+[tool.ruff.lint]
+select = ["E", "F", "W", "B", "C901", "RUF100", "RUF101", "RUF200"]
+
+[tool.ruff.lint.pycodestyle]
+max-line-length = 88
+
+[tool.ruff.lint.mccabe]
+max-complexity = 15
+
+[tool.isort]
+src_paths = ["src/minidoc_md", "tests"]
+known_first_party = ["minidoc_md"]
+line_length = 79
+multi_line_output = 3
+include_trailing_comma = true
+force_grid_wrap = 0
+use_parentheses = true
+
 [tool.pyrefly]
 project-includes = ["**/*.py*"]
 project-excludes = [
@@ -53,5 +74,5 @@ project-excludes = [
     "**/.[!/.]*/**",
 ]
 use-ignore-files = true
-search-path = ["src"]
+search-path = ["src", "tests/acceptance/resources"]
 python-version = "3.13"
