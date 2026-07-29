@@ -89,6 +89,15 @@ def test_parse_docstring_interpreted_text() -> None:
     assert output == expected
 
 
+def test_parse_docstring_inline_literal() -> None:
+    """Test parsing text with an inline literal."""
+    default_config = config.MinidocConfig()
+    rst_str = "This text contains ``inline literal`` text."
+    output = parsing.parse_docstring(rst_str, default_config)
+    expected = "This text contains `inline literal` text.\n"
+    assert output == expected
+
+
 def test_parse_docstring_simple_bullet_list() -> None:
     """Test parsing a simple bullet list."""
     default_config = config.MinidocConfig()

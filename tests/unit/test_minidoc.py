@@ -563,7 +563,7 @@ def test_member_property(mock_module: ModuleType) -> None:
     """Test the function for a property."""
     output = minidoc._member_property(
         "property_editable",
-        mock_module.MockClass.property_editable,
+        mock_module.MockClass.my_property,
         "mock_module.MockClass",
     )
     check_property_property_editable(output)
