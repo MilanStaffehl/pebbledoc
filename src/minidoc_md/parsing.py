@@ -496,7 +496,7 @@ class SphinxRstVisitor(nodes.SparseNodeVisitor):
     # FIELD LISTS
     def visit_field_list(self, node: nodes.field_list) -> None:
         # since we render field lists as bullet lists, we need to add a
-        # corresponding list context elem,ent to the stack:
+        # corresponding list context element to the stack:
         self.list_context.append(ListContext("bullet"))
         self.block_context.append("field_list")
         groups = {"Parameters": [], "Raises": [], "Returns": []}

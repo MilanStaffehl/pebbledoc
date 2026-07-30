@@ -76,7 +76,8 @@ def test_document_member_no_docstring(patch_parse_docstring: Mock) -> None:
     output = minidoc._document_member(test_member, test_config)
     expected = (
         '<a name="test_member"></a>\n'
-        "### `parent.test_member`\n\n```Python\ntest_member = pytest.mock.Mock()\n```\n\n"
+        "### `parent.test_member`\n\n```Python\ntest_member = "
+        "pytest.mock.Mock()\n```\n\n"
     )
     assert output == expected
     patch_parse_docstring.assert_not_called()
@@ -131,7 +132,9 @@ def test_document_member_header_level(patch_parse_docstring: Mock) -> None:
             "This is a test docstring.\n\n"
         )
         assert output == expected
-        patch_parse_docstring.assert_called_once_with(test_docstring, test_config)
+        patch_parse_docstring.assert_called_once_with(
+            test_docstring, test_config
+        )
         patch_parse_docstring.reset_mock()
 
 
@@ -419,7 +422,10 @@ def check_class_mock_dataclass(node: minidoc.Member) -> None:
     assert node.children[0].name == "class_var"
     assert node.children[0].parent == "mock_module.MockDataclass"
     assert node.children[0].kind == "classvar"
-    assert node.children[0].signature == "MockDataclass.class_var: ClassVar[int] = 0"
+    assert (
+        node.children[0].signature
+        == "MockDataclass.class_var: ClassVar[int] = 0"
+    )
     assert node.children[0].raw_docstring == ""
     assert node.children[0].header_level == 4
 
@@ -554,7 +560,9 @@ def test_member_classvar(mock_module: ModuleType) -> None:
 def test_member_classvar_no_docs(mock_module: ModuleType) -> None:
     """Test the function for a classvar without docstring."""
     output = minidoc._member_classvar(
-        "undocumented", mock_module.MockClass.undocumented, "mock_module.MockClass"
+        "undocumented",
+        mock_module.MockClass.undocumented,
+        "mock_module.MockClass",
     )
     check_classvar_undocumented(output)
 
@@ -563,7 +571,7 @@ def test_member_property(mock_module: ModuleType) -> None:
     """Test the function for a property."""
     output = minidoc._member_property(
         "property_editable",
-        mock_module.MockClass.my_property,
+        mock_module.MockClass.property_editable,
         "mock_module.MockClass",
     )
     check_property_property_editable(output)
@@ -571,13 +579,17 @@ def test_member_property(mock_module: ModuleType) -> None:
 
 def test_member_class_normal(mock_module: ModuleType) -> None:
     """Test the function for a class."""
-    output = minidoc._member_class("MockClass", mock_module.MockClass, "mock_module")
+    output = minidoc._member_class(
+        "MockClass", mock_module.MockClass, "mock_module"
+    )
     check_class_mock_class(output)
 
 
 def test_member_class_inheritance(mock_module: ModuleType) -> None:
     """Test the function for a class with a parent class."""
-    output = minidoc._member_class("ChildClass", mock_module.ChildClass, "mock_module")
+    output = minidoc._member_class(
+        "ChildClass", mock_module.ChildClass, "mock_module"
+    )
     check_class_child_class(output)
 
 
@@ -718,7 +730,10 @@ def test_build_toc() -> None:
     submember_1 = MockMember("sub-member 1", "class", "subparent")
     submember_2 = MockMember("sub-member 2", "function", "subparent")
     submodule = MockMember(
-        "submodule", "module", "module", [submember_1, submember_2, subsubmodule]
+        "submodule",
+        "module",
+        "module",
+        [submember_1, submember_2, subsubmodule],
     )
     member_1 = MockMember("member 1", "class", "module")
     member_2 = MockMember("member 2", "function", "module")
@@ -726,7 +741,10 @@ def test_build_toc() -> None:
 
     # test the function
     test_config = config.MinidocConfig()
-    toc = minidoc._build_toc(module, test_config)  # pyrefly: ignore[bad-argument-type]
+    toc = minidoc._build_toc(
+        module,  # pyrefly: ignore[bad-argument-type]
+        test_config,
+    )
 
     # check output
     expected = (
