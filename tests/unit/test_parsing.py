@@ -339,7 +339,9 @@ def test_parse_docstring_standalone_url() -> None:
 def test_parse_docstring_external_hyperlink() -> None:
     """Test parsing an external hyperlinks."""
     default_config = config.MinidocConfig()
-    rst_str = "This text contains a link_ to GitHub.\n\n.. _link: https://github.com"
+    rst_str = (
+        "This text contains a link_ to GitHub.\n\n.. _link: https://github.com"
+    )
     output = parsing.parse_docstring(rst_str, default_config)
     expected = "This text contains a [link](https://github.com) to GitHub.\n"
     assert output == expected
@@ -396,15 +398,30 @@ def test_parse_docstring_internal_reference_multiple_targets() -> None:
 def test_parse_docstring_anonymous_reference() -> None:
     """Test parsing an anonymous reference."""
     default_config = config.MinidocConfig()
-    rst_str = (
-        "This text contains an `anonymous reference`__.\n\n.. __: https://github.com"
-    )
+    rst_str = "This text contains an `anonymous reference`__.\n\n.. __: https://github.com"
     output = parsing.parse_docstring(rst_str, default_config)
-    expected = "This text contains an [anonymous reference](https://github.com).\n"
+    expected = (
+        "This text contains an [anonymous reference](https://github.com).\n"
+    )
     assert output == expected
 
 
-# TODO: Test for roles subscript and superscript
+def test_parse_docstring_subscript() -> None:
+    """Test parsing a code containing subscript."""
+    default_config = config.MinidocConfig()
+    rst_str = "This text contains :sub:`subscript` text."
+    output = parsing.parse_docstring(rst_str, default_config)
+    expected = "This text contains <sub>subscript</sub> text.\n"
+    assert output == expected
+
+
+def test_parse_docstring_superscript() -> None:
+    """Test parsing a code containing superscript."""
+    default_config = config.MinidocConfig()
+    rst_str = "This text contains :sup:`superscript` text."
+    output = parsing.parse_docstring(rst_str, default_config)
+    expected = "This text contains <sup>superscript</sup> text.\n"
+    assert output == expected
 
 
 # == ADMONITIONS =======================================================
@@ -781,7 +798,9 @@ def test_parse_docstring_sphinx_role_simple(role: str) -> None:
     default_config = config.MinidocConfig()
     rst_str = f"This text contains a Sphinx ref (:{role}:`target_name`)."
     output = parsing.parse_docstring(rst_str, default_config)
-    expected = "This text contains a Sphinx ref ([`target_name`](#target_name)).\n"
+    expected = (
+        "This text contains a Sphinx ref ([`target_name`](#target_name)).\n"
+    )
     assert output == expected
 
 
@@ -790,7 +809,8 @@ def test_parse_docstring_sphinx_role_path(role: str) -> None:
     """Test parsing a sphinx role with a full target path."""
     default_config = config.MinidocConfig()
     rst_str = (
-        f"This text contains a Sphinx ref (:{role}:`my_module.submodule.target_name`)."
+        f"This text contains a Sphinx ref "
+        f"(:{role}:`my_module.submodule.target_name`)."
     )
     output = parsing.parse_docstring(rst_str, default_config)
     expected = (
@@ -805,10 +825,14 @@ def test_parse_docstring_sphinx_role_shorthand(role: str) -> None:
     """Test parsing a sphinx role with a path, but shown shortened."""
     default_config = config.MinidocConfig()
     rst_str = (
-        f"This text contains a Sphinx ref (:{role}:`~my_module.submodule.target_name`)."
+        f"This text contains a Sphinx ref "
+        f"(:{role}:`~my_module.submodule.target_name`)."
     )
     output = parsing.parse_docstring(rst_str, default_config)
-    expected = "This text contains a Sphinx ref ([`target_name`](#my_modulesubmoduletarget_name)).\n"
+    expected = (
+        "This text contains a Sphinx ref "
+        "([`target_name`](#my_modulesubmoduletarget_name)).\n"
+    )
     assert output == expected
 
 
@@ -825,11 +849,13 @@ def test_parse_docstring_sphinx_disable_reference(role: str) -> None:
 
     # full path
     rst_str = (
-        f"This text contains a Sphinx ref (:{role}:`!my_module.submodule.target_name`)."
+        f"This text contains a Sphinx ref "
+        f"(:{role}:`!my_module.submodule.target_name`)."
     )
     output = parsing.parse_docstring(rst_str, default_config)
     expected = (
-        "This text contains a Sphinx ref ([`my_module.submodule.target_name`](#)).\n"
+        "This text contains a Sphinx ref "
+        "([`my_module.submodule.target_name`](#)).\n"
     )
     assert output == expected
 
@@ -975,7 +1001,9 @@ def test_parse_docstring_version_removed() -> None:
 
 
 # == FULL DOCSTRING ====================================================
-def test_parse_docstring(mock_docstring: str, expected_output_base: str) -> None:
+def test_parse_docstring(
+    mock_docstring: str, expected_output_base: str
+) -> None:
     """Test the parsing function with the default config."""
     default_config = config.MinidocConfig()
     output = parsing.parse_docstring(mock_docstring, default_config)

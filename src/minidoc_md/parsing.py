@@ -11,9 +11,10 @@ import copy
 import re
 from collections.abc import Iterable
 from dataclasses import dataclass
-from typing import Literal, assert_never
+from typing import Any, Literal, assert_never
 
 from docutils import core, nodes
+from docutils.nodes import subscript
 
 from . import util
 from .config import MinidocConfig
@@ -185,7 +186,9 @@ def _render_admonition(
 
 
 class SphinxRstVisitor(nodes.SparseNodeVisitor):
-    def __init__(self, config: MinidocConfig, document: nodes.document) -> None:
+    def __init__(
+        self, config: MinidocConfig, document: nodes.document
+    ) -> None:
         super().__init__(document)
         self.config: MinidocConfig = config
         self.body: list[str] = []
@@ -256,6 +259,18 @@ class SphinxRstVisitor(nodes.SparseNodeVisitor):
     def depart_title_reference(self, node: nodes.title_reference) -> None:
         self.body.append("`")
 
+    def visit_subscript(self, node: subscript) -> Any:
+        self.body.append("<sub>")
+
+    def depart_subscript(self, node: subscript) -> Any:
+        self.body.append("</sub>")
+
+    def visit_superscript(self, node: nodes.superscript) -> Any:
+        self.body.append("<sup>")
+
+    def depart_superscript(self, node: nodes.superscript) -> Any:
+        self.body.append("</sup>")
+
     # DIRECTIVES
     def visit_math_block(self, node: nodes.math_block) -> None:
         self.body.append("$$\n")
@@ -303,7 +318,9 @@ class SphinxRstVisitor(nodes.SparseNodeVisitor):
 
     def visit_block_quote(self, node: nodes.block_quote) -> None:
         attribution = node.next_node(nodes.attribution)
-        children = [c for c in node.children if not isinstance(c, nodes.attribution)]
+        children = [
+            c for c in node.children if not isinstance(c, nodes.attribution)
+        ]
 
         # walk children to parse their content
         quote = _parse_multiple_nodes(children, self.config, self.document)
@@ -364,52 +381,72 @@ class SphinxRstVisitor(nodes.SparseNodeVisitor):
 
     # ADMONITIONS
     def visit_attention(self, node: nodes.attention) -> None:
-        admonition = _render_admonition("attention", node, self.config, self.document)
+        admonition = _render_admonition(
+            "attention", node, self.config, self.document
+        )
         self.body.append(admonition)
         raise nodes.SkipNode
 
     def visit_caution(self, node: nodes.caution) -> None:
-        admonition = _render_admonition("caution", node, self.config, self.document)
+        admonition = _render_admonition(
+            "caution", node, self.config, self.document
+        )
         self.body.append(admonition)
         raise nodes.SkipNode
 
     def visit_danger(self, node: nodes.danger) -> None:
-        admonition = _render_admonition("danger", node, self.config, self.document)
+        admonition = _render_admonition(
+            "danger", node, self.config, self.document
+        )
         self.body.append(admonition)
         raise nodes.SkipNode
 
     def visit_error(self, node: nodes.error) -> None:
-        admonition = _render_admonition("error", node, self.config, self.document)
+        admonition = _render_admonition(
+            "error", node, self.config, self.document
+        )
         self.body.append(admonition)
         raise nodes.SkipNode
 
     def visit_hint(self, node: nodes.hint) -> None:
-        admonition = _render_admonition("hint", node, self.config, self.document)
+        admonition = _render_admonition(
+            "hint", node, self.config, self.document
+        )
         self.body.append(admonition)
         raise nodes.SkipNode
 
     def visit_important(self, node: nodes.important) -> None:
-        admonition = _render_admonition("important", node, self.config, self.document)
+        admonition = _render_admonition(
+            "important", node, self.config, self.document
+        )
         self.body.append(admonition)
         raise nodes.SkipNode
 
     def visit_note(self, node: nodes.note) -> None:
-        admonition = _render_admonition("note", node, self.config, self.document)
+        admonition = _render_admonition(
+            "note", node, self.config, self.document
+        )
         self.body.append(admonition)
         raise nodes.SkipNode
 
     def visit_tip(self, node: nodes.tip) -> None:
-        admonition = _render_admonition("tip", node, self.config, self.document)
+        admonition = _render_admonition(
+            "tip", node, self.config, self.document
+        )
         self.body.append(admonition)
         raise nodes.SkipNode
 
     def visit_warning(self, node: nodes.warning) -> None:
-        admonition = _render_admonition("warning", node, self.config, self.document)
+        admonition = _render_admonition(
+            "warning", node, self.config, self.document
+        )
         self.body.append(admonition)
         raise nodes.SkipNode
 
     def visit_admonition(self, node: nodes.admonition) -> None:
-        admonition = _render_admonition("admonition", node, self.config, self.document)
+        admonition = _render_admonition(
+            "admonition", node, self.config, self.document
+        )
         self.body.append(admonition)
         raise nodes.SkipNode
 
@@ -446,7 +483,9 @@ class SphinxRstVisitor(nodes.SparseNodeVisitor):
             )
 
         if len(node.children) > 0:
-            content = _parse_multiple_nodes(node.children, self.config, self.document)
+            content = _parse_multiple_nodes(
+                node.children, self.config, self.document
+            )
             body_str = f": {content}"
         else:
             body_str = "\n\n"  # no paragraph node, must add manually
@@ -563,5 +602,5 @@ def parse_docstring(docstring: str, config: MinidocConfig) -> str:
     doctree = core.publish_doctree(docstring, settings_overrides=settings)
     visitor = SphinxRstVisitor(config, doctree)
     doctree.walkabout(visitor)
-    md_text = visitor.astext().rstrip("\n\n")
+    md_text = visitor.astext().removesuffix("\n\n")
     return md_text + "\n"
