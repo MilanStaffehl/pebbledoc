@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import abc
 from dataclasses import dataclass
 from typing import ClassVar, Final
 
@@ -11,8 +12,9 @@ MOCK_CONSTANT: Final[float] = 3.12
 UNDOCUMENTED: Final[bool] = False
 
 
-# pyrefly: ignore[bad-return]
-def mock_function(param_a: int, param_b: str, optional: int | None = None) -> str:
+def mock_function(
+    param_a: int, param_b: str, optional: int | None = None
+) -> str:  # pyrefly: ignore[bad-return]
     """
     Mock function docstring.
 
@@ -85,8 +87,9 @@ class MockClass:
         """
         pass
 
-    # pyrefly: ignore[bad-return]
-    def _private_method(self, param_d: bool, optional: str | None = None) -> bytes:
+    def _private_method(
+        self, param_d: bool, optional: str | None = None
+    ) -> bytes:  # pyrefly: ignore[bad-return]
         """
         Private method docstring.
 
@@ -192,3 +195,16 @@ def function_with_custom_type(param: MockClass) -> MockDataclass:
     :return: A MockDataclass.
     """
     pass
+
+
+class MockAbstractClass(abc.ABC):
+    """Mock abstract class docstring."""
+
+    @abc.abstractmethod
+    def abstract_method(self) -> tuple[str, int]:
+        """
+        Abstract method docstring.
+
+        :return: A tuple of a string and an integer.
+        """
+        pass
