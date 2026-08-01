@@ -455,6 +455,34 @@ def check_class_mock_dataclass(node: minidoc.Member) -> None:
     assert node.children[2].header_level == 4
 
 
+def check_method_abstract_method(node: minidoc.Member) -> None:
+    """Check node for representing abstract method "abstract_method"."""
+    assert node.name == "abstract_method"
+    assert node.parent == "mock_module.MockAbstractClass"
+    assert node.kind == "method"
+    assert node.signature == (
+        "@abstractmethod\n"
+        "MockAbstractClass.abstract_method(self) -> tuple[str, int]"
+    )
+    assert node.raw_docstring == (
+        "Abstract method docstring.\n\n"
+        ":return: A tuple of a string and an integer."
+    )
+    assert node.header_level == 4
+
+
+def check_class_abstract_base_class(node: minidoc.Member) -> None:
+    """Check node for representing abstract base class "MockAbstractClass"."""
+    assert node.name == "MockAbstractClass"
+    assert node.parent == "mock_module"
+    assert node.kind == "class"
+    assert node.signature == "MockAbstractClass(ABC)"
+    assert node.raw_docstring == "Mock abstract class docstring."
+    assert node.header_level == 3
+    assert len(node.children) == 1
+    check_method_abstract_method(node.children[0])
+
+
 # == MEMBER FUNCTION TESTS =============================================
 
 
@@ -549,6 +577,17 @@ def test_member_method_staticmethod(mock_module: ModuleType) -> None:
     check_method_static_method(output)
 
 
+def test_member_method_abstractmethod(mock_module: ModuleType) -> None:
+    """Test the function for a abstract method."""
+    output = minidoc._member_method(
+        "abstract_method",
+        mock_module.MockAbstractClass.abstract_method,
+        "mock_module.MockAbstractClass",
+        "abstractmethod",
+    )
+    check_method_abstract_method(output)
+
+
 def test_member_classvar(mock_module: ModuleType) -> None:
     """Test the function for a classvar."""
     output = minidoc._member_classvar(
@@ -617,6 +656,14 @@ def test_member_class_dataclass(mock_module: ModuleType) -> None:
     check_class_mock_dataclass(output)
 
 
+def test_member_class_abstract_base_class(mock_module: ModuleType) -> None:
+    """Test the function for a abstract base class."""
+    output = minidoc._member_class(
+        "MockAbstractClass", mock_module.MockAbstractClass, "mock_module"
+    )
+    check_class_abstract_base_class(output)
+
+
 def test_member_module(mock_module: ModuleType) -> None:
     """Test the function for a module."""
     test_config = config.MinidocConfig()
@@ -629,9 +676,7 @@ def test_member_module(mock_module: ModuleType) -> None:
     assert output.signature == ""
     assert output.raw_docstring == "Mock module docstring."
     assert output.header_level == 2
-    for child in output.children:
-        print(child)
-    assert len(output.children) == 10
+    assert len(output.children) == 11
 
     # check children
     check_constant_mock_constant(output.children[0])
@@ -644,6 +689,7 @@ def test_member_module(mock_module: ModuleType) -> None:
     check_class_multiple_parents(output.children[7])
     check_class_mock_dataclass(output.children[8])
     check_function_function_with_custom_type(output.children[9])
+    check_class_abstract_base_class(output.children[10])
 
     # check AnotherParent class
     node = output.children[6]
@@ -668,7 +714,7 @@ def test_member_module_parent(mock_module: ModuleType) -> None:
     assert output.signature == ""
     assert output.raw_docstring == "Mock module docstring."
     assert output.header_level == 2
-    assert len(output.children) == 10
+    assert len(output.children) == 11
     for child in output.children:
         assert child.parent == "parent.mock_module"
 
@@ -685,7 +731,7 @@ def test_member_module_no_constants(mock_module: ModuleType) -> None:
     assert output.signature == ""
     assert output.raw_docstring == "Mock module docstring."
     assert output.header_level == 2
-    assert len(output.children) == 8
+    assert len(output.children) == 9
 
     # check children
     check_function_mock_function(output.children[0])
@@ -696,6 +742,7 @@ def test_member_module_no_constants(mock_module: ModuleType) -> None:
     check_class_multiple_parents(output.children[5])
     check_class_mock_dataclass(output.children[6])
     check_function_function_with_custom_type(output.children[7])
+    check_class_abstract_base_class(output.children[8])
 
     # check AnotherParent class
     node = output.children[4]

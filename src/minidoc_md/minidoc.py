@@ -52,7 +52,9 @@ def _parent_name(name: str, parent_name: str) -> str:
     return name
 
 
-def _signature_str(sig: inspect.Signature, is_classmethod: bool = False) -> str:
+def _signature_str(
+    sig: inspect.Signature, is_classmethod: bool = False
+) -> str:
     """
     Turn a signature object into a description of itself.
 
@@ -132,7 +134,9 @@ def _member_constant(name: str, constant: object, parent: str) -> Member:
     return node
 
 
-def _member_function(name: str, function: Callable[..., Any], parent: str) -> Member:
+def _member_function(
+    name: str, function: Callable[..., Any], parent: str
+) -> Member:
     """
     Create a :class:`Member` node for a function.
 
@@ -155,7 +159,10 @@ def _member_function(name: str, function: Callable[..., Any], parent: str) -> Me
 
 
 def _member_method(
-    name: str, method: Callable[..., Any], parent: str, decorator: str | None = None
+    name: str,
+    method: Callable[..., Any],
+    parent: str,
+    decorator: str | None = None,
 ) -> Member:
     """
     Create a :class:`Member` node for a method.
@@ -176,7 +183,9 @@ def _member_method(
         sig += f"@{decorator}\n"
     parent_class = parent.split(".")[-1]
     sig += f"{parent_class}.{name}"
-    sig += _signature_str(inspect.signature(method), decorator == "classmethod")
+    sig += _signature_str(
+        inspect.signature(method), decorator == "classmethod"
+    )
     doc = inspect.getdoc(method) or ""
     node = Member(
         name=name,
@@ -281,12 +290,16 @@ def _member_class(name: str, klass: type, parent: str) -> Member:
                 decorator = "staticmethod"
             elif isinstance(child_kind, classmethod):
                 decorator = "classmethod"
+            elif getattr(child_kind, "__isabstractmethod__", False):
+                decorator = "abstractmethod"
             else:
                 decorator = None
-            children.append(_member_method(child_name, obj, new_parent, decorator))
+            children.append(
+                _member_method(child_name, obj, new_parent, decorator)
+            )
         elif isinstance(child_kind, property):
             children.append(_member_property(child_name, obj, new_parent))
-        elif inspect.isclass(child_kind):
+        elif inspect.isclass(obj):
             children.append(_member_class(child_name, obj, new_parent))
         elif child_name in fields_set:
             continue  # we do not document fields with defaults
@@ -338,7 +351,9 @@ def _member_module(
     # find all public members of the module
     public_members = getattr(module, "__all__", None)
     if public_members is None:
-        public_members = [m for m in module.__dict__.keys() if not m.startswith("_")]
+        public_members = [
+            m for m in module.__dict__.keys() if not m.startswith("_")
+        ]
 
     # find children, create their nodes
     children = []
@@ -347,9 +362,12 @@ def _member_module(
     for member_name in public_members:
         member = getattr(module, member_name)
         # avoid including external members (unfortunately, re-exported
-        # external constants slip past this check)
+        # external constants slip past this check - as would modules if
+        # we didn't exclude them explicitly)
         is_local = getattr(member, "__module__", "").startswith(library_name)
-        is_constant = not hasattr(member, "__module__")
+        is_constant = not hasattr(
+            member, "__module__"
+        ) and not inspect.ismodule(member)
         if not is_local and not is_constant:
             continue  # do not include external members into docs
         if inspect.isfunction(member):
@@ -358,7 +376,9 @@ def _member_module(
             children.append(_member_class(member_name, member, new_parent))
         elif inspect.ismodule(member):
             sub_modules.append(
-                _member_module(member_name, member, config, library_name, new_parent)
+                _member_module(
+                    member_name, member, config, library_name, new_parent
+                )
             )
         else:
             if not config.document_constants:
@@ -444,7 +464,9 @@ def markdown_documentation(
 
     # build first paragraph if module provides none
     if not root.raw_docstring:
-        intro = f"This document lists the full public API of {package_name}.\n\n"
+        intro = (
+            f"This document lists the full public API of {package_name}.\n\n"
+        )
     else:
         intro = ""
 
