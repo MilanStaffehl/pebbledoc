@@ -7,9 +7,9 @@ stability. It is a companion to [`MatrixProcessor`](#matrixprocessor) and relies
 
 The refinement minimizes the residual
 
-$$
+```math
 \| A x - b \|_2^2 + \lambda \| x \|_2^2
-$$
+```
 
 where $\lambda$ is the regularization `threshold` parameter. For a
 single element, the update rule is $x_{i+1} = x_i - \alpha \nabla f(x_i)$.

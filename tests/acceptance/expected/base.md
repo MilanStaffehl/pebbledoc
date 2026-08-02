@@ -187,10 +187,10 @@ Compute the angular separation between two objects, in degrees.
 
 Uses the standard great-circle formula
 
-$$
+```math
 \cos(d) = \sin(\delta_1)\sin(\delta_2)
 + \cos(\delta_1)\cos(\delta_2)\cos(\alpha_1 - \alpha_2)
-$$
+```
 
 **Parameters:**
 

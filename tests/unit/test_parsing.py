@@ -696,9 +696,9 @@ def test_parse_docstring_math_block() -> None:
     output = parsing.parse_docstring(rst_str, default_config)
     expected = (
         "This is a preceding paragraph.\n\n"
-        "$$\n"
+        "```math\n"
         "\\lambda = x^2 - \\sqrt{2} y\n"
-        "$$\n\n"
+        "```\n\n"
         "This is a closing paragraph.\n"
     )
     assert output == expected
