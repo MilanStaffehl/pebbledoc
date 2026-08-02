@@ -273,10 +273,10 @@ class SphinxRstVisitor(nodes.SparseNodeVisitor):
 
     # DIRECTIVES
     def visit_math_block(self, node: nodes.math_block) -> None:
-        self.body.append("$$\n")
+        self.body.append("```math\n")
 
     def depart_math_block(self, node: nodes.math_block) -> None:
-        self.body.append("\n$$\n\n")
+        self.body.append("\n```\n\n")
 
     def visit_reference(self, node: nodes.reference) -> None:
         hyperlink = node.get("refuri", None)
