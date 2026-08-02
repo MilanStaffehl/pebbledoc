@@ -34,6 +34,24 @@ class Member:
     children: list[Member] = field(default_factory=list)
 
 
+def _is_local(member: object, package: str) -> bool:
+    """
+    Whether the given member is defined in the specified package.
+
+    :param member: Any Python object.
+    :param package: The name of the package against which to check
+        membership.
+    :return: True, if the member is defined in the specified package,
+        otherwise False.
+    """
+    if inspect.ismodule(member):
+        return getattr(member, "__name__", "").startswith(package)
+    elif hasattr(member, "__module__"):
+        return getattr(member, "__module__", "").startswith(package)
+    # last option: neither a module nor a class/function, probably a const
+    return False
+
+
 def _parent_name(name: str, parent_name: str) -> str:
     """
     Format the name of a member, depending on the parent name.
@@ -369,7 +387,7 @@ def _member_module(
         # avoid including external members (unfortunately, re-exported
         # external constants slip past this check - as would modules if
         # we didn't exclude them explicitly)
-        is_local = getattr(member, "__module__", "").startswith(library_name)
+        is_local = _is_local(member, library_name)
         is_constant = not hasattr(
             member, "__module__"
         ) and not inspect.ismodule(member)

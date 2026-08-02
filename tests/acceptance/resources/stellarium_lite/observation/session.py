@@ -16,7 +16,7 @@ used by :class:`HybridObject` below.
 
 from __future__ import annotations
 
-from abc import ABC, abstractmethod
+import abc
 from dataclasses import dataclass, field
 from typing import ClassVar, Final
 
@@ -51,7 +51,7 @@ def plan_session(objects: list, *, start_at: int = 3) -> list:
 
     .. _NASA: https://www.nasa.gov/
 
-    :param objects: Candidate :class:`catalog.CelestialObject` instances.
+    :param objects: Candidate :class:`CelestialObject` instances.
     :param start_at: Priority tier to begin scheduling from.
     :returns: A list of objects in observation order.
     """
@@ -64,7 +64,7 @@ def _score_visibility(obj: CelestialObject) -> float:
     pass
 
 
-class ObservableMixin(ABC):
+class ObservableMixin(abc.ABC):
     """
     Abstract interface for anything that can report its own visibility.
 
@@ -76,7 +76,7 @@ class ObservableMixin(ABC):
     .. versionadded:: 0.1.0
     """
 
-    @abstractmethod
+    @abc.abstractmethod
     def observe(self) -> Observation:
         """
         Perform an observation and return the resulting record.
@@ -90,8 +90,7 @@ class VariableStar(Star):
     """
     A star whose brightness changes over time.
 
-    Extends :class:`catalog.Star`, which in turn extends
-    :class:`catalog.CelestialObject`.
+    Extends :class:`Star`, which in turn extends :class:`CelestialObject`.
 
     .. code:: text
 
@@ -123,13 +122,13 @@ class VariableStar(Star):
 
 class HybridObject(CelestialObject, ObservableMixin):
     """
-    An object that is both a :class:`catalog.CelestialObject` and
+    An object that is both a :class:`CelestialObject` and
     :class:`ObservableMixin`.
 
     .. hint::
 
        This class mostly exists to exercise multiple inheritance; prefer
-       :class:`~catalog.Star` or :class:`VariableStar` for real use.
+       :class:`~Star` or :class:`VariableStar` for real use.
     """
 
     def observe(self) -> Observation:  # pyrefly: ignore[bad-return]

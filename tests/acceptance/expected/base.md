@@ -15,7 +15,6 @@
 >   - [`stellarium_lite.observation.Observation`](#stellarium_liteobservationobservation)
 
 
-<a name="stellarium_lite"></a>
 ## `stellarium_lite`
 
 A tiny mock astronomy package used to exercise an RST-to-Markdown docstring renderer.
@@ -112,13 +111,15 @@ $0^\circ \le \alpha < 360^\circ$ for right ascension.
 
 > :recycle: Changed in version 0.3.0: `ra` and `dec` are now stored in degrees instead of radians.
 
+<a name="celestialobjectkind"></a>
 <a name="kind"></a>
 #### `stellarium_lite.CelestialObject.kind`
 
 ```Python
-CelestialObject.kind: ClassVar[str] = "unkown"
+CelestialObject.kind: ClassVar[str] = "unknown"
 ```
 
+<a name="celestialobjectis_visible"></a>
 <a name="is_visible"></a>
 #### `stellarium_lite.CelestialObject.is_visible`
 
@@ -132,6 +133,7 @@ CelestialObject.is_visible: bool
 This is a naive placeholder -- see [`ObservableMixin`](#observationobservablemixin)
 for the real visibility logic used elsewhere in this package.
 
+<a name="celestialobjectdescribe"></a>
 <a name="describe"></a>
 #### `stellarium_lite.CelestialObject.describe`
 
@@ -141,7 +143,7 @@ CelestialObject.describe(self, *, verbose: bool = False) -> str
 
 Return a short human-readable description.
 
-Uses the object's right ascension (in h\ <sup>m</sup>\ <sup>s</sup>
+Uses the object's right ascension (in h \ <sup>m</sup> \ <sup>s</sup>
 notation) and declination (in degrees, with <sub>J2000</sub> epoch
 implied) to build a one-line summary.
 
@@ -153,6 +155,7 @@ implied) to build a one-line summary.
 
 A description such as `"M31 (unknown)"`.
 
+<a name="celestialobjectfrom_dict"></a>
 <a name="from_dict"></a>
 #### `stellarium_lite.CelestialObject.from_dict`
 
@@ -171,6 +174,7 @@ Build a [`CelestialObject`](#celestialobject) from a raw catalog record.
 
 A new instance of `cls`.
 
+<a name="celestialobjectangular_separation"></a>
 <a name="angular_separation"></a>
 #### `stellarium_lite.CelestialObject.angular_separation`
 
@@ -214,6 +218,7 @@ See also [`catalog`](#catalog) for how instances are typically constructed via
 
 The observation module contains utilities for orchestrating surveys.
 
+<a name="observationmax_magnitude"></a>
 <a name="max_magnitude"></a>
 ### `stellarium_lite.observation.MAX_MAGNITUDE`
 
@@ -221,6 +226,7 @@ The observation module contains utilities for orchestrating surveys.
 MAX_MAGNITUDE: float = 30.0
 ```
 
+<a name="observationplan_session"></a>
 <a name="plan_session"></a>
 ### `stellarium_lite.observation.plan_session`
 
@@ -248,13 +254,14 @@ See [NASA](https://www.nasa.gov/) for some real-world astronomy.
 
 **Parameters:**
 
-- `objects`: Candidate [`CelestialObject`](#CelestialObject) instances.
+- `objects`: Candidate [`CelestialObject`](#celestialobject) instances.
 - `start_at`: Priority tier to begin scheduling from.
 
 **Returns:**
 
 A list of objects in observation order.
 
+<a name="observationobservablemixin"></a>
 <a name="observablemixin"></a>
 ### `stellarium_lite.observation.ObservableMixin`
 
@@ -271,6 +278,8 @@ Abstract interface for anything that can report its own visibility.
 
 > :heavy_plus_sign: Added in version 0.1.0
 
+<a name="observationobservablemixinobserve"></a>
+<a name="observablemixinobserve"></a>
 <a name="observe"></a>
 #### `stellarium_lite.observation.ObservableMixin.observe`
 
@@ -285,6 +294,7 @@ Perform an observation and return the resulting record.
 
 A new [`Observation`](#observation).
 
+<a name="observationvariablestar"></a>
 <a name="variablestar"></a>
 ### `stellarium_lite.observation.VariableStar`
 
@@ -294,8 +304,7 @@ VariableStar(Star)
 
 A star whose brightness changes over time.
 
-Extends [`catalog.Star`](#star), which in turn extends
-[`catalog.CelestialObject`](#celestialobject).
+Extends [`Star`](#star), which in turn extends [`CelestialObject`](#celestialobject).
 
 ```text
 night 1: mag 3.2
@@ -314,6 +323,7 @@ amplitude = max(history) - min(history)
 
 - `period_days`: Approximate variability period, in days.
 
+<a name="observationhybridobject"></a>
 <a name="hybridobject"></a>
 ### `stellarium_lite.observation.HybridObject`
 
@@ -321,7 +331,7 @@ amplitude = max(history) - min(history)
 HybridObject(CelestialObject, ObservableMixin)
 ```
 
-An object that is both a [`catalog.CelestialObject`](#catalogcelestialobject) and
+An object that is both a [`CelestialObject`](#celestialobject) and
 [`ObservableMixin`](#observablemixin).
 
 > **Hint:**
@@ -329,6 +339,8 @@ An object that is both a [`catalog.CelestialObject`](#catalogcelestialobject) an
 > This class mostly exists to exercise multiple inheritance; prefer
 > [`Star`](#star) or [`VariableStar`](#variablestar) for real use.
 
+<a name="observationhybridobjectobserve"></a>
+<a name="hybridobjectobserve"></a>
 <a name="observe"></a>
 #### `stellarium_lite.observation.HybridObject.observe`
 
@@ -342,6 +354,7 @@ Perform an observation of this hybrid object.
 
 A new [`Observation`](#observation) record.
 
+<a name="observationobservation"></a>
 <a name="observation"></a>
 ### `stellarium_lite.observation.Observation`
 
@@ -358,6 +371,8 @@ A single recorded observation.
 - `magnitude`: Estimated visual magnitude at time of observation.
 - `tags`: Free-form labels attached to this observation.
 
+<a name="observationobservationschema_version"></a>
+<a name="observationschema_version"></a>
 <a name="schema_version"></a>
 #### `stellarium_lite.observation.Observation.schema_version`
 
