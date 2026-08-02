@@ -94,10 +94,14 @@ def _signature_str(
         if param.annotation is not inspect.Signature.empty:
             descr += f": {param.annotation}"
         if param.default is not inspect.Parameter.empty:
-            descr += f" = {param.default}"
+            bracket = "'" if isinstance(param.default, str) else ""
+            descr += f" = {bracket}{param.default}{bracket}"
         params.append(descr)
-
-    return f"({', '.join(params)}) -> {sig.return_annotation}"
+    signature_str = f"({', '.join(params)})"
+    return_annotation = sig.return_annotation
+    if return_annotation is not inspect.Signature.empty:
+        signature_str += f" -> {return_annotation}"
+    return signature_str
 
 
 def _document_member(member: Member, config: MinidocConfig) -> str:
@@ -144,8 +148,10 @@ def _member_constant(name: str, constant: object, parent: str) -> Member:
     :return: A :class:`Member` node for the constant, filled with all
         relevant data.
     """
+    # make sure only string type values have quotes
+    quotes = "'" if isinstance(constant, str) else ""
     # do not inherit docstrings from parent classes
-    sig = f"{name}: {type(constant).__name__} = {constant}"
+    sig = f"{name}: {type(constant).__name__} = {quotes}{constant}{quotes}"
     node = Member(
         name=name,
         parent=parent,
@@ -263,8 +269,12 @@ def _member_classvar(name: str, classvar: object, parent: str) -> Member:
     :return: A :class:`Member` node for the class, filled with all
         relevant data.
     """
+    q = "'" if isinstance(classvar, str) else ""
     parent_class = parent.split(".")[-1]
-    sig = f"{parent_class}.{name}: ClassVar[{type(classvar).__name__}] = {classvar}"
+    sig = (
+        f"{parent_class}.{name}: ClassVar[{type(classvar).__name__}] "
+        f"= {q}{classvar}{q}"
+    )
     node = Member(
         name=name,
         parent=parent,
