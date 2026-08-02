@@ -153,6 +153,109 @@ def test_signature_str_no_return_annotation() -> None:
     assert output == expected
 
 
+def test_signature_str_positional_only() -> None:
+    """Test the function for a signature with / in it."""
+
+    # pyrefly: ignore[bad-return]
+    def mock_function(param_a: str, /, param_b: int) -> bool:
+        pass
+
+    sig = inspect.signature(mock_function)
+    output = minidoc._signature_str(sig)
+    expected = "(param_a: str, /, param_b: int) -> bool"
+    assert output == expected
+
+
+def test_signature_str_keyword_only() -> None:
+    """Test the function for a signature with * in it."""
+
+    def mock_function(
+        param_a: str, *, param_b: int, param_c: float = 1.2
+    ) -> bool:  # pyrefly: ignore[bad-return]
+        pass
+
+    sig = inspect.signature(mock_function)
+    output = minidoc._signature_str(sig)
+    expected = "(param_a: str, *, param_b: int, param_c: float = 1.2) -> bool"
+    assert output == expected
+
+
+def test_signature_str_variadic_positional() -> None:
+    """Test the function for a signature with *args in it."""
+
+    # pyrefly: ignore[bad-return]
+    def mock_function(param_a: str, *args: int, param_b: int) -> bool:
+        pass
+
+    sig = inspect.signature(mock_function)
+    output = minidoc._signature_str(sig)
+    expected = "(param_a: str, *args: int, param_b: int) -> bool"
+    assert output == expected
+
+
+def test_signature_str_variadic_keyword() -> None:
+    """Test the function for a signature with **kwargs in it."""
+
+    # pyrefly: ignore[bad-return]
+    def mock_function(param_a: str, param_b: int, **kwargs: str) -> bool:
+        pass
+
+    sig = inspect.signature(mock_function)
+    output = minidoc._signature_str(sig)
+    expected = "(param_a: str, param_b: int, **kwargs: str) -> bool"
+    assert output == expected
+
+
+def test_signature_str_mixed_parameter_types() -> None:
+    """Test the function for a mixed signature."""
+
+    def mock_function(
+        param_a: str,
+        param_b: int,
+        /,
+        param_c: float,
+        param_d: bool = False,
+        *,
+        optional: str | None = None,
+        **kwargs: str,
+    ) -> None:  # pyrefly: ignore[bad-return]
+        pass
+
+    sig = inspect.signature(mock_function)
+    output = minidoc._signature_str(sig)
+    expected = (
+        "(param_a: str, param_b: int, /, param_c: float, "
+        "param_d: bool = False, *, optional: str | None = None, "
+        "**kwargs: str) -> None"
+    )
+    assert output == expected
+
+
+def test_signature_str_mixed_parameter_types_variadic_positionals() -> None:
+    """Test the function for a mixed signature with *args instead of *."""
+
+    def mock_function(
+        param_a: str,
+        param_b: int,
+        /,
+        param_c: float,
+        param_d: bool = False,
+        *args: int,
+        optional: str | None = None,
+        **kwargs: str,
+    ) -> None:  # pyrefly: ignore[bad-return]
+        pass
+
+    sig = inspect.signature(mock_function)
+    output = minidoc._signature_str(sig)
+    expected = (
+        "(param_a: str, param_b: int, /, param_c: float, "
+        "param_d: bool = False, *args: int, optional: str | None = None, "
+        "**kwargs: str) -> None"
+    )
+    assert output == expected
+
+
 def test_document_member_all_fields(patch_parse_docstring: Mock) -> None:
     """Test the function for a member with all fields."""
 
