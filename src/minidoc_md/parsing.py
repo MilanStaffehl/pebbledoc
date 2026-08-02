@@ -458,7 +458,10 @@ class SphinxRstVisitor(nodes.SparseNodeVisitor):
         # itself, not the full reference, so we normalize accordingly:
         target = util.name_to_ref(target)
         display_name = node.astext()
-        self.body.append(f"[`{display_name}`](#{target})")
+        if target:
+            self.body.append(f"[`{display_name}`](#{target})")
+        else:
+            self.body.append(f"`{display_name}`")
         raise nodes.SkipNode
 
     def visit_VersionNotice(self, node: VersionNotice) -> None:

@@ -844,7 +844,7 @@ def test_parse_docstring_sphinx_disable_reference(role: str) -> None:
     # simple reference
     rst_str = f"This text contains a Sphinx ref (:{role}:`!target_name`)."
     output = parsing.parse_docstring(rst_str, default_config)
-    expected = "This text contains a Sphinx ref ([`target_name`](#)).\n"
+    expected = "This text contains a Sphinx ref (`target_name`).\n"
     assert output == expected
 
     # full path
@@ -855,8 +855,37 @@ def test_parse_docstring_sphinx_disable_reference(role: str) -> None:
     output = parsing.parse_docstring(rst_str, default_config)
     expected = (
         "This text contains a Sphinx ref "
-        "([`my_module.submodule.target_name`](#)).\n"
+        "(`my_module.submodule.target_name`).\n"
     )
+    assert output == expected
+
+
+@pytest.mark.parametrize("role", _SPHINX_ROLES)
+def test_parse_docstring_sphinx_including_private(role: str) -> None:
+    """Test parsing a sphinx role which include private members."""
+    default_config = config.MinidocConfig()
+
+    # private member
+    rst_str = f"This links to nothing: :{role}:`parent._private_member`."
+    output = parsing.parse_docstring(rst_str, default_config)
+    expected = "This links to nothing: `parent._private_member`.\n"
+    assert output == expected
+
+    # private parent
+    rst_str = (
+        f"This leads nowhere: "
+        f":{role}:`my_module._private_submodule.target_name`."
+    )
+    output = parsing.parse_docstring(rst_str, default_config)
+    expected = (
+        "This leads nowhere: `my_module._private_submodule.target_name`.\n"
+    )
+    assert output == expected
+
+    # private member with shortened name
+    rst_str = f"This links to nothing: :{role}:`~parent._private_member`."
+    output = parsing.parse_docstring(rst_str, default_config)
+    expected = "This links to nothing: `_private_member`.\n"
     assert output == expected
 
 
@@ -1001,7 +1030,7 @@ def test_parse_docstring_version_removed() -> None:
 
 
 # == FULL DOCSTRING ====================================================
-def test_parse_docstring(
+def test_parse_full_docstring(
     mock_docstring: str, expected_output_base: str
 ) -> None:
     """Test the parsing function with the default config."""
