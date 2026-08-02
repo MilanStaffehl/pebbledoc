@@ -60,6 +60,35 @@ def test_document_member_all_fields(patch_parse_docstring: Mock) -> None:
     patch_parse_docstring.assert_called_once_with(test_docstring, test_config)
 
 
+def test_document_member_parent_hierarchy(patch_parse_docstring: Mock) -> None:
+    """Test the function adds anchors for all parents, except full name."""
+
+    test_config = config.MinidocConfig()
+    test_docstring = "This is a test docstring."
+    test_member = minidoc.Member(
+        name="test_member",
+        parent="parent.subparent.subcontainer",
+        kind="test_kind",
+        signature="test_member = pytest.mock.Mock()",
+        raw_docstring=test_docstring,
+        header_level=3,
+    )
+
+    output = minidoc._document_member(test_member, test_config)
+    expected = (
+        '<a name="subparentsubcontainertest_member"></a>\n'
+        '<a name="subcontainertest_member"></a>\n'
+        '<a name="test_member"></a>\n'
+        "### `parent.subparent.subcontainer.test_member`\n\n"
+        "```Python\n"
+        "test_member = pytest.mock.Mock()\n"
+        "```\n\n"
+        "This is a test docstring.\n\n"
+    )
+    assert output == expected
+    patch_parse_docstring.assert_called_once_with(test_docstring, test_config)
+
+
 def test_document_member_no_docstring(patch_parse_docstring: Mock) -> None:
     """Test the function for a member with no docstring."""
 
@@ -176,12 +205,14 @@ def test_document_member_children(patch_parse_docstring: Mock) -> None:
         "test_member = pytest.mock.Mock()\n"
         "```\n\n"
         "This is a test docstring.\n\n"
+        '<a name="test_memberchild_one"></a>\n'
         '<a name="child_one"></a>\n'
         "#### `parent.test_member.child_one`\n\n"
         "```Python\n"
         "test_member = pytest.mock.Mock()\n"
         "```\n\n"
         "This is child one's docstring.\n\n"
+        '<a name="test_memberchild_two"></a>\n'
         '<a name="child_two"></a>\n'
         "#### `parent.test_member.child_two`\n\n"
         "```Python\n"
