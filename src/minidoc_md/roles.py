@@ -78,16 +78,13 @@ def _sphinx_ref_role(
     target = target.lstrip("~")
     target = target.rstrip("!")
 
-    # do not render links to any private members
-    includes_private = any([x.startswith("_") for x in target.split(".")])
-
     if shortened_name:
         display_name = target.split(".")[-1]
         display_name = display_name.lstrip("~")  # just in case...
     if no_ref:
         display_name = display_name.lstrip("!")
 
-    if no_ref or includes_private:
+    if no_ref:
         node = SphinxRef(rawtext, display_name)
     else:
         node = SphinxRef(rawtext, display_name, target=target, reftype=name)

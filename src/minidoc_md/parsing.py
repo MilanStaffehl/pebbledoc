@@ -94,6 +94,7 @@ def _parse_multiple_nodes(
     children: Iterable[nodes.Node],
     config: MinidocConfig,
     document: nodes.document,
+    valid_targets: set[str] | None = None,
     current_block_context: str | None = None,
     current_list_context: list[ListContext] | None = None,
 ) -> str:
@@ -105,9 +106,10 @@ def _parse_multiple_nodes(
     :param config: The minidoc's configuration object for how to parse
         the nodes.
     :param document: The document to use for the visitor object.
-    :param current_block_context: A context to add to the block content of the
-        new visitor. This is useful to set the block context when the
-        children nodes appear inside a context that is not a simple
+    :param valid_targets: The set of valid targets for the new visitor.
+    :param current_block_context: A context to add to the block content
+        of the new visitor. This is useful to set the block context when
+        the children nodes appear inside a context that is not a simple
         paragraph and therefore need to be formatted differently.
     :param current_list_context: The current list context. This is useful
         to ensure that lists inside the children nodes are rendered
@@ -116,7 +118,7 @@ def _parse_multiple_nodes(
         context will be altered.
     :return: The nodes parsed as Markdown.
     """
-    sub_visitor = SphinxRstVisitor(config, document)
+    sub_visitor = SphinxRstVisitor(config, document, valid_targets)
     if current_block_context is not None:
         sub_visitor.block_context.append(current_block_context)
     if current_list_context is not None:
@@ -131,6 +133,7 @@ def _render_admonition(
     admonition_node: nodes.Element,
     config: MinidocConfig,
     document: nodes.document,
+    valid_targets: set[str] | None = None,
 ) -> str:
     """
     Render the given ``admonition_node`` as a Markdown admonition.
@@ -146,6 +149,7 @@ def _render_admonition(
     :param config: The minidoc's configuration object for how to parse
         the admonition.
     :param document: The document to use for the visitor object.
+    :param valid_targets: The set of valid targets for the visitor.
     :return: The admonition, parsed as a valid Github-flavored Markdown
         admonition.
     """
@@ -180,17 +184,23 @@ def _render_admonition(
     # remove Sphinx-specific :collapsible: option
 
     # find body and construct admonition
-    body = _parse_multiple_nodes(admonition_node.children, config, document)
+    body = _parse_multiple_nodes(
+        admonition_node.children, config, document, valid_targets
+    )
     admonition = _format_as_quote(f"{header}\n\n{body}")
     return admonition + "\n"
 
 
 class SphinxRstVisitor(nodes.SparseNodeVisitor):
     def __init__(
-        self, config: MinidocConfig, document: nodes.document
+        self,
+        config: MinidocConfig,
+        document: nodes.document,
+        valid_targets: set[str] | None = None,
     ) -> None:
         super().__init__(document)
         self.config: MinidocConfig = config
+        self.valid_targets = valid_targets
         self.body: list[str] = []
         self.block_context: list[str] = ["paragraph"]  # visited block type
         self.list_context: list[ListContext] = []  # list nesting level
@@ -206,6 +216,26 @@ class SphinxRstVisitor(nodes.SparseNodeVisitor):
             Markdown format.
         """
         return "".join(self.body)
+
+    def _is_valid_target(self, target: str) -> bool:
+        """
+        Return True if the target is valid according to ``self.valid_targets``.
+
+        Given the full name of a Sphinx-style reference role, as the
+        reference node provides it (i.e. stripped of leading ``~`` and
+        ``!``, but otherwise still not normalized for Markdown), check
+        whether it is in the list of valid targets and return the result
+        as boolean. If no set of valid targets was provided, this method
+        always returns True.
+
+        :param target: The full name of a reference target for a
+            Sphinx-style reference role, as a string.
+        :return: Boolean, describing whether the target is in the set of
+            valid targets.
+        """
+        if self.valid_targets is None:
+            return True
+        return target in self.valid_targets
 
     # Below follow the node visitation methods that are required to match
     # the minimum specs of minidoc-md, i.e. the most common rst features
@@ -323,7 +353,9 @@ class SphinxRstVisitor(nodes.SparseNodeVisitor):
         ]
 
         # walk children to parse their content
-        quote = _parse_multiple_nodes(children, self.config, self.document)
+        quote = _parse_multiple_nodes(
+            children, self.config, self.document, self.valid_targets
+        )
         # replace line beginnings with carets:
         quote = _format_as_quote(quote)
 
@@ -382,70 +414,70 @@ class SphinxRstVisitor(nodes.SparseNodeVisitor):
     # ADMONITIONS
     def visit_attention(self, node: nodes.attention) -> None:
         admonition = _render_admonition(
-            "attention", node, self.config, self.document
+            "attention", node, self.config, self.document, self.valid_targets
         )
         self.body.append(admonition)
         raise nodes.SkipNode
 
     def visit_caution(self, node: nodes.caution) -> None:
         admonition = _render_admonition(
-            "caution", node, self.config, self.document
+            "caution", node, self.config, self.document, self.valid_targets
         )
         self.body.append(admonition)
         raise nodes.SkipNode
 
     def visit_danger(self, node: nodes.danger) -> None:
         admonition = _render_admonition(
-            "danger", node, self.config, self.document
+            "danger", node, self.config, self.document, self.valid_targets
         )
         self.body.append(admonition)
         raise nodes.SkipNode
 
     def visit_error(self, node: nodes.error) -> None:
         admonition = _render_admonition(
-            "error", node, self.config, self.document
+            "error", node, self.config, self.document, self.valid_targets
         )
         self.body.append(admonition)
         raise nodes.SkipNode
 
     def visit_hint(self, node: nodes.hint) -> None:
         admonition = _render_admonition(
-            "hint", node, self.config, self.document
+            "hint", node, self.config, self.document, self.valid_targets
         )
         self.body.append(admonition)
         raise nodes.SkipNode
 
     def visit_important(self, node: nodes.important) -> None:
         admonition = _render_admonition(
-            "important", node, self.config, self.document
+            "important", node, self.config, self.document, self.valid_targets
         )
         self.body.append(admonition)
         raise nodes.SkipNode
 
     def visit_note(self, node: nodes.note) -> None:
         admonition = _render_admonition(
-            "note", node, self.config, self.document
+            "note", node, self.config, self.document, self.valid_targets
         )
         self.body.append(admonition)
         raise nodes.SkipNode
 
     def visit_tip(self, node: nodes.tip) -> None:
         admonition = _render_admonition(
-            "tip", node, self.config, self.document
+            "tip", node, self.config, self.document, self.valid_targets
         )
         self.body.append(admonition)
         raise nodes.SkipNode
 
     def visit_warning(self, node: nodes.warning) -> None:
         admonition = _render_admonition(
-            "warning", node, self.config, self.document
+            "warning", node, self.config, self.document, self.valid_targets
         )
         self.body.append(admonition)
         raise nodes.SkipNode
 
     def visit_admonition(self, node: nodes.admonition) -> None:
         admonition = _render_admonition(
-            "admonition", node, self.config, self.document
+            "admonition", node, self.config, self.document, self.valid_targets
         )
         self.body.append(admonition)
         raise nodes.SkipNode
@@ -453,12 +485,16 @@ class SphinxRstVisitor(nodes.SparseNodeVisitor):
     # CUSTOM NODES
     def visit_SphinxRef(self, node: SphinxRef) -> None:
         target = node.get("target", "")
+        # Perform checks that still need the old target format:
+        includes_private = any([x.startswith("_") for x in target.split(".")])
+        is_valid_target = self._is_valid_target(target)
         # Turn into a valid GitHub refernce target: We interpret these
         # roles as references to headers containing only the member name
         # itself, not the full reference, so we normalize accordingly:
         target = util.name_to_ref(target)
         display_name = node.astext()
-        if target:
+        # render only valid targets
+        if target and is_valid_target and not includes_private:
             self.body.append(f"[`{display_name}`](#{target})")
         else:
             self.body.append(f"`{display_name}`")
@@ -487,7 +523,7 @@ class SphinxRstVisitor(nodes.SparseNodeVisitor):
 
         if len(node.children) > 0:
             content = _parse_multiple_nodes(
-                node.children, self.config, self.document
+                node.children, self.config, self.document, self.valid_targets
             )
             body_str = f": {content}"
         else:
@@ -529,6 +565,7 @@ class SphinxRstVisitor(nodes.SparseNodeVisitor):
                     body_node.children,
                     self.config,
                     self.document,
+                    self.valid_targets,
                     current_block_context="field_list",
                     current_list_context=copy.copy(self.list_context),
                 )
@@ -578,7 +615,11 @@ class SphinxRstVisitor(nodes.SparseNodeVisitor):
         raise nodes.SkipNode
 
 
-def parse_docstring(docstring: str, config: MinidocConfig) -> str:
+def parse_docstring(
+    docstring: str,
+    config: MinidocConfig,
+    valid_reference_targets: set[str] | None = None,
+) -> str:
     """
     Parse rst docstring to Github-flavored Markdown string.
 
@@ -594,6 +635,12 @@ def parse_docstring(docstring: str, config: MinidocConfig) -> str:
         using ``inspect.cleandoc()``.
     :param config: MinidocConfig object instantiated with the user-specified
         configuration for parsing.
+     :param valid_reference_targets: A set of valid target names for
+        Sphinx-style reference roles. When given, all references pointing
+        to targets that are not in this set will be rendered as plain
+        inline literals instead of links. When set to None, all
+        references will be rendered as links, even if they end up leading
+        to invalid targets. Defaults to None.
     :return: The same docstring, but formatted as Github-flavored Markdown.
     """
     settings = {
@@ -603,7 +650,7 @@ def parse_docstring(docstring: str, config: MinidocConfig) -> str:
         "raw_enabled": False,
     }
     doctree = core.publish_doctree(docstring, settings_overrides=settings)
-    visitor = SphinxRstVisitor(config, doctree)
+    visitor = SphinxRstVisitor(config, doctree, valid_reference_targets)
     doctree.walkabout(visitor)
     md_text = visitor.astext().removesuffix("\n\n")
     return md_text + "\n"

@@ -124,7 +124,40 @@ def _signature_str(
     return signature_str
 
 
-def _document_member(member: Member, config: MinidocConfig) -> str:
+def _valid_reference_targets(member: Member) -> set[str]:
+    """
+    Return a set of valid targets for the member and its children.
+
+    Given a :class:`Member` tree, construct a set of all valid targets
+    that these members will create. This includes the full qualified
+    name of each member, plus all partial names.
+
+    .. note::
+
+        The set will contain *actual* target names, the way that they
+        are written in the Sphinx reference role, i.e. including dots,
+        capitalization, etc. To turn them into Markdown references, they
+        must be run through the :func:`~util.name_to_ref` function first.
+
+    :param member: Any :class:`Member` instance, possibly including
+        children, for which to generate a set of valid target names.
+    :return: A set of valid target names, as they would be given by a
+        valid Sphinx-style reference role.
+    """
+    full_name = _parent_name(member.name, member.parent)
+    parts = full_name.split(".")
+    valid_targets = set([".".join(parts[i:]) for i in range(len(parts))])
+    if member.children:
+        for child in member.children:
+            valid_targets = valid_targets | _valid_reference_targets(child)
+    return valid_targets
+
+
+def _document_member(
+    member: Member,
+    config: MinidocConfig,
+    valid_reference_targets: set[str] | None = None,
+) -> str:
     """
     Create the documentation section for the given member.
 
@@ -135,6 +168,12 @@ def _document_member(member: Member, config: MinidocConfig) -> str:
     :param member: A member node from the member tree constructed by
         :func:`_package_tree`.
     :param config: The Minidoc configuration object.
+    :param valid_reference_targets: A set of valid target names for
+        Sphinx-style reference roles. When given, all references pointing
+        to targets that are not in this set will be rendered as plain
+        inline literals instead of links. When set to None, all
+        references will be rendered as links, even if they end up leading
+        to invalid targets. Defaults to None.
     :return: Documentation section for ``member`` as a string, formatted
         as GitHub-flavored Markdown.
     """
@@ -146,12 +185,13 @@ def _document_member(member: Member, config: MinidocConfig) -> str:
     for target in targets:
         snippet += f'<a name="{util.name_to_ref(target)}"></a>\n'
     snippet += f"{'#' * member.header_level} "
-    header = _parent_name(member.name, member.parent)
-    snippet += f"`{header}`\n\n"
+    snippet += f"`{full_name}`\n\n"
     if member.signature:
         snippet += f"```Python\n{member.signature}\n```\n\n"
     if member.raw_docstring:
-        snippet += parse_docstring(member.raw_docstring, config)
+        snippet += parse_docstring(
+            member.raw_docstring, config, valid_reference_targets
+        )
         snippet += "\n"
     if member.children:
         for child in member.children:
@@ -513,7 +553,8 @@ def markdown_documentation(
     header = f"# {package_name} documentation\n\n"
 
     root = _member_module(package_name, package_obj, config, package_name)
-    main_body = _document_member(root, config)
+    valid_targets = _valid_reference_targets(root)
+    main_body = _document_member(root, config, valid_targets)
 
     # build first paragraph if module provides none
     if not root.raw_docstring:
