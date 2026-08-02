@@ -3,10 +3,12 @@
 from __future__ import annotations
 
 import importlib
+import inspect
 import sys
 from dataclasses import dataclass, field
 from pathlib import Path
 from types import ModuleType
+from typing import Literal
 from unittest.mock import Mock
 
 import pytest
@@ -31,6 +33,124 @@ def mock_module() -> ModuleType:
     sys.path.insert(0, str(Path(__file__).parent / "resources"))
     module = importlib.import_module("mock_module")
     return module
+
+
+def test_signature_str_simple_signature() -> None:
+    """Test the signature parsing function for a simple signature."""
+
+    # pyrefly: ignore[bad-return]
+    def mock_function(param_a: str, param_b: int) -> float:
+        pass
+
+    sig = inspect.signature(mock_function)
+    output = minidoc._signature_str(sig)
+    expected = "(param_a: str, param_b: int) -> float"
+    assert output == expected
+
+
+def test_signature_str_empty_signature() -> None:
+    """Test the signature parsing function for an empty signature."""
+
+    # pyrefly: ignore[bad-return]
+    def mock_function() -> float:
+        pass
+
+    sig = inspect.signature(mock_function)
+    output = minidoc._signature_str(sig)
+    expected = "() -> float"
+    assert output == expected
+
+
+def test_signature_str_self() -> None:
+    """Test the signature parsing function for a signature with ``self``."""
+
+    # pyrefly: ignore[bad-return]
+    def mock_function(self, param_a: str, param_b: int) -> float:
+        pass
+
+    sig = inspect.signature(mock_function)
+    output = minidoc._signature_str(sig)
+    expected = "(self, param_a: str, param_b: int) -> float"
+    assert output == expected
+
+
+def test_signature_str_classmethod() -> None:
+    """Test the signature parsing function for a classmethode."""
+
+    # pyrefly: ignore[bad-return]
+    def mock_function(param_a: str, param_b: int) -> float:
+        pass
+
+    sig = inspect.signature(mock_function)
+    output = minidoc._signature_str(sig, is_classmethod=True)
+    expected = "(cls, param_a: str, param_b: int) -> float"
+    assert output == expected
+
+
+def test_signature_str_default_args() -> None:
+    """Test the signature parsing function for a signature with defaults."""
+
+    def mock_function(
+        param_a: bool = True, param_b: int = 0
+    ) -> tuple[str, str]:  # pyrefly: ignore[bad-return]
+        pass
+
+    sig = inspect.signature(mock_function)
+    output = minidoc._signature_str(sig)
+    expected = "(param_a: bool = True, param_b: int = 0) -> tuple[str, str]"
+    assert output == expected
+
+
+def test_signature_str_string_defaults() -> None:
+    """Test the function for a signature with string type defaults."""
+
+    # pyrefly: ignore[bad-return]
+    def mock_function(param_a: str = "abc") -> str:
+        pass
+
+    sig = inspect.signature(mock_function)
+    output = minidoc._signature_str(sig)
+    expected = "(param_a: str = 'abc') -> str"
+    assert output == expected
+
+
+def test_signature_str_string_literal_defaults() -> None:
+    """Test the function for a signature with string literal defaults."""
+
+    # pyrefly: ignore[bad-return]
+    def mock_function(param_a: Literal["abc", "xyz"] = "abc") -> str:
+        pass
+
+    sig = inspect.signature(mock_function)
+    output = minidoc._signature_str(sig)
+    expected = "(param_a: Literal['abc', 'xyz'] = 'abc') -> str"
+    assert output == expected
+
+
+def test_signature_str_no_param_annotations() -> None:
+    """Test the function for a signature without parameter annotations."""
+
+    # pyrefly: ignore[bad-return]
+    def mock_function(param_a, param_b) -> dict[str, int]:
+        pass
+
+    sig = inspect.signature(mock_function)
+    output = minidoc._signature_str(sig)
+    expected = "(param_a, param_b) -> dict[str, int]"
+    assert output == expected
+
+
+def test_signature_str_no_return_annotation() -> None:
+    """Test the function for a signature without return type annotation."""
+
+    # pyrefly: ignore[bad-return]
+    def mock_function(param_a: str, param_b: int):
+        pass
+
+    sig = inspect.signature(mock_function)
+    output = minidoc._signature_str(sig)
+    expected = "(param_a: str, param_b: int)"
+    assert output == expected
 
 
 def test_document_member_all_fields(patch_parse_docstring: Mock) -> None:
@@ -342,7 +462,7 @@ def check_classvar_class_var(node: minidoc.Member) -> None:
     assert node.name == "class_var"
     assert node.parent == "mock_module.MockClass"
     assert node.kind == "classvar"
-    assert node.signature == "MockClass.class_var: ClassVar[int] = 0"
+    assert node.signature == "MockClass.class_var: ClassVar[str] = 'value'"
     assert node.raw_docstring == ""
     assert node.header_level == 4
 
@@ -531,6 +651,34 @@ def test_member_constant_no_docstring(mock_module: ModuleType) -> None:
         "UNDOCUMENTED", mock_module.UNDOCUMENTED, "mock_module"
     )
     check_constant_undocumented(output)
+
+
+def test_member_constant_string_types() -> None:
+    """Test that members of type string appear in quotes in their signature."""
+    output = minidoc._member_constant("STRING_CONSTANT", "abc", "mock_module")
+    assert output.name == "STRING_CONSTANT"
+    assert output.parent == "mock_module"
+    assert output.kind == "constant"
+    assert output.signature == "STRING_CONSTANT: str = 'abc'"
+    assert output.raw_docstring == ""  # TODO: retrieve docstring
+    assert output.header_level == 3
+
+
+@pytest.mark.xfail(
+    reason="Literal types not yet supported for constants, see #30"
+)
+def test_member_constant_string_literal_types() -> None:
+    """Test that members of type string literal have correct signature."""
+    my_const: Literal["abc", "xyz"] = "abc"
+    output = minidoc._member_constant(
+        "STRING_CONSTANT", my_const, "mock_module"
+    )
+    assert output.name == "STRING_CONSTANT"
+    assert output.parent == "mock_module"
+    assert output.kind == "constant"
+    assert output.signature == "STRING_CONSTANT: Literal['abc', 'xyz'] = 'abc'"
+    assert output.raw_docstring == ""  # TODO: retrieve docstring
+    assert output.header_level == 3
 
 
 def test_member_function(mock_module: ModuleType) -> None:

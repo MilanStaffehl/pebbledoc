@@ -26,14 +26,14 @@ every constant is arbitrary. It exists purely as a fixture.
 ### `stellarium_lite.DEFAULT_CATALOG_NAME`
 
 ```Python
-DEFAULT_CATALOG_NAME: str = "Messier"
+DEFAULT_CATALOG_NAME: str = 'Messier'
 ```
 
 <a name="load_catalog"></a>
 ### `stellarium_lite.load_catalog`
 
 ```Python
-load_catalog(name: str = "Messier") -> dict
+load_catalog(name: str = 'Messier') -> dict
 ```
 
 Load a named catalog of celestial objects.
@@ -67,7 +67,7 @@ M42,Orion Nebula,83.82,-5.39
 
 > [!TIP]
 >
-> Catalog files are cached on first load; see [`_normalize_name`](#catalog_normalize_name)
+> Catalog files are cached on first load; see `_normalize_name`
 > for how lookup keys are derived.
 
 > :heavy_plus_sign: Added in version 0.2.0
@@ -107,7 +107,7 @@ $0^\circ \le \alpha < 360^\circ$ for right ascension.
 > [!CAUTION]
 >
 > Instances are **not** thread-safe; see [`kind`](#kind) mutation in
-> [`_recompute`](#_recompute).
+> `_recompute`.
 
 > :recycle: Changed in version 0.3.0: `ra` and `dec` are now stored in degrees instead of radians.
 
@@ -116,7 +116,7 @@ $0^\circ \le \alpha < 360^\circ$ for right ascension.
 #### `stellarium_lite.CelestialObject.kind`
 
 ```Python
-CelestialObject.kind: ClassVar[str] = "unknown"
+CelestialObject.kind: ClassVar[str] = 'unknown'
 ```
 
 <a name="celestialobjectis_visible"></a>
@@ -208,7 +208,7 @@ Separation `d` in degrees.
 Star(CelestialObject)
 ```
 
-A single star, extending [`CelestialObject`](#) with a magnitude.
+A single star, extending `CelestialObject` with a magnitude.
 
 See also [`catalog`](#catalog) for how instances are typically constructed via
 [`load_catalog`](#load_catalog).

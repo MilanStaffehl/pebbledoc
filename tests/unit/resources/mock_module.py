@@ -30,7 +30,7 @@ def mock_function(
 class MockClass:
     """Mock class docstring."""
 
-    class_var: ClassVar[int] = 0
+    class_var: ClassVar[str] = "value"
     """Class variable docstring."""
 
     undocumented: ClassVar[bool] = UNDOCUMENTED
@@ -123,7 +123,7 @@ class MockClass:
 class ChildClass(MockClass):
     """Child class docstring."""
 
-    class_var: ClassVar[int] = 12  # overwritten, no doc
+    class_var: ClassVar[str] = "new_value"  # overwritten, no doc
 
     # pyrefly: ignore[bad-return]
     def new_method(self, param_a: float, param_b: str) -> int:
