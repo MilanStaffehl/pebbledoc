@@ -86,17 +86,37 @@ def _signature_str(
         so the parameter must be added manually.
     :return: String description of the signature ``sig``.
     """
+    # check what kind of "special" parameters we will find
+    param_kinds = [p.kind.description for p in sig.parameters.values()]
+    has_pos_only = any([kind == "positional-only" for kind in param_kinds])
+    has_kw_only = any([kind == "keyword-only" for kind in param_kinds])
+    has_vp = any([kind == "variadic positional" for kind in param_kinds])
+
+    # add signature for each parameter
     params = []
     if is_classmethod:
         params.append("cls")
     for name, param in sig.parameters.items():
         descr = name
+        kind = param.kind.description
+        if kind == "variadic positional":
+            descr = f"*{descr}"
+        if kind == "variadic keyword":
+            descr = f"**{descr}"
+        if kind == "keyword-only" and has_kw_only and not has_vp:
+            params.append("*")
+            has_kw_only = False  # found transition, can stop looking
+        if kind == "positional or keyword" and has_pos_only:
+            params.append("/")
+            has_pos_only = False  # we've found it, no longer need to look
         if param.annotation is not inspect.Signature.empty:
             descr += f": {param.annotation}"
         if param.default is not inspect.Parameter.empty:
             bracket = "'" if isinstance(param.default, str) else ""
             descr += f" = {bracket}{param.default}{bracket}"
         params.append(descr)
+
+    # add return type annotation, if present
     signature_str = f"({', '.join(params)})"
     return_annotation = sig.return_annotation
     if return_annotation is not inspect.Signature.empty:
