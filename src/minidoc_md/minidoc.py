@@ -96,8 +96,13 @@ def _document_member(member: Member, config: MinidocConfig) -> str:
     :return: Documentation section for ``member`` as a string, formatted
         as GitHub-flavored Markdown.
     """
+    snippet = ""
     # add an anchor for references without the full name
-    snippet = f'<a name="{util.name_to_ref(member.name)}"></a>\n'
+    full_name = _parent_name(member.name, member.parent)
+    parts = full_name.split(".")
+    targets = [".".join(parts[i:]) for i in range(1, len(parts))]
+    for target in targets:
+        snippet += f'<a name="{util.name_to_ref(target)}"></a>\n'
     snippet += f"{'#' * member.header_level} "
     header = _parent_name(member.name, member.parent)
     snippet += f"`{header}`\n\n"
