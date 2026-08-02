@@ -43,6 +43,15 @@ def expected_output_base() -> str:
     return expected_base
 
 
+@pytest.fixture
+def expected_output_no_invalid_links() -> str:
+    """Return the expected output when giving a set of valid targets."""
+    file = Path(__file__).parent / "resources" / "expected_no_invalid_links.md"
+    with open(file) as f:
+        expected_base = f.read()
+    return expected_base
+
+
 # == INDIVIDUAL FEATURES ===============================================
 def test_parse_docstring_paragraph() -> None:
     """Test parsing a simple paragraph."""
@@ -889,6 +898,44 @@ def test_parse_docstring_sphinx_including_private(role: str) -> None:
     assert output == expected
 
 
+@pytest.mark.parametrize("role", _SPHINX_ROLES)
+def test_parse_docstring_sphinx_role_valid_targets(role: str) -> None:
+    """Test parsing Sphinx roles with valid targets."""
+    default_config = config.MinidocConfig()
+    valid_targets = {"parent.target_name", "target_name"}
+
+    # Only target name
+    rst_str = f"This is a valid target: :{role}:`target_name`."
+    output = parsing.parse_docstring(rst_str, default_config, valid_targets)
+    expected = "This is a valid target: [`target_name`](#target_name).\n"
+    assert output == expected
+
+    # fully qualified name
+    rst_str = f"This is a valid target: :{role}:`parent.target_name`."
+    output = parsing.parse_docstring(rst_str, default_config, valid_targets)
+    expected = (
+        "This is a valid target: [`parent.target_name`](#parenttarget_name).\n"
+    )
+    assert output == expected
+
+    # fully qualified name, but shortened
+    rst_str = f"This is a valid target: :{role}:`~parent.target_name`."
+    output = parsing.parse_docstring(rst_str, default_config, valid_targets)
+    expected = "This is a valid target: [`target_name`](#parenttarget_name).\n"
+    assert output == expected
+
+
+@pytest.mark.parametrize("role", _SPHINX_ROLES)
+def test_parse_docstring_sphinx_role_invalid_targets(role: str) -> None:
+    """Test parsing Sphinx roles with invalid targets."""
+    default_config = config.MinidocConfig()
+    rst_str = f"This is not a valid target: :{role}:`target_name`."
+    valid_targets = {"parent.mock_member", "mock_member"}
+    output = parsing.parse_docstring(rst_str, default_config, valid_targets)
+    expected = "This is not a valid target: `target_name`.\n"
+    assert output == expected
+
+
 def test_parse_docstring_version_added() -> None:
     """Test parsing a text block with a "version added" directive."""
     default_config = config.MinidocConfig()
@@ -1038,3 +1085,17 @@ def test_parse_full_docstring(
     output = parsing.parse_docstring(mock_docstring, default_config)
     assert isinstance(output, str)
     assert output == expected_output_base
+
+
+def test_parse_full_docstring_no_invalid_reference_targets(
+    mock_docstring: str, expected_output_no_invalid_links: str
+) -> None:
+    """Test the parsing function with the default config."""
+    default_config = config.MinidocConfig()
+    # deliberately do not allow links to methods of MatrixProcessor
+    valid_targets = {"tensors", "linalg.norm", "MatrixProcessor"}
+    output = parsing.parse_docstring(
+        mock_docstring, default_config, valid_targets
+    )
+    assert isinstance(output, str)
+    assert output == expected_output_no_invalid_links

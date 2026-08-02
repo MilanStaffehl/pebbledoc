@@ -22,7 +22,7 @@ def patch_parse_docstring(mocker: MockerFixture) -> Mock:
     """Patch the function to parse docstrings."""
     mock_parse_docstring = mocker.patch(
         "minidoc_md.minidoc.parse_docstring",
-        side_effect=lambda d, c: f"{d.rstrip('\n')}\n",
+        side_effect=lambda d, c, vt: f"{d.rstrip('\n')}\n",
     )
     return mock_parse_docstring
 
@@ -33,6 +33,9 @@ def mock_module() -> ModuleType:
     sys.path.insert(0, str(Path(__file__).parent / "resources"))
     module = importlib.import_module("mock_module")
     return module
+
+
+# == TESTS FOR _SIGNATURE_STR ==========================================
 
 
 def test_signature_str_simple_signature() -> None:
@@ -256,6 +259,68 @@ def test_signature_str_mixed_parameter_types_variadic_positionals() -> None:
     assert output == expected
 
 
+# == TESTS FOR _VALID_REFERENCE_TARGETS ================================
+
+
+def test_valid_reference_targets_single_member() -> None:
+    """Test the function for a single member with no children."""
+    test_member = minidoc.Member(
+        name="test_member",
+        parent="parent",
+        kind="test_kind",
+        signature="test_member = pytest.mock.Mock()",
+        raw_docstring="Mock docstring",
+        header_level=3,
+    )
+    output = minidoc._valid_reference_targets(test_member)
+    expected = {"parent.test_member", "test_member"}
+    assert output == expected
+
+
+def test_valid_reference_targets_member_tree() -> None:
+    """Test the function for a member tree with children."""
+    child_one = minidoc.Member(
+        name="child_one",
+        parent="parent.test_member",
+        kind="test_kind",
+        signature="test_member = pytest.mock.Mock()",
+        raw_docstring="This is child one's docstring.\n\n",
+        header_level=4,
+    )
+    child_two = minidoc.Member(
+        name="child_two",
+        parent="parent.test_member",
+        kind="test_kind",
+        signature="test_member = pytest.mock.Mock()",
+        raw_docstring="This is child two's docstring.\n\n",
+        header_level=4,
+    )
+    test_member = minidoc.Member(
+        name="test_member",
+        parent="parent",
+        kind="test_kind",
+        signature="test_member = pytest.mock.Mock()",
+        raw_docstring="This is a test docstring.",
+        header_level=3,
+        children=[child_one, child_two],
+    )
+    output = minidoc._valid_reference_targets(test_member)
+    expected = {
+        "parent.test_member",
+        "test_member",
+        "parent.test_member.child_one",
+        "test_member.child_one",
+        "child_one",
+        "parent.test_member.child_two",
+        "test_member.child_two",
+        "child_two",
+    }
+    assert output == expected
+
+
+# == TESTS FOR _DOCUMENT_MEMBER ========================================
+
+
 def test_document_member_all_fields(patch_parse_docstring: Mock) -> None:
     """Test the function for a member with all fields."""
 
@@ -280,7 +345,9 @@ def test_document_member_all_fields(patch_parse_docstring: Mock) -> None:
         "This is a test docstring.\n\n"
     )
     assert output == expected
-    patch_parse_docstring.assert_called_once_with(test_docstring, test_config)
+    patch_parse_docstring.assert_called_once_with(
+        test_docstring, test_config, None
+    )
 
 
 def test_document_member_parent_hierarchy(patch_parse_docstring: Mock) -> None:
@@ -309,7 +376,9 @@ def test_document_member_parent_hierarchy(patch_parse_docstring: Mock) -> None:
         "This is a test docstring.\n\n"
     )
     assert output == expected
-    patch_parse_docstring.assert_called_once_with(test_docstring, test_config)
+    patch_parse_docstring.assert_called_once_with(
+        test_docstring, test_config, None
+    )
 
 
 def test_document_member_no_docstring(patch_parse_docstring: Mock) -> None:
@@ -355,7 +424,9 @@ def test_document_member_no_signature(patch_parse_docstring: Mock) -> None:
         "### `parent.test_member`\n\nThis is a test docstring.\n\n"
     )
     assert output == expected
-    patch_parse_docstring.assert_called_once_with(test_docstring, test_config)
+    patch_parse_docstring.assert_called_once_with(
+        test_docstring, test_config, None
+    )
 
 
 def test_document_member_header_level(patch_parse_docstring: Mock) -> None:
@@ -385,7 +456,7 @@ def test_document_member_header_level(patch_parse_docstring: Mock) -> None:
         )
         assert output == expected
         patch_parse_docstring.assert_called_once_with(
-            test_docstring, test_config
+            test_docstring, test_config, None
         )
         patch_parse_docstring.reset_mock()
 
@@ -453,6 +524,36 @@ def test_document_member_children(patch_parse_docstring: Mock) -> None:
     )
     assert patch_parse_docstring.call_args_list[2].args[0] == (
         "This is child two's docstring.\n\n"
+    )
+
+
+def test_document_member_valid_targets(patch_parse_docstring: Mock) -> None:
+    """Test the function when a set of valid targets is specified."""
+
+    test_config = config.MinidocConfig()
+    test_docstring = "This is a test docstring."
+    test_member = minidoc.Member(
+        name="test_member",
+        parent="parent",
+        kind="test_kind",
+        signature="test_member = pytest.mock.Mock()",
+        raw_docstring=test_docstring,
+        header_level=3,
+    )
+
+    valid_targets = {"parent.test_member", "test_member"}
+    output = minidoc._document_member(test_member, test_config, valid_targets)
+    expected = (
+        '<a name="test_member"></a>\n'
+        "### `parent.test_member`\n\n"
+        "```Python\n"
+        "test_member = pytest.mock.Mock()\n"
+        "```\n\n"
+        "This is a test docstring.\n\n"
+    )
+    assert output == expected
+    patch_parse_docstring.assert_called_once_with(
+        test_docstring, test_config, valid_targets
     )
 
 
