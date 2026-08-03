@@ -62,6 +62,15 @@ def test_parse_docstring_paragraph() -> None:
     assert output == expected
 
 
+def test_parse_docstring_paragraph_backslashes() -> None:
+    """Test parsing a paragraph containing escaped backslashes."""
+    default_config = config.MinidocConfig()
+    rst_str = "This is a simple paragraph \\\\ with backslashes."
+    output = parsing.parse_docstring(rst_str, default_config)
+    expected = "This is a simple paragraph \\ with backslashes.\n"
+    assert output == expected
+
+
 def test_parse_docstring_paragraph_with_line_break() -> None:
     """Test parsing a paragraph with a stylistic line break (line wrap)."""
     default_config = config.MinidocConfig()

@@ -52,5 +52,5 @@ def test_minidoc_md_default_setup(patch_open: Mock) -> None:
     # check everything worked
     patch_open.assert_called_once_with(Path(namespace.output), "w")
     handle = patch_open()
-    handle.write.assert_called_once_with(expected)
+    handle.write.assert_called_once_with(expected + "\n")
     assert exit_code == 0

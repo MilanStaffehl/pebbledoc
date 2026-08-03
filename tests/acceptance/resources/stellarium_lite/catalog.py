@@ -55,7 +55,7 @@ def load_catalog(name: str = DEFAULT_CATALOG_NAME) -> dict:
 
     :Author: Charles Messier
     :Year: 1774
-    :Publisher: Académie royale des sciences
+    :Publisher: Academie royale des sciences
 
     A *very* small excerpt of the raw format looks like this::
 
@@ -130,7 +130,7 @@ class CelestialObject:
     def describe(self, *, verbose: bool = False) -> str:
         """Return a short human-readable description.
 
-        Uses the object's right ascension (in h \\ :sup:`m` \\ :sup:`s`
+        Uses the object's right ascension (in h \\\\ :sup:`m` \\\\ :sup:`s`
         notation) and declination (in degrees, with :sub:`J2000` epoch
         implied) to build a one-line summary.
 

@@ -56,7 +56,7 @@ Catalog metadata for the default catalog:
 
 - **Author:** Charles Messier
 - **Year:** 1774
-- **Publisher:** Académie royale des sciences
+- **Publisher:** Academie royale des sciences
 
 A *very* small excerpt of the raw format looks like this:
 
