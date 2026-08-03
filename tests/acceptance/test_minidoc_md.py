@@ -1,6 +1,7 @@
 """Acceptance tests for minidoc-md."""
 
 import argparse
+import difflib
 from pathlib import Path
 from unittest.mock import Mock
 
@@ -39,6 +40,29 @@ def _prepare_namespace(
     return argparse.Namespace(package="stellarium_lite", **locals())
 
 
+def assert_write_call(
+    mock_write: Mock, output_file: str, expected: str
+) -> None:
+    """Check that the call to write contained the expected string."""
+    # check everything worked
+    mock_write.assert_called_once_with(Path(output_file), "w")
+    handle = mock_write()
+    handle.write.assert_called_once()
+    assert handle.write.call_count == 1
+
+    # check contents
+    actual = handle.write.call_args[0][0]
+    if not actual == expected:
+        lines_actual = actual.splitlines(keepends=True)
+        lines_expected = expected.splitlines(keepends=True)
+        diff = difflib.unified_diff(lines_actual, lines_expected)
+        msg = (
+            f"Output was not identical to expected Markdown:\n\n"
+            f"{''.join(diff)}"
+        )
+        pytest.fail(msg)
+
+
 def test_minidoc_md_default_setup(patch_open: Mock) -> None:
     """Test minidoc-md with the default setup."""
     input_file = Path(__file__).parent / "expected" / "base.md"
@@ -51,8 +75,5 @@ def test_minidoc_md_default_setup(patch_open: Mock) -> None:
     )
     exit_code = cli.handle_args(namespace)
 
-    # check everything worked
-    patch_open.assert_called_once_with(Path(namespace.output), "w")
-    handle = patch_open()
-    handle.write.assert_called_once_with(expected + "\n")
+    assert_write_call(patch_open, namespace.output, expected + "\n")
     assert exit_code == 0
