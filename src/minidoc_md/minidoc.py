@@ -567,13 +567,7 @@ def markdown_documentation(
     valid_targets = _valid_reference_targets(root)
     main_body = _document_member(root, config, valid_targets)
 
-    # build first paragraph if module provides none
-    if not root.raw_docstring:
-        intro = (
-            f"This document lists the full public API of {package_name}.\n\n"
-        )
-    else:
-        intro = ""
+    # TODO: build an introductory paragraph
 
     # build TOC
     if config.include_toc:
@@ -583,4 +577,4 @@ def markdown_documentation(
     else:
         toc = ""
 
-    return f"{header}{intro}{toc}{main_body}"
+    return f"{header}{toc}{main_body}"
