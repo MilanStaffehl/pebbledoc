@@ -17,6 +17,8 @@
 
 ## `stellarium_lite`
 
+<sup>[Back to top](#stellarium_lite-documentation)</sup>
+
 A tiny mock astronomy package used to exercise an RST-to-Markdown docstring renderer.
 
 This package is not a real astronomy library -- every function is a stub and
@@ -25,12 +27,16 @@ every constant is arbitrary. It exists purely as a fixture.
 <a name="default_catalog_name"></a>
 ### `stellarium_lite.DEFAULT_CATALOG_NAME`
 
+<sup>[Back to top](#stellarium_lite-documentation)</sup>
+
 ```Python
 DEFAULT_CATALOG_NAME: str = 'Messier'
 ```
 
 <a name="load_catalog"></a>
 ### `stellarium_lite.load_catalog`
+
+<sup>[Back to top](#stellarium_lite-documentation)</sup>
 
 ```Python
 load_catalog(name: str = 'Messier') -> dict
@@ -83,6 +89,8 @@ A `dict` mapping object names to raw records.
 <a name="celestialobject"></a>
 ### `stellarium_lite.CelestialObject`
 
+<sup>[Back to top](#stellarium_lite-documentation)</sup>
+
 ```Python
 CelestialObject(object)
 ```
@@ -115,6 +123,8 @@ $0^\circ \le \alpha < 360^\circ$ for right ascension.
 <a name="kind"></a>
 #### `stellarium_lite.CelestialObject.kind`
 
+<sup>[Back to top](#stellarium_lite-documentation)</sup>
+
 ```Python
 CelestialObject.kind: ClassVar[str] = 'unknown'
 ```
@@ -122,6 +132,8 @@ CelestialObject.kind: ClassVar[str] = 'unknown'
 <a name="celestialobjectis_visible"></a>
 <a name="is_visible"></a>
 #### `stellarium_lite.CelestialObject.is_visible`
+
+<sup>[Back to top](#stellarium_lite-documentation)</sup>
 
 ```Python
 @property
@@ -136,6 +148,8 @@ for the real visibility logic used elsewhere in this package.
 <a name="celestialobjectdescribe"></a>
 <a name="describe"></a>
 #### `stellarium_lite.CelestialObject.describe`
+
+<sup>[Back to top](#stellarium_lite-documentation)</sup>
 
 ```Python
 CelestialObject.describe(self, *, verbose: bool = False) -> str
@@ -159,6 +173,8 @@ A description such as `"M31 (unknown)"`.
 <a name="from_dict"></a>
 #### `stellarium_lite.CelestialObject.from_dict`
 
+<sup>[Back to top](#stellarium_lite-documentation)</sup>
+
 ```Python
 @classmethod
 CelestialObject.from_dict(cls, record: dict) -> CelestialObject
@@ -177,6 +193,8 @@ A new instance of `cls`.
 <a name="celestialobjectangular_separation"></a>
 <a name="angular_separation"></a>
 #### `stellarium_lite.CelestialObject.angular_separation`
+
+<sup>[Back to top](#stellarium_lite-documentation)</sup>
 
 ```Python
 @staticmethod
@@ -204,6 +222,8 @@ Separation `d` in degrees.
 <a name="star"></a>
 ### `stellarium_lite.Star`
 
+<sup>[Back to top](#stellarium_lite-documentation)</sup>
+
 ```Python
 Star(CelestialObject)
 ```
@@ -216,11 +236,15 @@ See also [`catalog`](#catalog) for how instances are typically constructed via
 <a name="observation"></a>
 ## `stellarium_lite.observation`
 
+<sup>[Back to top](#stellarium_lite-documentation)</sup>
+
 The observation module contains utilities for orchestrating surveys.
 
 <a name="observationmax_magnitude"></a>
 <a name="max_magnitude"></a>
 ### `stellarium_lite.observation.MAX_MAGNITUDE`
+
+<sup>[Back to top](#stellarium_lite-documentation)</sup>
 
 ```Python
 MAX_MAGNITUDE: float = 30.0
@@ -229,6 +253,8 @@ MAX_MAGNITUDE: float = 30.0
 <a name="observationplan_session"></a>
 <a name="plan_session"></a>
 ### `stellarium_lite.observation.plan_session`
+
+<sup>[Back to top](#stellarium_lite-documentation)</sup>
 
 ```Python
 plan_session(objects: list, *, start_at: int = 3) -> list
@@ -265,6 +291,8 @@ A list of objects in observation order.
 <a name="observablemixin"></a>
 ### `stellarium_lite.observation.ObservableMixin`
 
+<sup>[Back to top](#stellarium_lite-documentation)</sup>
+
 ```Python
 ObservableMixin(ABC)
 ```
@@ -283,6 +311,8 @@ Abstract interface for anything that can report its own visibility.
 <a name="observe"></a>
 #### `stellarium_lite.observation.ObservableMixin.observe`
 
+<sup>[Back to top](#stellarium_lite-documentation)</sup>
+
 ```Python
 @abstractmethod
 ObservableMixin.observe(self) -> Observation
@@ -297,6 +327,8 @@ A new [`Observation`](#observation).
 <a name="observationvariablestar"></a>
 <a name="variablestar"></a>
 ### `stellarium_lite.observation.VariableStar`
+
+<sup>[Back to top](#stellarium_lite-documentation)</sup>
 
 ```Python
 VariableStar(Star)
@@ -327,6 +359,8 @@ amplitude = max(history) - min(history)
 <a name="hybridobject"></a>
 ### `stellarium_lite.observation.HybridObject`
 
+<sup>[Back to top](#stellarium_lite-documentation)</sup>
+
 ```Python
 HybridObject(CelestialObject, ObservableMixin)
 ```
@@ -344,6 +378,8 @@ An object that is both a [`CelestialObject`](#celestialobject) and
 <a name="observe"></a>
 #### `stellarium_lite.observation.HybridObject.observe`
 
+<sup>[Back to top](#stellarium_lite-documentation)</sup>
+
 ```Python
 HybridObject.observe(self) -> Observation
 ```
@@ -357,6 +393,8 @@ A new [`Observation`](#observation) record.
 <a name="observationobservation"></a>
 <a name="observation"></a>
 ### `stellarium_lite.observation.Observation`
+
+<sup>[Back to top](#stellarium_lite-documentation)</sup>
 
 ```Python
 @dataclass
@@ -375,6 +413,8 @@ A single recorded observation.
 <a name="observationschema_version"></a>
 <a name="schema_version"></a>
 #### `stellarium_lite.observation.Observation.schema_version`
+
+<sup>[Back to top](#stellarium_lite-documentation)</sup>
 
 ```Python
 Observation.schema_version: ClassVar[int] = 1
