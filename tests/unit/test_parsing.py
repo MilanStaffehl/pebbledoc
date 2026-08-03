@@ -463,7 +463,7 @@ def test_parse_docstring_admonitions_classic(
     admonition_name: str,
 ) -> None:
     """Test parsing an attention admonition in 'classic' mode."""
-    cfg = config.MinidocConfig("classic")
+    cfg = config.MinidocConfig(admonition_strategy="classic")
     rst_str = (
         "This is a preceding paragraph.\n\n"
         f".. {admonition_name}::\n\n"
@@ -482,7 +482,7 @@ def test_parse_docstring_admonitions_github(
     admonition_name: str,
 ) -> None:
     """Test parsing an attention admonition in 'github' mode."""
-    cfg = config.MinidocConfig("github")
+    cfg = config.MinidocConfig(admonition_strategy="github")
     rst_str = (
         "This is a preceding paragraph.\n\n"
         f".. {admonition_name}::\n\n"
@@ -501,7 +501,7 @@ def test_parse_docstring_admonitions_mix(
     admonition_name: str,
 ) -> None:
     """Test parsing an attention admonition in 'mix' mode."""
-    cfg = config.MinidocConfig("mix")
+    cfg = config.MinidocConfig(admonition_strategy="mix")
     rst_str = (
         "This is a preceding paragraph.\n\n"
         f".. {admonition_name}::\n\n"
@@ -523,7 +523,7 @@ def test_parse_docstring_admonitions_map(
     admonition_name: str,
 ) -> None:
     """Test parsing an attention admonition in 'map' mode."""
-    cfg = config.MinidocConfig("map")
+    cfg = config.MinidocConfig(admonition_strategy="map")
     rst_str = (
         "This is a preceding paragraph.\n\n"
         f".. {admonition_name}::\n\n"
@@ -544,7 +544,7 @@ def test_parse_docstring_admonition_plain(
     strategy: types.AdmonitionStrategy, header: str
 ) -> None:
     """Test parsing a general admonition."""
-    cfg = config.MinidocConfig(strategy)
+    cfg = config.MinidocConfig(admonition_strategy=strategy)
     rst_str = (
         "This is a preceding paragraph.\n\n"
         ".. admonition:: Custom title\n\n"

@@ -75,7 +75,7 @@ def _build_parser() -> argparse.ArgumentParser:
     )
     parser.add_argument(
         "--title",
-        help="The title for the document (i.e. its main header)",
+        help="set the title for the document (i.e. its main header)",
         metavar="",
         default=None,
     )
@@ -96,6 +96,11 @@ def _build_parser() -> argparse.ArgumentParser:
         help="omit the table of contents at the beginning of the file.",
         action="store_true",
     )
+    options.add_argument(
+        "--no-back-to-top",
+        help="omit the 'back to top' links at the beginning of each section.",
+        action="store_true",
+    )
 
     return parser
 
@@ -114,11 +119,13 @@ def handle_args(args: argparse.Namespace) -> int:
     :return: An exit code, which is handed to ``sys.exit``.
     """
     config = MinidocConfig(
+        package_name=args.package,
         admonition_strategy=args.admonition_style,
         document_title=args.title,
         document_constants=not args.no_include_constants,
         module_docstring=not args.no_module_docstring,
         include_toc=not args.no_toc,
+        include_back_to_top=not args.no_back_to_top,
     )
 
     output = Path(args.output)

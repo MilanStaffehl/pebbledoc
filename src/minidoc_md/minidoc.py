@@ -186,6 +186,14 @@ def _document_member(
         snippet += f'<a name="{util.name_to_ref(target)}"></a>\n'
     snippet += f"{'#' * member.header_level} "
     snippet += f"`{full_name}`\n\n"
+    if config.include_back_to_top:
+        if config.document_title:
+            top_header = util.name_to_ref(config.document_title)
+        else:
+            top_header = util.name_to_ref(
+                f"{config.package_name} documentation"
+            )
+        snippet += f"<sup>[Back to top](#{top_header})</sup>\n\n"
     if member.signature:
         snippet += f"```Python\n{member.signature}\n```\n\n"
     if member.raw_docstring:
