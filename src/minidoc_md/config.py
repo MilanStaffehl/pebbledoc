@@ -10,6 +10,7 @@ from .types import AdmonitionStrategy
 @dataclass
 class MinidocConfig:
     admonition_strategy: AdmonitionStrategy = "mix"
+    document_title: str | None = None
 
     document_constants: bool = True
     module_docstring: bool = True

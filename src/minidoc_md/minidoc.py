@@ -550,7 +550,10 @@ def markdown_documentation(
         or insertion into a template.
     """
     # Build header
-    header = f"# {package_name} documentation\n\n"
+    if config.document_title:
+        header = f"# {config.document_title}\n\n"
+    else:
+        header = f"# {package_name} documentation\n\n"
 
     root = _member_module(package_name, package_obj, config, package_name)
     valid_targets = _valid_reference_targets(root)

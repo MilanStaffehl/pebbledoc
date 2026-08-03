@@ -22,6 +22,7 @@ def _prepare_namespace(
     source_directory: str | None = None,
     output: str = "API.md",
     admonition_style: str = "mix",
+    title: str | None = None,
     no_module_docstring: bool = False,
     no_include_constants: bool = False,
     no_toc: bool = False,

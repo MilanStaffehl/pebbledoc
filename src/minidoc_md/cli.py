@@ -73,6 +73,12 @@ def _build_parser() -> argparse.ArgumentParser:
         choices=["classic", "mix", "github", "map"],
         default="mix",
     )
+    parser.add_argument(
+        "--title",
+        help="The title for the document (i.e. its main header)",
+        metavar="",
+        default=None,
+    )
 
     options = parser.add_argument_group(title="formatting")
     options.add_argument(
@@ -109,6 +115,7 @@ def handle_args(args: argparse.Namespace) -> int:
     """
     config = MinidocConfig(
         admonition_strategy=args.admonition_style,
+        document_title=args.title,
         document_constants=not args.no_include_constants,
         module_docstring=not args.no_module_docstring,
         include_toc=not args.no_toc,
