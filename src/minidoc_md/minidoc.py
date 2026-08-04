@@ -203,7 +203,7 @@ def _document_member(
         snippet += "\n"
     if member.children:
         for child in member.children:
-            snippet += _document_member(child, config)
+            snippet += _document_member(child, config, valid_reference_targets)
     return snippet
 
 
