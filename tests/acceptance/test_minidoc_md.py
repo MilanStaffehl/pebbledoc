@@ -20,6 +20,8 @@ def patch_open(mocker: MockerFixture) -> Mock:
 
 
 def _prepare_namespace(
+    *,
+    package: str = "stellarium_lite",
     source_directory: str | None = None,
     output: str = "API.md",
     admonition_style: str = "mix",
@@ -37,7 +39,7 @@ def _prepare_namespace(
     them on to a blank namespace object as-is, which is then returned.
     The parameter defaults are identical to that of the CLI.
     """
-    return argparse.Namespace(package="stellarium_lite", **locals())
+    return argparse.Namespace(**locals())
 
 
 def assert_write_call(
@@ -201,6 +203,25 @@ def test_minidoc_md_no_back_to_top(patch_open: Mock) -> None:
     namespace = _prepare_namespace(
         source_directory=str(Path(__file__).parent / "resources"),
         no_back_to_top=True,
+    )
+    exit_code = cli.handle_args(namespace)
+
+    assert_write_call(patch_open, namespace.output, expected + "\n")
+    assert exit_code == 0
+
+
+def test_minidoc_md_untyped_package(patch_open: Mock) -> None:
+    """Test minidoc-md when type hints are only in docstrings."""
+    input_file = (
+        Path(__file__).parent / "expected" / "bootes_loader" / "base.md"
+    )
+    with open(input_file, "r") as f:
+        expected = f.read()
+
+    # create a run config and execute the code
+    namespace = _prepare_namespace(
+        package="bootes_loader",
+        source_directory=str(Path(__file__).parent / "resources"),
     )
     exit_code = cli.handle_args(namespace)
 

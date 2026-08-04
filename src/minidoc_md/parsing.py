@@ -11,7 +11,7 @@ import copy
 import re
 from collections.abc import Iterable
 from dataclasses import dataclass
-from typing import Any, Literal, assert_never
+from typing import Any, Literal, NotRequired, TypedDict, assert_never
 
 from docutils import core, nodes
 from docutils.nodes import subscript
@@ -29,6 +29,13 @@ _admonitions_map = {
     "seealso": "note",
     "admonition": "note",
 }
+
+
+class ParameterFieldDict(TypedDict):
+    """Dictionary for parameter field list items."""
+
+    body_text: NotRequired[str]
+    type_hint: NotRequired[str]
 
 
 class MixedFieldListError(Exception):
@@ -236,6 +243,63 @@ class SphinxRstVisitor(nodes.SparseNodeVisitor):
         if self.valid_targets is None:
             return True
         return target in self.valid_targets
+
+    def _create_parameter_list(
+        self,
+        parameters: dict[str, ParameterFieldDict],
+        raises: list[str],
+        returns: ParameterFieldDict,
+    ) -> None:
+        """
+        Return a formatted list of function parameters.
+
+        Given the data for parameters, exceptions raised, and the return
+        data of a function as extracted from the docstring, this method
+        creates a Markdown-formatted list of these parameters.
+
+        The data input must be of the following format:
+
+        - ``parameters``: A dictionary, mapping parameter names to
+          dictionaries of type ``ParameterFieldDict``. These are
+          dictionaries containing the keys ``body_text`` and ``type_hint``
+          containing the description and type description of the parameter.
+        - ``raises``: A list of the exceptions raised by the function,
+          already formatted as bullet points.
+        - ``returns``: A ``ParameterFieldDict`` that contains the
+          description and type description of the returned value.
+
+        The resulting list is automatically added to the body of the
+        visitor.
+
+        :param parameters: A dictionary mapping parameter names to
+            ``ParameterFieldDict``s, containing their description.
+        :param raises: A list of bullet points, describing the exceptions
+            raised.
+        :param returns: A single ``ParameterFieldDict`` that contains
+            the description and type description of the returned value.
+        :return: None, formatted list is added to text body.
+        """
+        if parameters:
+            self.body.append("**Parameters:**\n\n")
+            for param_name, param_data in parameters.items():
+                param_type = param_data["type_hint"]
+                type_hint = f" (`{param_type}`)" if param_type else ""
+                param_descr = param_data["body_text"]
+                descr = f": {param_descr}" if param_descr else "\n"
+                self.body.append(f"- `{param_name}`{type_hint}{descr}")
+            self.body.append("\n")
+        if raises:
+            self.body.append("**Raises:**\n\n")
+            self.body.append("".join(raises))
+            self.body.append("\n")
+        if returns["type_hint"] or returns["body_text"]:
+            self.body.append("**Returns:**\n\n")
+            return_type = returns["type_hint"]
+            type_hint = f"`{return_type}`" if return_type else ""
+            return_descr = returns["body_text"]
+            descr = return_descr if return_descr else "\n"
+            colon = ": " if type_hint and return_descr else ""
+            self.body.append(f"{type_hint}{colon}{descr}\n")
 
     # Below follow the node visitation methods that are required to match
     # the minimum specs of minidoc-md, i.e. the most common rst features
@@ -538,7 +602,9 @@ class SphinxRstVisitor(nodes.SparseNodeVisitor):
         # corresponding list context element to the stack:
         self.list_context.append(ListContext("bullet"))
         self.block_context.append("field_list")
-        groups = {"Parameters": [], "Raises": [], "Returns": []}
+        parameters: dict[str, ParameterFieldDict] = {}
+        raises = []
+        returns: ParameterFieldDict = {"body_text": "", "type_hint": ""}
         normal_fields = []
 
         for field_node in node.findall(nodes.field):
@@ -555,7 +621,6 @@ class SphinxRstVisitor(nodes.SparseNodeVisitor):
             name_parts = field_name.split(maxsplit=1)
             kind = name_parts[0]
             arg_name = name_parts[1] if len(name_parts) > 1 else ""
-            identifier = f"`{arg_name}`: " if arg_name else ""
 
             # parse body text as regular rst, if one exists
             if body_node is None:
@@ -577,17 +642,31 @@ class SphinxRstVisitor(nodes.SparseNodeVisitor):
 
             # cover known cases
             if kind == "param":
-                groups["Parameters"].append(f"- {identifier}{body_str}")
+                parameters.setdefault(
+                    arg_name, {"body_text": "", "type_hint": ""}
+                )
+                parameters[arg_name]["body_text"] = body_str
+            elif kind == "type":
+                parameters.setdefault(
+                    arg_name, {"body_text": "", "type_hint": ""}
+                )
+                parameters[arg_name]["type_hint"] = body_str.removesuffix("\n")
             elif kind in ["raise", "raises"]:
-                groups["Raises"].append(f"- {identifier}{body_str}")
+                identifier = f"`{arg_name}`: " if arg_name else ""
+                raises.append(f"- {identifier}{body_str}")
             elif kind in ["return", "returns"]:
-                groups["Returns"].append(f"{body_str}")
+                returns["body_text"] += body_str
+            elif kind == "rtype":
+                returns["type_hint"] = body_str.removesuffix("\n")
             else:
                 # normal field list
                 normal_fields.append(f"- **{field_name}:** {body_str}")
 
         # prevent mixing of parameter field lists and normal field lists
-        if normal_fields and any([f for f in groups.values()]):
+        is_param_list = any(
+            [parameters, raises, returns["body_text"], returns["type_hint"]]
+        )
+        if normal_fields and is_param_list:
             raise MixedFieldListError(
                 f"Parameter field list contained unsupported fields: \n{normal_fields}"
             )
@@ -599,11 +678,7 @@ class SphinxRstVisitor(nodes.SparseNodeVisitor):
             raise nodes.SkipChildren
 
         # format parameter lists
-        for group_name, group_content in groups.items():
-            if group_content:
-                self.body.append(f"**{group_name}:**\n\n")
-                self.body.append("".join(group_content))
-                self.body.append("\n")
+        self._create_parameter_list(parameters, raises, returns)
         raise nodes.SkipChildren
 
     def depart_field_list(self, node: nodes.field_list) -> None:

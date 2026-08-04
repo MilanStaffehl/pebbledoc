@@ -692,6 +692,57 @@ def test_parse_docstring_param_field_list_multiple_returns() -> None:
     assert output == expected
 
 
+def test_parse_docstring_param_field_list_type_annotations() -> None:
+    """Test parsing a parameter field list with type docs."""
+    cfg = config.MinidocConfig()
+    rst_str = (
+        "This is the last paragraph of the docstring.\n\n"
+        ":param a: This is a description of parameter ``a``.\n"
+        ":type a: int\n"
+        ":param b: This is a description of parameter ``b``\n"
+        "    which is a bit longer and more *extravagant*!\n"
+        ":type b: dict[str, float]\n"
+        ":raises KeyError: When a key is not found in a ``dict``.\n"
+        ":raise ValueError: When the math ain't mathin.\n"
+        ":returns: A series of return values.\n"
+        ":rtype: list[float]"
+    )
+    output = parsing.parse_docstring(rst_str, cfg)
+    expected = (
+        "This is the last paragraph of the docstring.\n\n"
+        "**Parameters:**\n\n"
+        "- `a` (`int`): This is a description of parameter `a`.\n"
+        "- `b` (`dict[str, float]`): This is a description of parameter "
+        "`b` which is a bit longer and more *extravagant*!\n\n"
+        "**Raises:**\n\n"
+        "- `KeyError`: When a key is not found in a `dict`.\n"
+        "- `ValueError`: When the math ain't mathin.\n\n"
+        "**Returns:**\n\n`list[float]`: A series of return values.\n"
+    )
+    assert output == expected
+
+
+def test_parse_docstring_param_field_list_only_type_annotations() -> None:
+    """Test parameter field list where some params have only a type hint."""
+    cfg = config.MinidocConfig()
+    rst_str = (
+        "This is the last paragraph of the docstring.\n\n"
+        ":param a: This is a description of parameter ``a``.\n"
+        ":type a: int\n"
+        ":type b: dict[str, float]\n"
+        ":rtype: list[float]"
+    )
+    output = parsing.parse_docstring(rst_str, cfg)
+    expected = (
+        "This is the last paragraph of the docstring.\n\n"
+        "**Parameters:**\n\n"
+        "- `a` (`int`): This is a description of parameter `a`.\n"
+        "- `b` (`dict[str, float]`)\n\n"
+        "**Returns:**\n\n`list[float]`\n"
+    )
+    assert output == expected
+
+
 # == SPHINX-STYLE ROLES ================================================
 def test_parse_docstring_math_inline() -> None:
     """Test parsing inline math."""

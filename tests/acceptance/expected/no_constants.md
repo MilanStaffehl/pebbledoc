@@ -219,7 +219,7 @@ Star(CelestialObject)
 
 A single star, extending `CelestialObject` with a magnitude.
 
-See also [`catalog`](#catalog) for how instances are typically constructed via
+See also `catalog` for how instances are typically constructed via
 [`load_catalog`](#load_catalog).
 
 <a name="observation"></a>
