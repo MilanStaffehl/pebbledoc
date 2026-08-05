@@ -4,13 +4,13 @@ Config object to hold various input options.
 
 from dataclasses import dataclass
 
-from .types import AdmonitionStrategy
+from .types import AdmonitionStyle
 
 
 @dataclass(kw_only=True)
 class MinidocConfig:
     package_name: str = ""
-    admonition_strategy: AdmonitionStrategy = "mix"
+    admonition_style: AdmonitionStyle = "mix"
     document_title: str | None = None
 
     document_constants: bool = True

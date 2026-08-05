@@ -160,7 +160,7 @@ def _render_admonition(
     :return: The admonition, parsed as a valid Github-flavored Markdown
         admonition.
     """
-    strategy = config.admonition_strategy
+    strategy = config.admonition_style
 
     # handle custom titles
     title = None
