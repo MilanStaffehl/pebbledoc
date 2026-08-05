@@ -2,14 +2,24 @@
 
 import argparse
 import importlib.metadata
+import os
 import sys
 import tomllib
 import warnings
 from pathlib import Path
-from typing import Never
+from typing import Final, Never
 
 from minidoc_md import minidoc
 from minidoc_md.config import MinidocConfig
+
+# CAUTION: Order of the list determines order of precedence!
+# pyproject.toml is last, so that an existing pyproject.toml with no
+# minidoc-md config values does not overrule any other config file.
+SUPPORTED_CONFIG_FILES: Final[list[str]] = [
+    "minidoc-md.toml",
+    ".minidoc-md.toml",
+    "pyproject.toml",
+]
 
 
 def _build_parser() -> argparse.ArgumentParser:
@@ -145,6 +155,29 @@ def _update_for_cli_args(
     return config
 
 
+def _discover_config_file() -> Path | None:
+    """
+    Ascend from CWD upwards to find nearest config file.
+
+    The function finds the nearest supported minidoc-md config file by
+    ascending from the current working directory, and returns it, once
+    it finds one. If no such file is found, it returns None.
+
+    :return: Either the path to the nearest valid config file, or None.
+    """
+    current_dir = Path(os.getcwd())
+    while True:
+        for filename in SUPPORTED_CONFIG_FILES:
+            config_file = current_dir / filename
+            if config_file.exists():
+                return config_file
+        parent = current_dir.parent
+        if parent == current_dir:
+            break
+        current_dir = parent
+    return None
+
+
 def build_config(args: argparse.Namespace) -> MinidocConfig:
     """
     Build a MinidocConfig from the command line arguments and config file.
@@ -166,6 +199,8 @@ def build_config(args: argparse.Namespace) -> MinidocConfig:
     # check if there is a config
     config_file = args.config_file
     if config_file is None:
+        config_file = _discover_config_file()
+    if config_file is None:
         return _update_for_cli_args(config, args)
 
     # load the config
@@ -176,15 +211,10 @@ def build_config(args: argparse.Namespace) -> MinidocConfig:
         )
 
     # get the config values as dictionary
-    supported_formats = [
-        "pyproject.toml",
-        "minidoc-md.toml",
-        ".minidoc-md.toml",
-    ]
-    if config_path.name not in supported_formats:
+    if config_path.name not in SUPPORTED_CONFIG_FILES:
         raise IOError(
             f"Config file must either be one of the following: "
-            f"{', '.join(supported_formats)}"
+            f"{', '.join(SUPPORTED_CONFIG_FILES)}"
         )
     with open(config_path, "rb") as f:
         loaded_file = tomllib.load(f)

@@ -22,6 +22,12 @@ def patch_open(mocker: MockerFixture) -> Mock:
     return patched_open
 
 
+@pytest.fixture
+def patch_config_discovery(mocker: MockerFixture) -> None:
+    """Prevent config file discovery from running."""
+    mocker.patch("minidoc_md.cli._discover_config_file", return_value=None)
+
+
 def assert_write_call(
     mock_write: Mock, output_file: str | None, expected: str
 ) -> None:
@@ -50,7 +56,9 @@ def assert_write_call(
 # == TEST CASES ========================================================
 
 
-def test_minidoc_md_default_setup(patch_open: Mock) -> None:
+def test_minidoc_md_default_setup(
+    patch_open: Mock, patch_config_discovery: None
+) -> None:
     """Test minidoc-md with the default setup."""
     input_file = Path(__file__).parent / "expected" / "base.md"
     with open(input_file, "r") as f:
@@ -66,7 +74,9 @@ def test_minidoc_md_default_setup(patch_open: Mock) -> None:
     assert exit_code == 0
 
 
-def test_minidoc_md_different_name(patch_open: Mock) -> None:
+def test_minidoc_md_different_name(
+    patch_open: Mock, patch_config_discovery: None
+) -> None:
     """Test giving a different file name."""
     input_file = Path(__file__).parent / "expected" / "base.md"
     with open(input_file, "r") as f:
@@ -87,7 +97,7 @@ def test_minidoc_md_different_name(patch_open: Mock) -> None:
     "admonition_style", ["github", "classic", "mix", "map"]
 )
 def test_minidoc_md_admonition_style(
-    admonition_style: str, patch_open: Mock
+    admonition_style: str, patch_open: Mock, patch_config_discovery: None
 ) -> None:
     """Test minidoc-md for all admonition styles."""
     filename = f"admonitions_{admonition_style}.md"
@@ -106,7 +116,9 @@ def test_minidoc_md_admonition_style(
     assert exit_code == 0
 
 
-def test_minidoc_md_custom_title(patch_open: Mock) -> None:
+def test_minidoc_md_custom_title(
+    patch_open: Mock, patch_config_discovery: None
+) -> None:
     """Test minidoc-md with a custom document title."""
     input_file = Path(__file__).parent / "expected" / "custom_title.md"
     with open(input_file, "r") as f:
@@ -123,7 +135,9 @@ def test_minidoc_md_custom_title(patch_open: Mock) -> None:
     assert exit_code == 0
 
 
-def test_minidoc_md_no_module_docstring(patch_open: Mock) -> None:
+def test_minidoc_md_no_module_docstring(
+    patch_open: Mock, patch_config_discovery: None
+) -> None:
     """Test minidoc-md when not using module docstrings."""
     filename = "no_module_docstring.md"
     input_file = Path(__file__).parent / "expected" / filename
@@ -141,7 +155,9 @@ def test_minidoc_md_no_module_docstring(patch_open: Mock) -> None:
     assert exit_code == 0
 
 
-def test_minidoc_md_no_include_constants(patch_open: Mock) -> None:
+def test_minidoc_md_no_include_constants(
+    patch_open: Mock, patch_config_discovery: None
+) -> None:
     """Test minidoc-md when excluding constants."""
     input_file = Path(__file__).parent / "expected" / "no_constants.md"
     with open(input_file, "r") as f:
@@ -158,7 +174,9 @@ def test_minidoc_md_no_include_constants(patch_open: Mock) -> None:
     assert exit_code == 0
 
 
-def test_minidoc_md_no_toc(patch_open: Mock) -> None:
+def test_minidoc_md_no_toc(
+    patch_open: Mock, patch_config_discovery: None
+) -> None:
     """Test minidoc-md without a table of contents."""
     input_file = Path(__file__).parent / "expected" / "no_toc.md"
     with open(input_file, "r") as f:
@@ -175,7 +193,9 @@ def test_minidoc_md_no_toc(patch_open: Mock) -> None:
     assert exit_code == 0
 
 
-def test_minidoc_md_no_back_to_top(patch_open: Mock) -> None:
+def test_minidoc_md_no_back_to_top(
+    patch_open: Mock, patch_config_discovery: None
+) -> None:
     """Test minidoc-md when excluding "back to top" links."""
     input_file = Path(__file__).parent / "expected" / "no_back_to_top.md"
     with open(input_file, "r") as f:
@@ -192,7 +212,9 @@ def test_minidoc_md_no_back_to_top(patch_open: Mock) -> None:
     assert exit_code == 0
 
 
-def test_minidoc_md_untyped_package(patch_open: Mock) -> None:
+def test_minidoc_md_untyped_package(
+    patch_open: Mock, patch_config_discovery: None
+) -> None:
     """Test minidoc-md when type hints are only in docstrings."""
     input_file = (
         Path(__file__).parent / "expected" / "bootes_loader" / "base.md"
@@ -211,7 +233,9 @@ def test_minidoc_md_untyped_package(patch_open: Mock) -> None:
     assert exit_code == 0
 
 
-def test_minidoc_md_config_file(mocker: MockerFixture) -> None:
+def test_minidoc_md_config_file(
+    mocker: MockerFixture, patch_config_discovery: None
+) -> None:
     """Test minidoc-md when config file is used."""
     mock_pyproject = (
         b"[minidoc]\n"

@@ -234,8 +234,8 @@ def test_build_config_invalid_file_name(mocker: MockerFixture) -> None:
     with pytest.raises(IOError) as exc_info:
         cli.build_config(namespace)
     assert exc_info.value.args[0] == (
-        "Config file must either be one of the following: pyproject.toml, "
-        "minidoc-md.toml, .minidoc-md.toml"
+        "Config file must either be one of the following: minidoc-md.toml, "
+        ".minidoc-md.toml, pyproject.toml"
     )
     mock_open.assert_not_called()
 
@@ -278,3 +278,50 @@ def test_build_config_unsupported_fields(mocker: MockerFixture) -> None:
     assert not hasattr(output, "reference_color")
     assert not hasattr(output, "imaginary_option")
     mock_open.assert_called_once_with(Path("minidoc-md.toml").resolve(), "rb")
+
+
+def test_build_config_file_discovery(mocker: MockerFixture) -> None:
+    """Test discovering a config file when none is specified."""
+    # we patch every interaction with the file system:
+    mock_cwd = (
+        "/home/user/minidoc/Documents/Python/stellarium_lite/src/"
+        "stellarium_lite/observation"
+    )
+    mocker.patch("os.getcwd", return_value=mock_cwd)
+    mock_cfg_file = Path(
+        "/home/user/minidoc/Documents/Python/stellarium_lite/minidoc-md.toml"
+    ).resolve()
+    real_pathexists = Path.exists
+
+    # we must patch Path.exists like this to not break pytest itself
+    def patched_exists(self: Path) -> bool:
+        if self.resolve() == mock_cfg_file:
+            return True
+        return real_pathexists(self)
+
+    mocker.patch.object(
+        Path, "exists", autospec=True, side_effect=patched_exists
+    )
+    mocker.patch("pathlib.Path.is_file", return_value=True)
+
+    # patch opening of mock file
+    mock_pyproject = (
+        b"[minidoc]\n"
+        b'package_name = "test_package"\n'
+        b'admonition_style = "classic"\n'
+        b"include_back_to_top = false\n"
+        b"include_toc = false\n"
+    )
+    m = mocker.mock_open(read_data=mock_pyproject)
+    mock_open = mocker.patch("minidoc_md.cli.open", m)
+
+    namespace = utils.prepare_namespace(package="test_package")
+    output = cli.build_config(namespace)
+    assert_config(
+        output,
+        package="test_package",
+        admonition_style="classic",
+        include_back_to_top=False,
+        include_toc=False,
+    )
+    mock_open.assert_called_once_with(mock_cfg_file, "rb")
