@@ -1,6 +1,7 @@
 """Acceptance tests for minidoc-md."""
 
 import difflib
+import importlib
 import sys
 from pathlib import Path
 from unittest.mock import Mock
@@ -26,6 +27,15 @@ def patch_open(mocker: MockerFixture) -> Mock:
 def patch_config_discovery(mocker: MockerFixture) -> None:
     """Prevent config file discovery from running."""
     mocker.patch("minidoc_md.cli._discover_config_file", return_value=None)
+
+
+@pytest.fixture
+def patch_module_all(mocker: MockerFixture) -> None:
+    """Path the stellarium_lite module to have no __all__."""
+    sys.path.append(str(Path(__file__).parent / "resources"))
+    package = importlib.import_module("stellarium_lite")
+    mocker.patch.object(package, "__all__", None)
+    sys.path.pop()
 
 
 def assert_write_call(
@@ -61,6 +71,24 @@ def test_minidoc_md_default_setup(
 ) -> None:
     """Test minidoc-md with the default setup."""
     input_file = Path(__file__).parent / "expected" / "base.md"
+    with open(input_file, "r") as f:
+        expected = f.read()
+
+    # create a run config and execute the code
+    namespace = utils.prepare_namespace(
+        source_directory=str(Path(__file__).parent / "resources")
+    )
+    exit_code = cli.handle_args(namespace)
+
+    assert_write_call(patch_open, namespace.output, expected + "\n")
+    assert exit_code == 0
+
+
+def test_minidoc_md_member_discovery(
+    patch_open: Mock, patch_config_discovery: None, patch_module_all: None
+) -> None:
+    """Test minidoc-md when the package has no __all__"""
+    input_file = Path(__file__).parent / "expected" / "from_ast_discovery.md"
     with open(input_file, "r") as f:
         expected = f.read()
 

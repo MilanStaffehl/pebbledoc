@@ -245,6 +245,19 @@ def handle_args(args: argparse.Namespace) -> int:
     """
     Handle the given configuration and run minidoc-md.
 
+    Function returns an error code when something goes wrong. The error
+    codes have the following meaning:
+
+    - 1: Either the given source or output paths are invalid.
+    - 2: The package to document or its dependencies could not be
+      imported.
+    - 3: The output file could not be written.
+    - 4: The specified config file could not be located.
+    - 5: The package or one of its subpackages did not provide a list
+      of members for its API (i.e. it had no ``__all__``), and an
+      attempt at finding its public members using AST parsing failed due
+      to the origin of the package not being discoverable.
+
     :param args: The ``argparse.Namespace`` object created from the user
         input.
     :return: An exit code, which is handed to ``sys.exit``.
@@ -279,6 +292,9 @@ def handle_args(args: argparse.Namespace) -> int:
             f"Could not import package {args.package} or its dependencies: {exc_info}"
         )
         return 2
+    except FileNotFoundError as exc_info:
+        error(f"One or more (sub-)packages could not be found: {exc_info}")
+        return 5
     finally:
         if source_dir is not None:
             sys.path.remove(str(source_dir))

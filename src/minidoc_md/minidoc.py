@@ -10,9 +10,11 @@ GitHub-flavored Markdown.
 
 from __future__ import annotations
 
+import ast
 import inspect
 from collections.abc import Callable
 from dataclasses import dataclass, field, fields, is_dataclass
+from pathlib import Path
 from types import ModuleType
 from typing import Any
 
@@ -50,6 +52,93 @@ def _is_local(member: object, package: str) -> bool:
         return getattr(member, "__module__", "").startswith(package)
     # last option: neither a module nor a class/function, probably a const
     return False
+
+
+def _explicitly_reexported(package: ModuleType) -> list[str]:
+    """
+    Find all members of a package that were explicitly reexported.
+
+    The function parses the file corresponding to the package into an
+    AST tree and extracts all members that were explicitly re-exported.
+    This includes all types of members, even from external packages.
+
+    Names marked as private (starting with an underscore) are excluded.
+
+    :param package: The package whose explicitly re-exported members to
+        extract. Must be an actual package object, not just the name.
+    :return: A list of the names of all members which the package
+        explicitly re-exports.
+    """
+    # attempt to discover origin of the package
+    init_file = None
+    if package.__spec__ is not None:
+        init_file = package.__spec__.origin
+    if init_file is None:
+        init_file = package.__file__
+    if init_file is None:
+        raise FileNotFoundError(
+            f"Unable to find origin of module {package.__name__}"
+        )
+    print(init_file)
+
+    # parse the __init__.py (or other origin) of the package as AST
+    init_file = Path(init_file).resolve()
+    ast_tree = ast.parse(
+        init_file.read_text(encoding="utf-8"),
+        filename=str(init_file),
+    )
+
+    # identify all re-exports and list them, unless private
+    explicit_reexports = set()
+    for node in ast_tree.body:
+        if isinstance(node, ast.Import):
+            for alias in node.names:
+                explicit_reexports.add(
+                    alias.asname or alias.name.split(".", 1)[0]
+                )
+        if isinstance(node, ast.ImportFrom):
+            for alias in node.names:
+                explicit_reexports.add(alias.asname or alias.name)
+    return [m for m in explicit_reexports if not m.startswith("_")]
+
+
+def discover_public_members(module: ModuleType) -> list[str]:
+    """
+    Discover all public members of a module or package.
+
+    The function prefers ``__all__`` of the module defines it. If it does,
+    ``__all__`` is returned as-is. Otherwise, the function finds all
+    members in the namespace of the module, including those that were
+    imported. Modules that were not explicitly imported fully are not
+    included. However, external members from third-party or standard
+    library packages will be included as well and must be removed later.
+
+    :param module: The module object for which to discover public members.
+    :return: A list of all public members. That is, a list of all members
+        not starting with an underscore and importable from the module,
+        but excluding those modules and packages that are only available
+        because members were imported from them, without being explicitly
+        imported themselves.
+    """
+    # attempt to find explicit API first
+    module_all = getattr(module, "__all__", None)
+    if module_all is not None:
+        return module_all
+
+    # fall back to discovery
+    explicitly_reexported = _explicitly_reexported(module)
+    public_members = []
+    for name, member in vars(module).items():
+        if name.startswith("_"):
+            # exclude private members
+            continue
+        if inspect.ismodule(member) and name not in explicitly_reexported:
+            # Modules that are only in module.__dict__ because we import
+            # something from them, but do not explicitly re-export them
+            # themselves do not go into list of public members!
+            continue
+        public_members.append(name)
+    return public_members
 
 
 def _parent_name(name: str, parent_name: str) -> str:
@@ -450,11 +539,7 @@ def _member_module(
         doc = ""
 
     # find all public members of the module
-    public_members = getattr(module, "__all__", None)
-    if public_members is None:
-        public_members = [
-            m for m in module.__dict__.keys() if not m.startswith("_")
-        ]
+    public_members = discover_public_members(module)
 
     # find children, create their nodes
     children = []
