@@ -29,10 +29,42 @@ def patch_parse_docstring(mocker: MockerFixture) -> Mock:
 
 @pytest.fixture
 def mock_module() -> ModuleType:
-    """Return the test mock package."""
+    """Return the test mock module."""
     sys.path.insert(0, str(Path(__file__).parent / "resources"))
     module = importlib.import_module("mock_module")
+    sys.path.pop(0)
     return module
+
+
+@pytest.fixture
+def mock_package() -> ModuleType:
+    """Return the test mock package."""
+    sys.path.insert(0, str(Path(__file__).parent / "resources"))
+    package = importlib.import_module("mock_package")
+    sys.path.pop(0)
+    return package
+
+
+# == TEST FOR MEMBER DISCOVERY =========================================
+
+
+def test_discover_public_members(mock_package: ModuleType) -> None:
+    """Test that the mock package is correctly handled by the function."""
+    output = minidoc.discover_public_members(mock_package)
+    expected = {
+        "sys",
+        "nodes",
+        "Path",
+        "logging",
+        "MyClass",
+        "my_function",
+        "submodule_b",
+        "BetterClassName",
+        "direct_module",
+        "TopLevelClass",
+        "top_level_function",
+    }
+    assert set(output) == expected  # order irrelevant for us
 
 
 # == TESTS FOR _SIGNATURE_STR ==========================================
