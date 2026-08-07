@@ -19,7 +19,7 @@ from types import ModuleType
 from typing import Any
 
 from . import util
-from .config import MinidocConfig
+from .config import PebbledocConfig
 from .parsing import parse_docstring
 
 
@@ -244,7 +244,7 @@ def _valid_reference_targets(member: Member) -> set[str]:
 
 def _document_member(
     member: Member,
-    config: MinidocConfig,
+    config: PebbledocConfig,
     valid_reference_targets: set[str] | None = None,
 ) -> str:
     """
@@ -256,7 +256,7 @@ def _document_member(
 
     :param member: A member node from the member tree constructed by
         :func:`_member_module`.
-    :param config: The Minidoc configuration object.
+    :param config: The pebbledoc configuration object.
     :param valid_reference_targets: A set of valid target names for
         Sphinx-style reference roles. When given, all references pointing
         to targets that are not in this set will be rendered as plain
@@ -524,7 +524,7 @@ def _member_class(name: str, klass: type, parent: str) -> Member:
 def _member_module(
     name: str,
     module: ModuleType,
-    config: MinidocConfig,
+    config: PebbledocConfig,
     library_name: str,
     parent: str = "",
 ) -> Member:
@@ -535,7 +535,7 @@ def _member_module(
 
     :param name: Name of the module.
     :param module: The module object itself.
-    :param config: The Minidoc config object.
+    :param config: The pebbledoc config object.
     :param library_name: The top level package under which the current
         module exists, i.e. the name of the project that is being
         documented.
@@ -596,7 +596,7 @@ def _member_module(
     return node
 
 
-def _build_toc(root: Member, config: MinidocConfig) -> str:
+def _build_toc(root: Member, config: PebbledocConfig) -> str:
     """
     Build a table of contents from the root member node of a package.
 
@@ -615,7 +615,7 @@ def _build_toc(root: Member, config: MinidocConfig) -> str:
 
     :param root: The root :class:`Member` node of a package for which to
         build a table of contents.
-    :param config: The Minidoc config object.
+    :param config: The pebbledoc config object.
     :return: A nested list of links, pointing to the header of the section
         for each of the children of ``root``.
     """
@@ -642,7 +642,7 @@ def _build_toc(root: Member, config: MinidocConfig) -> str:
 def markdown_documentation(
     package_name: str,
     package_obj: ModuleType,
-    config: MinidocConfig,
+    config: PebbledocConfig,
 ) -> str:
     """
     Create a documentation for the package of the given name.
@@ -661,7 +661,7 @@ def markdown_documentation(
         the header of the document.
     :param package_obj: The package to document as a Python object,
         retrieved for example using ``importlib.import_module``.
-    :param config: A filled Minidoc-MD config object, detailing how to
+    :param config: A filled pebbledoc config object, detailing how to
         parse the found docstrings and how to arrange them into the final
         document.
     :return: A full API document for the package, formatted as GitHub-

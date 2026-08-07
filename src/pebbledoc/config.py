@@ -8,7 +8,7 @@ from .types import AdmonitionStyle
 
 
 @dataclass(kw_only=True)
-class MinidocConfig:
+class PebbledocConfig:
     package_name: str = ""
     admonition_style: AdmonitionStyle = "mix"
     document_title: str | None = None

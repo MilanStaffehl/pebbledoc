@@ -6,14 +6,14 @@ from pathlib import Path
 import pytest
 from pytest_mock import MockerFixture
 
-from minidoc_md import cli, config
+from pebbledoc import cli, config
 
 sys.path.insert(0, str(Path(__file__).parents[1]))
 import utils
 
 
 def assert_config(
-    cfg: config.MinidocConfig,
+    cfg: config.PebbledocConfig,
     *,
     package: str = "test_package",
     admonition_style: str = "mix",
@@ -62,14 +62,14 @@ def test_build_config_cli_args() -> None:
 def test_build_config_pyrpoject(mocker: MockerFixture) -> None:
     """Test building a config when defaults are in a pyproject.toml."""
     mock_pyproject = (
-        b"[tool.minidoc]\n"
+        b"[tool.pebbledoc]\n"
         b'package_name = "test_package"\n'
         b'admonition_style = "classic"\n'
         b"include_back_to_top = false\n"
         b"include_toc = false\n"
     )
     m = mocker.mock_open(read_data=mock_pyproject)
-    mock_open = mocker.patch("minidoc_md.cli.open", m)
+    mock_open = mocker.patch("pebbledoc.cli.open", m)
     # ensure that the file "exists"
     mocker.patch("pathlib.Path.exists", return_value=True)
     mocker.patch("pathlib.Path.is_file", return_value=True)
@@ -88,23 +88,23 @@ def test_build_config_pyrpoject(mocker: MockerFixture) -> None:
     mock_open.assert_called_once_with(Path("pyproject.toml").resolve(), "rb")
 
 
-def test_build_config_minidoc_config(mocker: MockerFixture) -> None:
-    """Test building a config when defaults are in a minidoc-md.toml."""
+def test_build_config_pebbledoc_config(mocker: MockerFixture) -> None:
+    """Test building a config when defaults are in a pebbledoc.toml."""
     mock_pyproject = (
-        b"[minidoc]\n"
+        b"[pebbledoc]\n"
         b'package_name = "test_package"\n'
         b'admonition_style = "classic"\n'
         b"include_back_to_top = false\n"
         b"include_toc = false\n"
     )
     m = mocker.mock_open(read_data=mock_pyproject)
-    mock_open = mocker.patch("minidoc_md.cli.open", m)
+    mock_open = mocker.patch("pebbledoc.cli.open", m)
     # ensure that the file "exists"
     mocker.patch("pathlib.Path.exists", return_value=True)
     mocker.patch("pathlib.Path.is_file", return_value=True)
 
     namespace = utils.prepare_namespace(
-        package="test_package", config_file="minidoc-md.toml"
+        package="test_package", config_file="pebbledoc.toml"
     )
     output = cli.build_config(namespace)
     assert_config(
@@ -114,20 +114,20 @@ def test_build_config_minidoc_config(mocker: MockerFixture) -> None:
         include_back_to_top=False,
         include_toc=False,
     )
-    mock_open.assert_called_once_with(Path("minidoc-md.toml").resolve(), "rb")
+    mock_open.assert_called_once_with(Path("pebbledoc.toml").resolve(), "rb")
 
 
 def test_build_config_pyrpoject_cli_override(mocker: MockerFixture) -> None:
     """Test that CLI args override file configs."""
     mock_pyproject = (
-        b"[tool.minidoc]\n"
+        b"[tool.pebbledoc]\n"
         b'package_name = "test_package"\n'
         b'admonition_style = "classic"\n'
         b"include_back_to_top = false\n"
         b"include_toc = false\n"
     )
     m = mocker.mock_open(read_data=mock_pyproject)
-    mock_open = mocker.patch("minidoc_md.cli.open", m)
+    mock_open = mocker.patch("pebbledoc.cli.open", m)
     # ensure that the file "exists"
     mocker.patch("pathlib.Path.exists", return_value=True)
     mocker.patch("pathlib.Path.is_file", return_value=True)
@@ -152,24 +152,24 @@ def test_build_config_pyrpoject_cli_override(mocker: MockerFixture) -> None:
     mock_open.assert_called_once_with(Path("pyproject.toml").resolve(), "rb")
 
 
-def test_build_config_minidoc_cli_override(mocker: MockerFixture) -> None:
+def test_build_config_pebbledoc_cli_override(mocker: MockerFixture) -> None:
     """Test that CLI args override file configs."""
     mock_pyproject = (
-        b"[minidoc]\n"
+        b"[pebbledoc]\n"
         b'package_name = "test_package"\n'
         b'admonition_style = "classic"\n'
         b"include_back_to_top = false\n"
         b"include_toc = false\n"
     )
     m = mocker.mock_open(read_data=mock_pyproject)
-    mock_open = mocker.patch("minidoc_md.cli.open", m)
+    mock_open = mocker.patch("pebbledoc.cli.open", m)
     # ensure that the file "exists"
     mocker.patch("pathlib.Path.exists", return_value=True)
     mocker.patch("pathlib.Path.is_file", return_value=True)
 
     namespace = utils.prepare_namespace(
         package="test_package",
-        config_file="minidoc-md.toml",
+        config_file="pebbledoc.toml",
         title="My custom title",
         admonition_style="map",
         no_module_docstring=True,
@@ -184,12 +184,12 @@ def test_build_config_minidoc_cli_override(mocker: MockerFixture) -> None:
         include_toc=False,
         module_docstring=False,
     )
-    mock_open.assert_called_once_with(Path("minidoc-md.toml").resolve(), "rb")
+    mock_open.assert_called_once_with(Path("pebbledoc.toml").resolve(), "rb")
 
 
 def test_build_config_missing_file(mocker: MockerFixture) -> None:
     """Test building a config when the given config file does not exist."""
-    mock_open = mocker.patch("minidoc_md.cli.open")
+    mock_open = mocker.patch("pebbledoc.cli.open")
     # ensure that the file "does not exist"
     mocker.patch("pathlib.Path.exists", return_value=False)
     mocker.patch("pathlib.Path.is_file", return_value=True)
@@ -206,7 +206,7 @@ def test_build_config_missing_file(mocker: MockerFixture) -> None:
 
 def test_build_config_only_directory(mocker: MockerFixture) -> None:
     """Test building a config when the given config file is a dir."""
-    mock_open = mocker.patch("minidoc_md.cli.open")
+    mock_open = mocker.patch("pebbledoc.cli.open")
     # ensure that the file "does not exist"
     mocker.patch("pathlib.Path.exists", return_value=True)
     mocker.patch("pathlib.Path.is_file", return_value=False)
@@ -223,7 +223,7 @@ def test_build_config_only_directory(mocker: MockerFixture) -> None:
 
 def test_build_config_invalid_file_name(mocker: MockerFixture) -> None:
     """Test building a config when the given config file name is invalid."""
-    mock_open = mocker.patch("minidoc_md.cli.open")
+    mock_open = mocker.patch("pebbledoc.cli.open")
     # ensure that the file "does not exist"
     mocker.patch("pathlib.Path.exists", return_value=True)
     mocker.patch("pathlib.Path.is_file", return_value=True)
@@ -234,8 +234,8 @@ def test_build_config_invalid_file_name(mocker: MockerFixture) -> None:
     with pytest.raises(IOError) as exc_info:
         cli.build_config(namespace)
     assert exc_info.value.args[0] == (
-        "Config file must be one of the following: minidoc-md.toml, "
-        ".minidoc-md.toml, pyproject.toml"
+        "Config file must be one of the following: pebbledoc.toml, "
+        ".pebbledoc.toml, pyproject.toml"
     )
     mock_open.assert_not_called()
 
@@ -243,7 +243,7 @@ def test_build_config_invalid_file_name(mocker: MockerFixture) -> None:
 def test_build_config_unsupported_fields(mocker: MockerFixture) -> None:
     """Test that unsupported fields raise warnings."""
     mock_pyproject = (
-        b"[minidoc]\n"
+        b"[pebbledoc]\n"
         b'package_name = "test_package"\n'
         b'admonition_style = "classic"\n'
         b'reference_color = "blue"\n'
@@ -252,13 +252,13 @@ def test_build_config_unsupported_fields(mocker: MockerFixture) -> None:
         b"imaginary_option = false\n"
     )
     m = mocker.mock_open(read_data=mock_pyproject)
-    mock_open = mocker.patch("minidoc_md.cli.open", m)
+    mock_open = mocker.patch("pebbledoc.cli.open", m)
     # ensure that the file "exists"
     mocker.patch("pathlib.Path.exists", return_value=True)
     mocker.patch("pathlib.Path.is_file", return_value=True)
 
     namespace = utils.prepare_namespace(
-        package="test_package", config_file="minidoc-md.toml"
+        package="test_package", config_file="pebbledoc.toml"
     )
     with pytest.warns(UserWarning) as w_info:
         output = cli.build_config(namespace)
@@ -270,26 +270,26 @@ def test_build_config_unsupported_fields(mocker: MockerFixture) -> None:
         include_toc=False,
     )
     assert str(w_info[0].message) == (
-        "Config parameter 'reference_color' does not exist in minidoc-md"
+        "Config parameter 'reference_color' does not exist in pebbledoc"
     )
     assert str(w_info[1].message) == (
-        "Config parameter 'imaginary_option' does not exist in minidoc-md"
+        "Config parameter 'imaginary_option' does not exist in pebbledoc"
     )
     assert not hasattr(output, "reference_color")
     assert not hasattr(output, "imaginary_option")
-    mock_open.assert_called_once_with(Path("minidoc-md.toml").resolve(), "rb")
+    mock_open.assert_called_once_with(Path("pebbledoc.toml").resolve(), "rb")
 
 
 def test_build_config_file_discovery(mocker: MockerFixture) -> None:
     """Test discovering a config file when none is specified."""
     # we patch every interaction with the file system:
     mock_cwd = (
-        "/home/user/minidoc/Documents/Python/stellarium_lite/src/"
+        "/home/user/pebbledoc/Documents/Python/stellarium_lite/src/"
         "stellarium_lite/observation"
     )
     mocker.patch("os.getcwd", return_value=mock_cwd)
     mock_cfg_file = Path(
-        "/home/user/minidoc/Documents/Python/stellarium_lite/minidoc-md.toml"
+        "/home/user/pebbledoc/Documents/Python/stellarium_lite/pebbledoc.toml"
     ).resolve()
     real_pathexists = Path.exists
 
@@ -306,14 +306,14 @@ def test_build_config_file_discovery(mocker: MockerFixture) -> None:
 
     # patch opening of mock file
     mock_pyproject = (
-        b"[minidoc]\n"
+        b"[pebbledoc]\n"
         b'package_name = "test_package"\n'
         b'admonition_style = "classic"\n'
         b"include_back_to_top = false\n"
         b"include_toc = false\n"
     )
     m = mocker.mock_open(read_data=mock_pyproject)
-    mock_open = mocker.patch("minidoc_md.cli.open", m)
+    mock_open = mocker.patch("pebbledoc.cli.open", m)
 
     namespace = utils.prepare_namespace(package="test_package")
     output = cli.build_config(namespace)

@@ -1,6 +1,6 @@
 """Tests for the util module."""
 
-from minidoc_md import util
+from pebbledoc import util
 
 
 def test_name_to_ref_plain() -> None:

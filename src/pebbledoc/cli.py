@@ -1,4 +1,4 @@
-"""Command line interface for Minidoc MD."""
+"""Command line interface for pebbledoc."""
 
 import argparse
 import importlib.metadata
@@ -9,42 +9,42 @@ import warnings
 from pathlib import Path
 from typing import Final, Never
 
-from minidoc_md import minidoc
-from minidoc_md.config import MinidocConfig
+from pebbledoc import inspect_runtime
+from pebbledoc.config import PebbledocConfig
 
 # CAUTION: Order of the list determines order of precedence!
 # pyproject.toml is last, so that an existing pyproject.toml with no
-# minidoc-md config values does not overrule any other config file.
+# pebbledoc config values does not overrule any other config file.
 SUPPORTED_CONFIG_FILES: Final[list[str]] = [
-    "minidoc-md.toml",
-    ".minidoc-md.toml",
+    "pebbledoc.toml",
+    ".pebbledoc.toml",
     "pyproject.toml",
 ]
 
 
 def _build_parser() -> argparse.ArgumentParser:
     """
-    Build argument parser for Minidoc MD.
+    Build argument parser for pebbledoc.
 
-    :return: Argument parser for minidoc-md CLI.
+    :return: Argument parser for pebbledoc CLI.
     """
     description = (
-        "minidoc-md is a lightweight documentation tool - automatically "
+        "pebbledoc is a lightweight documentation tool - automatically "
         "generate a single-file API documentation for your Python project!\n\n"
         "Note that the package you wish to document must either be installed "
-        "in the same environment as minidoc-md, or you must specify its source "
-        "directory when using minidoc-md. Either way, all of its dependencies "
+        "in the same environment as pebbledoc, or you must specify its source "
+        "directory when using pebbledoc. Either way, all of its dependencies "
         "must be installed."
     )
     parser = argparse.ArgumentParser(
-        prog="minidoc-md",
+        prog="pebbledoc",
         description=description,
         formatter_class=argparse.RawTextHelpFormatter,
     )
     parser.add_argument(
         "--version",
         action="version",
-        version=f"minidoc-md version {importlib.metadata.version('minidoc-md')}",
+        version=f"pebbledoc version {importlib.metadata.version('pebbledoc')}",
     )
     parser.add_argument(
         "-p",
@@ -73,7 +73,7 @@ def _build_parser() -> argparse.ArgumentParser:
     parser.add_argument(
         "-c",
         "--config-file",
-        help="file containing minidoc-md configuration instructions, optional",
+        help="file containing pebbledoc configuration instructions, optional",
         metavar="",
         default=None,
     )
@@ -131,8 +131,8 @@ def _build_parser() -> argparse.ArgumentParser:
 
 
 def _update_for_cli_args(
-    config: MinidocConfig, args: argparse.Namespace
-) -> MinidocConfig:
+    config: PebbledocConfig, args: argparse.Namespace
+) -> PebbledocConfig:
     """
     Update an existing config file for CLI arguments explicitly given.
 
@@ -165,7 +165,7 @@ def _discover_config_file() -> Path | None:
     """
     Ascend from CWD upwards to find nearest config file.
 
-    The function finds the nearest supported minidoc-md config file by
+    The function finds the nearest supported pebbledoc config file by
     ascending from the current working directory, and returns it, once
     it finds one. If no such file is found, it returns None.
 
@@ -184,15 +184,15 @@ def _discover_config_file() -> Path | None:
     return None
 
 
-def build_config(args: argparse.Namespace) -> MinidocConfig:
+def build_config(args: argparse.Namespace) -> PebbledocConfig:
     """
-    Build a MinidocConfig from the command line arguments and config file.
+    Build a PebbledocConfig from the command line arguments and config file.
 
     :param args: The namespace object retrieved from the CLI argparser.
-    :return: A MinidocConfig object, built according to the CLI args.
+    :return: A PebbledocConfig object, built according to the CLI args.
     """
     # initialize the default config
-    config = MinidocConfig(package_name=args.package)
+    config = PebbledocConfig(package_name=args.package)
 
     # check if there is a config
     config_file = args.config_file
@@ -217,15 +217,15 @@ def build_config(args: argparse.Namespace) -> MinidocConfig:
     with open(config_path, "rb") as f:
         loaded_file = tomllib.load(f)
     if config_path.name == "pyproject.toml":
-        base_config = loaded_file.get("tool", {}).get("minidoc", {})
+        base_config = loaded_file.get("tool", {}).get("pebbledoc", {})
     else:
-        base_config = loaded_file["minidoc"]
+        base_config = loaded_file["pebbledoc"]
 
     # set values if they are given
     for key, value in base_config.items():
         if not hasattr(config, key):
             warnings.warn(
-                f"Config parameter '{key}' does not exist in minidoc-md",
+                f"Config parameter '{key}' does not exist in pebbledoc",
                 UserWarning,
                 stacklevel=2,
             )
@@ -241,7 +241,7 @@ def error(msg: str) -> None:
 
 def handle_args(args: argparse.Namespace) -> int:
     """
-    Handle the given configuration and run minidoc-md.
+    Handle the given configuration and run pebbledoc.
 
     Function returns an error code when something goes wrong. The error
     codes have the following meaning:
@@ -285,7 +285,7 @@ def handle_args(args: argparse.Namespace) -> int:
 
     try:
         package = importlib.import_module(args.package)
-        document_str = minidoc.markdown_documentation(
+        document_str = inspect_runtime.markdown_documentation(
             args.package, package, config
         )
     except ImportError as exc_info:

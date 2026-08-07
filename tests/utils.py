@@ -18,7 +18,7 @@ def prepare_namespace(
     no_main_module_header: bool = False,
 ) -> argparse.Namespace:
     """
-    Create a namespace with the attributes that minidoc expects.
+    Create a namespace with the attributes that pebbledoc expects.
 
     This function basically takes over the role of the user giving the
     application command line arguments. It takes all arguments and passes
