@@ -4,6 +4,7 @@ import difflib
 import importlib
 import sys
 from pathlib import Path
+from typing import Final
 from unittest.mock import Mock
 
 import pytest
@@ -13,6 +14,8 @@ from minidoc_md import cli
 
 sys.path.insert(0, str(Path(__file__).parents[1]))
 import utils
+
+ERROR_PREFIX: Final[str] = "\033[91mError:\033[0m"
 
 
 @pytest.fixture
@@ -317,3 +320,169 @@ def test_minidoc_md_config_file(
 
 
 # == TESTS FOR INVALID INPUTS ==========================================
+
+
+def test_minidoc_md_invalid_output_file(
+    patch_config_discovery: None, capsys: pytest.CaptureFixture
+) -> None:
+    """Test the behavior when given an invalid output file."""
+    # output is a directory
+    namespace = utils.prepare_namespace(
+        source_directory=str(Path(__file__).parent / "resources"),
+        output=str(Path(__file__).parent),  # dir, not a file
+    )
+    exit_code = cli.handle_args(namespace)
+
+    out = capsys.readouterr()
+    assert (
+        out.err == f"{ERROR_PREFIX} Output must be a file, not a directory\n"
+    )
+    assert exit_code == 1
+
+    # output directory does not exist
+    output_path = Path("/this/does/not/exist/API.md")
+    namespace = utils.prepare_namespace(
+        source_directory=str(Path(__file__).parent / "resources"),
+        output=str(output_path),
+    )
+    exit_code = cli.handle_args(namespace)
+
+    out = capsys.readouterr()
+    expected_msg = (
+        f"{ERROR_PREFIX} Output directory {output_path.parent} does not "
+        f"exist\n"
+    )
+    assert out.err == expected_msg
+    assert exit_code == 1
+
+
+def test_minidoc_md_invalid_source_directory(
+    patch_config_discovery: None, capsys: pytest.CaptureFixture
+) -> None:
+    """Test the behavior when given an invalid source directory."""
+    # output is a directory
+    source_dir = Path(__file__).parent / "nonexistent"
+    namespace = utils.prepare_namespace(
+        source_directory=str(source_dir),
+    )
+    exit_code = cli.handle_args(namespace)
+
+    out = capsys.readouterr()
+    expected_msg = (
+        f"{ERROR_PREFIX} Source directory {source_dir} does not exist\n"
+    )
+    assert out.err == expected_msg
+    assert exit_code == 1
+
+
+def test_minidoc_md_import_error(
+    patch_config_discovery: None, capsys: pytest.CaptureFixture
+) -> None:
+    """Test the behavior when given an unimportable package."""
+    namespace = utils.prepare_namespace(
+        package="makebelieve",
+        source_directory=str(Path(__file__).parent / "resources"),
+    )
+    exit_code = cli.handle_args(namespace)
+
+    out = capsys.readouterr()
+    expected_msg = (
+        f"{ERROR_PREFIX} Could not import package makebelieve or its "
+        f"dependencies: No module named 'makebelieve'\n"
+    )
+    assert out.err == expected_msg
+    assert exit_code == 2
+
+
+def test_minidoc_md_unable_to_write_output(
+    patch_config_discovery: None,
+    capsys: pytest.CaptureFixture,
+    mocker: MockerFixture,
+) -> None:
+    """Test the behavior when given an unimportable package."""
+    namespace = utils.prepare_namespace(
+        source_directory=str(Path(__file__).parent / "resources"),
+    )
+    mocker.patch(
+        "minidoc_md.cli.open",
+        side_effect=PermissionError("Not allowed to write"),
+    )
+    exit_code = cli.handle_args(namespace)
+
+    out = capsys.readouterr()
+    expected_msg = (
+        f"{ERROR_PREFIX} Could not write API.md: Not allowed to write\n"
+    )
+    assert out.err == expected_msg
+    assert exit_code == 3
+
+
+def test_minidoc_md_invalid_config_file(
+    capsys: pytest.CaptureFixture, mocker: MockerFixture
+) -> None:
+    """Test the behavior when given an unimportable package."""
+    # invalid file path
+    config_file = Path("nonexistent")
+    namespace = utils.prepare_namespace(
+        source_directory=str(Path(__file__).parent / "resources"),
+        config_file=str(config_file),
+    )
+    exit_code = cli.handle_args(namespace)
+
+    out = capsys.readouterr()
+    expected_msg = (
+        f"{ERROR_PREFIX} Could not locate config file: {config_file.resolve()} "
+        f"is not a file or does not exist\n"
+    )
+    assert out.err == expected_msg
+    assert exit_code == 4
+
+    # wrong file format
+    mocker.patch("minidoc_md.cli.Path.exists", return_value=True)
+    mocker.patch("minidoc_md.cli.Path.is_file", return_value=True)
+    namespace = utils.prepare_namespace(
+        source_directory=str(Path(__file__).parent / "resources"),
+        config_file="myconfig.yaml",
+    )
+    exit_code = cli.handle_args(namespace)
+
+    out = capsys.readouterr()
+    expected_msg = (
+        f"{ERROR_PREFIX} Could not locate config file: Config file must be "
+        f"one of the following: minidoc-md.toml, .minidoc-md.toml, "
+        f"pyproject.toml\n"
+    )
+    assert out.err == expected_msg
+    assert exit_code == 4
+
+
+def test_minidoc_md_no_package_origin(
+    patch_config_discovery: None,
+    patch_module_all: None,
+    mocker: MockerFixture,
+    capsys: pytest.CaptureFixture,
+) -> None:
+    """Test the behavior when the package has no defined origin."""
+    # patch module __spec__ and __file__ - should rarely happen, but
+    # we cover it in tests anyhow
+    sys.path.append(str(Path(__file__).parent / "resources"))
+    package = importlib.import_module("stellarium_lite")
+    mocker.patch.object(package, "__spec__", None)
+    mocker.patch.object(package, "__file__", None)
+    sys.path.pop(0)
+
+    # Attempt to load the package - no __all__ means public member discovery
+    # will attempt to fall back to __spec__, then __file__, both of which
+    # we have disabled. An error should occur.
+    namespace = utils.prepare_namespace(
+        source_directory=str(Path(__file__).parent / "resources"),
+    )
+    exit_code = cli.handle_args(namespace)
+
+    out = capsys.readouterr()
+    expected_msg = (
+        f"{ERROR_PREFIX} One or more (sub-)packages could not be found: "
+        f"Unable to find origin of module stellarium_lite\n"
+    )
+    assert out.err == expected_msg
+    assert exit_code == 5
