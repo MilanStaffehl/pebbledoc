@@ -6,7 +6,7 @@
 
 <div align="center">
 
-    [![Unit tests](https://github.com/MilanStaffehl/pebbledoc/actions/workflows/tests.yaml/badge.svg)](https://github.com/MilanStaffehl/pebbledoc/actions/workflows/tests.yaml)
+[![Unit tests](https://github.com/MilanStaffehl/pebbledoc/actions/workflows/tests.yaml/badge.svg)](https://github.com/MilanStaffehl/pebbledoc/actions/workflows/tests.yaml)
 
 </div>
 
