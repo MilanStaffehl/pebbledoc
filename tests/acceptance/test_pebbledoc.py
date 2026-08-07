@@ -1,4 +1,4 @@
-"""Acceptance tests for minidoc-md."""
+"""Acceptance tests for pebbledoc."""
 
 import difflib
 import importlib
@@ -10,7 +10,7 @@ from unittest.mock import Mock
 import pytest
 from pytest_mock import MockerFixture
 
-from minidoc_md import cli
+from pebbledoc import cli
 
 sys.path.insert(0, str(Path(__file__).parents[1]))
 import utils
@@ -22,14 +22,14 @@ ERROR_PREFIX: Final[str] = "\033[91mError:\033[0m"
 def patch_open(mocker: MockerFixture) -> Mock:
     """Patch opening files to intercept final write of MD document."""
     patched_open = mocker.mock_open()
-    mocker.patch("minidoc_md.cli.open", patched_open)
+    mocker.patch("pebbledoc.cli.open", patched_open)
     return patched_open
 
 
 @pytest.fixture
 def patch_config_discovery(mocker: MockerFixture) -> None:
     """Prevent config file discovery from running."""
-    mocker.patch("minidoc_md.cli._discover_config_file", return_value=None)
+    mocker.patch("pebbledoc.cli._discover_config_file", return_value=None)
 
 
 @pytest.fixture
@@ -69,10 +69,10 @@ def assert_write_call(
 # == TEST CASES ========================================================
 
 
-def test_minidoc_md_default_setup(
+def test_pebbledoc_default_setup(
     patch_open: Mock, patch_config_discovery: None
 ) -> None:
-    """Test minidoc-md with the default setup."""
+    """Test pebbledoc with the default setup."""
     input_file = Path(__file__).parent / "expected" / "base.md"
     with open(input_file, "r") as f:
         expected = f.read()
@@ -87,10 +87,10 @@ def test_minidoc_md_default_setup(
     assert exit_code == 0
 
 
-def test_minidoc_md_member_discovery(
+def test_pebbledoc_member_discovery(
     patch_open: Mock, patch_config_discovery: None, patch_module_all: None
 ) -> None:
-    """Test minidoc-md when the package has no __all__"""
+    """Test pebbledoc when the package has no __all__"""
     input_file = Path(__file__).parent / "expected" / "from_ast_discovery.md"
     with open(input_file, "r") as f:
         expected = f.read()
@@ -105,7 +105,7 @@ def test_minidoc_md_member_discovery(
     assert exit_code == 0
 
 
-def test_minidoc_md_different_name(
+def test_pebbledoc_different_name(
     patch_open: Mock, patch_config_discovery: None
 ) -> None:
     """Test giving a different file name."""
@@ -127,10 +127,10 @@ def test_minidoc_md_different_name(
 @pytest.mark.parametrize(
     "admonition_style", ["github", "classic", "mix", "map"]
 )
-def test_minidoc_md_admonition_style(
+def test_pebbledoc_admonition_style(
     admonition_style: str, patch_open: Mock, patch_config_discovery: None
 ) -> None:
-    """Test minidoc-md for all admonition styles."""
+    """Test pebbledoc for all admonition styles."""
     filename = f"admonitions_{admonition_style}.md"
     input_file = Path(__file__).parent / "expected" / filename
     with open(input_file, "r") as f:
@@ -147,10 +147,10 @@ def test_minidoc_md_admonition_style(
     assert exit_code == 0
 
 
-def test_minidoc_md_custom_title(
+def test_pebbledoc_custom_title(
     patch_open: Mock, patch_config_discovery: None
 ) -> None:
-    """Test minidoc-md with a custom document title."""
+    """Test pebbledoc with a custom document title."""
     input_file = Path(__file__).parent / "expected" / "custom_title.md"
     with open(input_file, "r") as f:
         expected = f.read()
@@ -166,10 +166,10 @@ def test_minidoc_md_custom_title(
     assert exit_code == 0
 
 
-def test_minidoc_md_no_module_docstring(
+def test_pebbledoc_no_module_docstring(
     patch_open: Mock, patch_config_discovery: None
 ) -> None:
-    """Test minidoc-md when not using module docstrings."""
+    """Test pebbledoc when not using module docstrings."""
     filename = "no_module_docstring.md"
     input_file = Path(__file__).parent / "expected" / filename
     with open(input_file, "r") as f:
@@ -186,10 +186,10 @@ def test_minidoc_md_no_module_docstring(
     assert exit_code == 0
 
 
-def test_minidoc_md_no_include_constants(
+def test_pebbledoc_no_include_constants(
     patch_open: Mock, patch_config_discovery: None
 ) -> None:
-    """Test minidoc-md when excluding constants."""
+    """Test pebbledoc when excluding constants."""
     input_file = Path(__file__).parent / "expected" / "no_constants.md"
     with open(input_file, "r") as f:
         expected = f.read()
@@ -205,10 +205,10 @@ def test_minidoc_md_no_include_constants(
     assert exit_code == 0
 
 
-def test_minidoc_md_no_toc(
+def test_pebbledoc_no_toc(
     patch_open: Mock, patch_config_discovery: None
 ) -> None:
-    """Test minidoc-md without a table of contents."""
+    """Test pebbledoc without a table of contents."""
     input_file = Path(__file__).parent / "expected" / "no_toc.md"
     with open(input_file, "r") as f:
         expected = f.read()
@@ -224,10 +224,10 @@ def test_minidoc_md_no_toc(
     assert exit_code == 0
 
 
-def test_minidoc_md_no_back_to_top(
+def test_pebbledoc_no_back_to_top(
     patch_open: Mock, patch_config_discovery: None
 ) -> None:
-    """Test minidoc-md when excluding "back to top" links."""
+    """Test pebbledoc when excluding "back to top" links."""
     input_file = Path(__file__).parent / "expected" / "no_back_to_top.md"
     with open(input_file, "r") as f:
         expected = f.read()
@@ -243,10 +243,10 @@ def test_minidoc_md_no_back_to_top(
     assert exit_code == 0
 
 
-def test_minidoc_md_no_main_module_header(
+def test_pebbledoc_no_main_module_header(
     patch_open: Mock, patch_config_discovery: None
 ) -> None:
-    """Test minidoc-md when excluding the main module h2 header."""
+    """Test pebbledoc when excluding the main module h2 header."""
     input_file = (
         Path(__file__).parent / "expected" / "no_main_module_header.md"
     )
@@ -264,10 +264,10 @@ def test_minidoc_md_no_main_module_header(
     assert exit_code == 0
 
 
-def test_minidoc_md_untyped_package(
+def test_pebbledoc_untyped_package(
     patch_open: Mock, patch_config_discovery: None
 ) -> None:
-    """Test minidoc-md when type hints are only in docstrings."""
+    """Test pebbledoc when type hints are only in docstrings."""
     input_file = (
         Path(__file__).parent / "expected" / "bootes_loader" / "base.md"
     )
@@ -285,19 +285,19 @@ def test_minidoc_md_untyped_package(
     assert exit_code == 0
 
 
-def test_minidoc_md_config_file(
+def test_pebbledoc_config_file(
     mocker: MockerFixture, patch_config_discovery: None
 ) -> None:
-    """Test minidoc-md when config file is used."""
+    """Test pebbledoc when config file is used."""
     mock_pyproject = (
-        b"[minidoc]\n"
+        b"[pebbledoc]\n"
         b'package_name = "stellarium_lite"\n'
         b'admonition_style = "classic"\n'
         b"include_back_to_top = false\n"
         b"include_toc = false\n"
     )
     m = mocker.mock_open(read_data=mock_pyproject)
-    mock_open = mocker.patch("minidoc_md.cli.open", m)
+    mock_open = mocker.patch("pebbledoc.cli.open", m)
     # ensure the config file "exists"
     mocker.patch("pathlib.Path.exists", return_value=True)
     mocker.patch("pathlib.Path.is_file", return_value=True)
@@ -310,7 +310,7 @@ def test_minidoc_md_config_file(
     # create a run config and execute the code
     namespace = utils.prepare_namespace(
         source_directory=str(Path(__file__).parent / "resources"),
-        config_file="minidoc-md.toml",
+        config_file="pebbledoc.toml",
     )
     exit_code = cli.handle_args(namespace)
 
@@ -318,7 +318,7 @@ def test_minidoc_md_config_file(
         mock_open.call_count == 2
     )  # once for reading config, once for output
     assert mock_open.call_args_list[0].args == (
-        Path("minidoc-md.toml").resolve(),
+        Path("pebbledoc.toml").resolve(),
         "rb",
     )
     assert mock_open.call_args_list[1].args == (Path("API.md"), "w")
@@ -343,7 +343,7 @@ def test_minidoc_md_config_file(
 # == TESTS FOR INVALID INPUTS ==========================================
 
 
-def test_minidoc_md_invalid_output_file(
+def test_pebbledoc_invalid_output_file(
     patch_config_discovery: None, capsys: pytest.CaptureFixture
 ) -> None:
     """Test the behavior when given an invalid output file."""
@@ -377,7 +377,7 @@ def test_minidoc_md_invalid_output_file(
     assert exit_code == 1
 
 
-def test_minidoc_md_invalid_source_directory(
+def test_pebbledoc_invalid_source_directory(
     patch_config_discovery: None, capsys: pytest.CaptureFixture
 ) -> None:
     """Test the behavior when given an invalid source directory."""
@@ -396,7 +396,7 @@ def test_minidoc_md_invalid_source_directory(
     assert exit_code == 1
 
 
-def test_minidoc_md_import_error(
+def test_pebbledoc_import_error(
     patch_config_discovery: None, capsys: pytest.CaptureFixture
 ) -> None:
     """Test the behavior when given an unimportable package."""
@@ -415,7 +415,7 @@ def test_minidoc_md_import_error(
     assert exit_code == 2
 
 
-def test_minidoc_md_unable_to_write_output(
+def test_pebbledoc_unable_to_write_output(
     patch_config_discovery: None,
     capsys: pytest.CaptureFixture,
     mocker: MockerFixture,
@@ -425,7 +425,7 @@ def test_minidoc_md_unable_to_write_output(
         source_directory=str(Path(__file__).parent / "resources"),
     )
     mocker.patch(
-        "minidoc_md.cli.open",
+        "pebbledoc.cli.open",
         side_effect=PermissionError("Not allowed to write"),
     )
     exit_code = cli.handle_args(namespace)
@@ -438,7 +438,7 @@ def test_minidoc_md_unable_to_write_output(
     assert exit_code == 3
 
 
-def test_minidoc_md_invalid_config_file(
+def test_pebbledoc_invalid_config_file(
     capsys: pytest.CaptureFixture, mocker: MockerFixture
 ) -> None:
     """Test the behavior when given an unimportable package."""
@@ -459,8 +459,8 @@ def test_minidoc_md_invalid_config_file(
     assert exit_code == 4
 
     # wrong file format
-    mocker.patch("minidoc_md.cli.Path.exists", return_value=True)
-    mocker.patch("minidoc_md.cli.Path.is_file", return_value=True)
+    mocker.patch("pebbledoc.cli.Path.exists", return_value=True)
+    mocker.patch("pebbledoc.cli.Path.is_file", return_value=True)
     namespace = utils.prepare_namespace(
         source_directory=str(Path(__file__).parent / "resources"),
         config_file="myconfig.yaml",
@@ -470,14 +470,14 @@ def test_minidoc_md_invalid_config_file(
     out = capsys.readouterr()
     expected_msg = (
         f"{ERROR_PREFIX} Could not locate config file: Config file must be "
-        f"one of the following: minidoc-md.toml, .minidoc-md.toml, "
+        f"one of the following: pebbledoc.toml, .pebbledoc.toml, "
         f"pyproject.toml\n"
     )
     assert out.err == expected_msg
     assert exit_code == 4
 
 
-def test_minidoc_md_no_package_origin(
+def test_pebbledoc_no_package_origin(
     patch_config_discovery: None,
     patch_module_all: None,
     mocker: MockerFixture,

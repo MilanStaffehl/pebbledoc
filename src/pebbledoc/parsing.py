@@ -17,7 +17,7 @@ from docutils import core, nodes
 from docutils.nodes import subscript
 
 from . import util
-from .config import MinidocConfig
+from .config import PebbledocConfig
 from .directives import VersionNotice
 from .roles import SphinxRef
 
@@ -99,7 +99,7 @@ def _format_as_quote(text: str) -> str:
 
 def _parse_multiple_nodes(
     children: Iterable[nodes.Node],
-    config: MinidocConfig,
+    config: PebbledocConfig,
     document: nodes.document,
     valid_targets: set[str] | None = None,
     current_block_context: str | None = None,
@@ -110,7 +110,7 @@ def _parse_multiple_nodes(
 
     :param children: An iterable of doctree nodes that should be parsed
         into Markdown.
-    :param config: The minidoc's configuration object for how to parse
+    :param config: The pebbledoc's configuration object for how to parse
         the nodes.
     :param document: The document to use for the visitor object.
     :param valid_targets: The set of valid targets for the new visitor.
@@ -138,7 +138,7 @@ def _parse_multiple_nodes(
 def _render_admonition(
     admonition_type: str,
     admonition_node: nodes.Element,
-    config: MinidocConfig,
+    config: PebbledocConfig,
     document: nodes.document,
     valid_targets: set[str] | None = None,
 ) -> str:
@@ -153,7 +153,7 @@ def _render_admonition(
         ``attention``, ``warning``, etc.).
     :param admonition_node: The doctree element node of the admonition.
         Must have the content of the admonition as children.
-    :param config: The minidoc's configuration object for how to parse
+    :param config: The pebbledoc's configuration object for how to parse
         the admonition.
     :param document: The document to use for the visitor object.
     :param valid_targets: The set of valid targets for the visitor.
@@ -201,12 +201,12 @@ def _render_admonition(
 class SphinxRstVisitor(nodes.SparseNodeVisitor):
     def __init__(
         self,
-        config: MinidocConfig,
+        config: PebbledocConfig,
         document: nodes.document,
         valid_targets: set[str] | None = None,
     ) -> None:
         super().__init__(document)
-        self.config: MinidocConfig = config
+        self.config: PebbledocConfig = config
         self.valid_targets = valid_targets
         self.body: list[str] = []
         self.block_context: list[str] = ["paragraph"]  # visited block type
@@ -302,7 +302,7 @@ class SphinxRstVisitor(nodes.SparseNodeVisitor):
             self.body.append(f"{type_hint}{colon}{descr}\n")
 
     # Below follow the node visitation methods that are required to match
-    # the minimum specs of minidoc-md, i.e. the most common rst features
+    # the minimum specs of pebbledoc, i.e. the most common rst features
     # one encounters in docstrings.
 
     # INLINE MARKUP
@@ -692,7 +692,7 @@ class SphinxRstVisitor(nodes.SparseNodeVisitor):
 
 def parse_docstring(
     docstring: str,
-    config: MinidocConfig,
+    config: PebbledocConfig,
     valid_reference_targets: set[str] | None = None,
 ) -> str:
     """
@@ -708,7 +708,7 @@ def parse_docstring(
 
     :param docstring: Docstring of the member to parse, already normalized
         using ``inspect.cleandoc()``.
-    :param config: MinidocConfig object instantiated with the user-specified
+    :param config: PebbledocConfig object instantiated with the user-specified
         configuration for parsing.
      :param valid_reference_targets: A set of valid target names for
         Sphinx-style reference roles. When given, all references pointing

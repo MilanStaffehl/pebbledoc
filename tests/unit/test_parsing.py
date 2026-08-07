@@ -5,7 +5,7 @@ from pathlib import Path
 
 import pytest
 
-from minidoc_md import config, parsing, types
+from pebbledoc import config, parsing, types
 
 _ADMONITION_NAMES = [
     "attention",
@@ -55,7 +55,7 @@ def expected_output_no_invalid_links() -> str:
 # == INDIVIDUAL FEATURES ===============================================
 def test_parse_docstring_paragraph() -> None:
     """Test parsing a simple paragraph."""
-    default_config = config.MinidocConfig()
+    default_config = config.PebbledocConfig()
     rst_str = "This is a simple paragraph."
     output = parsing.parse_docstring(rst_str, default_config)
     expected = "This is a simple paragraph.\n"
@@ -64,7 +64,7 @@ def test_parse_docstring_paragraph() -> None:
 
 def test_parse_docstring_paragraph_backslashes() -> None:
     """Test parsing a paragraph containing escaped backslashes."""
-    default_config = config.MinidocConfig()
+    default_config = config.PebbledocConfig()
     rst_str = "This is a simple paragraph \\\\ with backslashes."
     output = parsing.parse_docstring(rst_str, default_config)
     expected = "This is a simple paragraph \\ with backslashes.\n"
@@ -73,7 +73,7 @@ def test_parse_docstring_paragraph_backslashes() -> None:
 
 def test_parse_docstring_paragraph_with_line_break() -> None:
     """Test parsing a paragraph with a stylistic line break (line wrap)."""
-    default_config = config.MinidocConfig()
+    default_config = config.PebbledocConfig()
     rst_str = "This is a simple paragraph.\nIt is wrapped at the line end."
     output = parsing.parse_docstring(rst_str, default_config)
     expected = "This is a simple paragraph.\nIt is wrapped at the line end.\n"
@@ -82,7 +82,7 @@ def test_parse_docstring_paragraph_with_line_break() -> None:
 
 def test_parse_docstring_emphasize() -> None:
     """Test parsing a paragraph with emphasized text."""
-    default_config = config.MinidocConfig()
+    default_config = config.PebbledocConfig()
     rst_str = "This paragraph has *emphasized* text."
     output = parsing.parse_docstring(rst_str, default_config)
     expected = "This paragraph has *emphasized* text.\n"
@@ -91,7 +91,7 @@ def test_parse_docstring_emphasize() -> None:
 
 def test_parse_docstring_strong() -> None:
     """Test parsing a paragraph with strongly emphasized text."""
-    default_config = config.MinidocConfig()
+    default_config = config.PebbledocConfig()
     rst_str = "This paragraph has **strong emphasize**."
     output = parsing.parse_docstring(rst_str, default_config)
     expected = "This paragraph has **strong emphasize**.\n"
@@ -100,7 +100,7 @@ def test_parse_docstring_strong() -> None:
 
 def test_parse_docstring_interpreted_text() -> None:
     """Test parsing text with interpreted text (default role)."""
-    default_config = config.MinidocConfig()
+    default_config = config.PebbledocConfig()
     rst_str = "This text contains `interpreted` text."
     output = parsing.parse_docstring(rst_str, default_config)
     expected = "This text contains `interpreted` text.\n"
@@ -109,7 +109,7 @@ def test_parse_docstring_interpreted_text() -> None:
 
 def test_parse_docstring_inline_literal() -> None:
     """Test parsing text with an inline literal."""
-    default_config = config.MinidocConfig()
+    default_config = config.PebbledocConfig()
     rst_str = "This text contains ``inline literal`` text."
     output = parsing.parse_docstring(rst_str, default_config)
     expected = "This text contains `inline literal` text.\n"
@@ -118,7 +118,7 @@ def test_parse_docstring_inline_literal() -> None:
 
 def test_parse_docstring_simple_bullet_list() -> None:
     """Test parsing a simple bullet list."""
-    default_config = config.MinidocConfig()
+    default_config = config.PebbledocConfig()
     rst_str = "- List item one.\n- List item two.\n- List item three.\n"
     output = parsing.parse_docstring(rst_str, default_config)
     assert output == rst_str
@@ -126,7 +126,7 @@ def test_parse_docstring_simple_bullet_list() -> None:
 
 def test_parse_docstring_nested_bullet_list() -> None:
     """Test parsing a nested bullet list."""
-    default_config = config.MinidocConfig()
+    default_config = config.PebbledocConfig()
     rst_str = (
         "- List item one.\n\n"
         "  - Nested bullet list.\n\n"
@@ -150,7 +150,7 @@ def test_parse_docstring_nested_bullet_list() -> None:
 
 def test_parse_docstring_simple_enumerated_list() -> None:
     """Test parsing a simple enumerated list."""
-    default_config = config.MinidocConfig()
+    default_config = config.PebbledocConfig()
     rst_str = "1. List item one.\n2. List item two.\n3. List item three.\n"
     output = parsing.parse_docstring(rst_str, default_config)
     assert output == rst_str
@@ -158,7 +158,7 @@ def test_parse_docstring_simple_enumerated_list() -> None:
 
 def test_parse_docstring_nested_enumerated_list() -> None:
     """Test parsing a nested bullet list."""
-    default_config = config.MinidocConfig()
+    default_config = config.PebbledocConfig()
     rst_str = (
         "1. List item one.\n\n"
         "   1. Nested enum list.\n\n"
@@ -182,7 +182,7 @@ def test_parse_docstring_nested_enumerated_list() -> None:
 
 def test_parse_docstring_enumerated_list_later_start() -> None:
     """Test parsing an enumerated list that does not start at 1."""
-    default_config = config.MinidocConfig()
+    default_config = config.PebbledocConfig()
     rst_str = "4. List item one.\n5. List item two.\n6. List item three.\n"
     output = parsing.parse_docstring(rst_str, default_config)
     assert output == rst_str
@@ -190,7 +190,7 @@ def test_parse_docstring_enumerated_list_later_start() -> None:
 
 def test_parse_docstring_mixed_nested_lists() -> None:
     """Test parsing a mixed nested lists."""
-    default_config = config.MinidocConfig()
+    default_config = config.PebbledocConfig()
 
     # Bullet list in enumerated list
     rst_str = (
@@ -237,7 +237,7 @@ def test_parse_docstring_mixed_nested_lists() -> None:
 
 def test_parse_docstring_literal_block() -> None:
     """Test parsing a literal block."""
-    default_config = config.MinidocConfig()
+    default_config = config.PebbledocConfig()
     rst_str = (
         "This is a preceding paragraph. ::\n\n"
         "    This is a literal block.\n"
@@ -258,7 +258,7 @@ def test_parse_docstring_literal_block() -> None:
 
 def test_parse_docstring_block_quote() -> None:
     """Test parsing a block quote."""
-    default_config = config.MinidocConfig()
+    default_config = config.PebbledocConfig()
     rst_str = (
         "This is a preceding paragraph.\n\n"
         "    This is a block quote.\n"
@@ -282,7 +282,7 @@ def test_parse_docstring_block_quote() -> None:
 
 def test_parse_docstring_block_quote_with_attribution() -> None:
     """Test parsing a block quote with an atribution."""
-    default_config = config.MinidocConfig()
+    default_config = config.PebbledocConfig()
     rst_str = (
         "This is a preceding paragraph.\n\n"
         "    This is a block quote.\n"
@@ -304,7 +304,7 @@ def test_parse_docstring_block_quote_with_attribution() -> None:
 
 def test_parse_docstring_doctest_block() -> None:
     """Test parsing a doctest block."""
-    default_config = config.MinidocConfig()
+    default_config = config.PebbledocConfig()
     rst_str = (
         "Here is an example:\n\n"
         ">>> import numpy as np\n"
@@ -329,7 +329,7 @@ def test_parse_docstring_doctest_block() -> None:
 
 def test_parse_docstring_comment() -> None:
     """Test parsing a comment block."""
-    default_config = config.MinidocConfig()
+    default_config = config.PebbledocConfig()
     rst_str = (
         "This is a preceding paragraph.\n\n"
         ".. This is a comment block.\n\n"
@@ -346,7 +346,7 @@ def test_parse_docstring_comment() -> None:
 
 def test_parse_docstring_standalone_url() -> None:
     """Test parsing a standalone URLs."""
-    default_config = config.MinidocConfig()
+    default_config = config.PebbledocConfig()
     rst_str = "This is a paragraph including a link to https://github.com"
     output = parsing.parse_docstring(rst_str, default_config)
     # GitHub can auto-render valid links, nothing needs to be done.
@@ -356,7 +356,7 @@ def test_parse_docstring_standalone_url() -> None:
 
 def test_parse_docstring_external_hyperlink() -> None:
     """Test parsing an external hyperlinks."""
-    default_config = config.MinidocConfig()
+    default_config = config.PebbledocConfig()
     rst_str = (
         "This text contains a link_ to GitHub.\n\n.. _link: https://github.com"
     )
@@ -365,7 +365,7 @@ def test_parse_docstring_external_hyperlink() -> None:
     assert output == expected
 
     # link names with whitespace
-    default_config = config.MinidocConfig()
+    default_config = config.PebbledocConfig()
     rst_str = (
         "This text contains a `link to GitHub`_.\n\n"
         ".. _link to GitHub: https://github.com"
@@ -377,7 +377,7 @@ def test_parse_docstring_external_hyperlink() -> None:
 
 def test_parse_docstring_internal_reference_target() -> None:
     """Test parsing an internal reference to a dedicated target."""
-    default_config = config.MinidocConfig()
+    default_config = config.PebbledocConfig()
     rst_str = (
         "This text references an `internal reference`_.\n\n"
         ".. _internal reference:\n\n"
@@ -394,7 +394,7 @@ def test_parse_docstring_internal_reference_target() -> None:
 
 def test_parse_docstring_internal_reference_multiple_targets() -> None:
     """Test parsing internal references targeting the same place."""
-    default_config = config.MinidocConfig()
+    default_config = config.PebbledocConfig()
     rst_str = (
         "This text references an `internal reference`_ and a "
         "`second reference`_.\n\n"
@@ -415,7 +415,7 @@ def test_parse_docstring_internal_reference_multiple_targets() -> None:
 
 def test_parse_docstring_anonymous_reference() -> None:
     """Test parsing an anonymous reference."""
-    default_config = config.MinidocConfig()
+    default_config = config.PebbledocConfig()
     rst_str = "This text contains an `anonymous reference`__.\n\n.. __: https://github.com"
     output = parsing.parse_docstring(rst_str, default_config)
     expected = (
@@ -426,7 +426,7 @@ def test_parse_docstring_anonymous_reference() -> None:
 
 def test_parse_docstring_subscript() -> None:
     """Test parsing a code containing subscript."""
-    default_config = config.MinidocConfig()
+    default_config = config.PebbledocConfig()
     rst_str = "This text contains :sub:`subscript` text."
     output = parsing.parse_docstring(rst_str, default_config)
     expected = "This text contains <sub>subscript</sub> text.\n"
@@ -435,7 +435,7 @@ def test_parse_docstring_subscript() -> None:
 
 def test_parse_docstring_superscript() -> None:
     """Test parsing a code containing superscript."""
-    default_config = config.MinidocConfig()
+    default_config = config.PebbledocConfig()
     rst_str = "This text contains :sup:`superscript` text."
     output = parsing.parse_docstring(rst_str, default_config)
     expected = "This text contains <sup>superscript</sup> text.\n"
@@ -463,7 +463,7 @@ def test_parse_docstring_admonitions_classic(
     admonition_name: str,
 ) -> None:
     """Test parsing an attention admonition in 'classic' mode."""
-    cfg = config.MinidocConfig(admonition_style="classic")
+    cfg = config.PebbledocConfig(admonition_style="classic")
     rst_str = (
         "This is a preceding paragraph.\n\n"
         f".. {admonition_name}::\n\n"
@@ -482,7 +482,7 @@ def test_parse_docstring_admonitions_github(
     admonition_name: str,
 ) -> None:
     """Test parsing an attention admonition in 'github' mode."""
-    cfg = config.MinidocConfig(admonition_style="github")
+    cfg = config.PebbledocConfig(admonition_style="github")
     rst_str = (
         "This is a preceding paragraph.\n\n"
         f".. {admonition_name}::\n\n"
@@ -501,7 +501,7 @@ def test_parse_docstring_admonitions_mix(
     admonition_name: str,
 ) -> None:
     """Test parsing an attention admonition in 'mix' mode."""
-    cfg = config.MinidocConfig(admonition_style="mix")
+    cfg = config.PebbledocConfig(admonition_style="mix")
     rst_str = (
         "This is a preceding paragraph.\n\n"
         f".. {admonition_name}::\n\n"
@@ -523,7 +523,7 @@ def test_parse_docstring_admonitions_map(
     admonition_name: str,
 ) -> None:
     """Test parsing an attention admonition in 'map' mode."""
-    cfg = config.MinidocConfig(admonition_style="map")
+    cfg = config.PebbledocConfig(admonition_style="map")
     rst_str = (
         "This is a preceding paragraph.\n\n"
         f".. {admonition_name}::\n\n"
@@ -544,7 +544,7 @@ def test_parse_docstring_admonition_plain(
     strategy: types.AdmonitionStyle, header: str
 ) -> None:
     """Test parsing a general admonition."""
-    cfg = config.MinidocConfig(admonition_style=strategy)
+    cfg = config.PebbledocConfig(admonition_style=strategy)
     rst_str = (
         "This is a preceding paragraph.\n\n"
         ".. admonition:: Custom title\n\n"
@@ -560,7 +560,7 @@ def test_parse_docstring_admonition_plain(
 # == FIELD LISTS =======================================================
 def test_parse_docstring_param_field_list() -> None:
     """Test parsing a parameter field list."""
-    cfg = config.MinidocConfig()
+    cfg = config.PebbledocConfig()
     rst_str = (
         "This is the last paragraph of the docstring.\n\n"
         ":param a: This is a description of parameter ``a``.\n"
@@ -587,7 +587,7 @@ def test_parse_docstring_param_field_list() -> None:
 
 def test_parse_docstring_param_field_list_inline_markup() -> None:
     """Test parsing a parameter field list with complicated inline markup."""
-    cfg = config.MinidocConfig()
+    cfg = config.PebbledocConfig()
     rst_str = (
         "This is the last paragraph of the docstring.\n\n"
         ":param a: This is a description of parameter ``a``.\n"
@@ -614,7 +614,7 @@ def test_parse_docstring_param_field_list_inline_markup() -> None:
 
 def test_parse_docstring_param_field_list_return() -> None:
     """Test that the alternative keyword ``return`` is also accepted."""
-    cfg = config.MinidocConfig()
+    cfg = config.PebbledocConfig()
     rst_str = (
         "This is the last paragraph of the docstring.\n\n"
         ":param a: This is a description of parameter ``a``.\n"
@@ -632,7 +632,7 @@ def test_parse_docstring_param_field_list_return() -> None:
 
 def test_parse_docstring_regular_field_list() -> None:
     """Test parsing a regular field list."""
-    cfg = config.MinidocConfig()
+    cfg = config.PebbledocConfig()
     rst_str = (
         "This is a preceding paragraph.\n\n"
         ":field Mark: This is the body text for Mark.\n"
@@ -659,7 +659,7 @@ def test_parse_docstring_regular_field_list() -> None:
 
 def test_parse_docstring_no_mixed_field_lists() -> None:
     """Assert mixing normal fields with parameter fields is prohibited."""
-    cfg = config.MinidocConfig()
+    cfg = config.PebbledocConfig()
     rst_str = (
         "This is the last paragraph of the docstring.\n\n"
         ":param a: This is a description of parameter ``a``.\n"
@@ -673,7 +673,7 @@ def test_parse_docstring_no_mixed_field_lists() -> None:
 
 def test_parse_docstring_param_field_list_multiple_returns() -> None:
     """Test behavior when :returns: is given more than once."""
-    cfg = config.MinidocConfig()
+    cfg = config.PebbledocConfig()
     rst_str = (
         "This is the last paragraph of the docstring.\n\n"
         ":param a: This is a description of parameter ``a``.\n"
@@ -694,7 +694,7 @@ def test_parse_docstring_param_field_list_multiple_returns() -> None:
 
 def test_parse_docstring_param_field_list_type_annotations() -> None:
     """Test parsing a parameter field list with type docs."""
-    cfg = config.MinidocConfig()
+    cfg = config.PebbledocConfig()
     rst_str = (
         "This is the last paragraph of the docstring.\n\n"
         ":param a: This is a description of parameter ``a``.\n"
@@ -724,7 +724,7 @@ def test_parse_docstring_param_field_list_type_annotations() -> None:
 
 def test_parse_docstring_param_field_list_only_type_annotations() -> None:
     """Test parameter field list where some params have only a type hint."""
-    cfg = config.MinidocConfig()
+    cfg = config.PebbledocConfig()
     rst_str = (
         "This is the last paragraph of the docstring.\n\n"
         ":param a: This is a description of parameter ``a``.\n"
@@ -746,7 +746,7 @@ def test_parse_docstring_param_field_list_only_type_annotations() -> None:
 # == SPHINX-STYLE ROLES ================================================
 def test_parse_docstring_math_inline() -> None:
     """Test parsing inline math."""
-    default_config = config.MinidocConfig()
+    default_config = config.PebbledocConfig()
     rst_str = "This text contains math: :math:`\\lambda = 2`."
     output = parsing.parse_docstring(rst_str, default_config)
     expected = "This text contains math: $\\lambda = 2$.\n"
@@ -755,7 +755,7 @@ def test_parse_docstring_math_inline() -> None:
 
 def test_parse_docstring_math_block() -> None:
     """Test parsing a math block."""
-    default_config = config.MinidocConfig()
+    default_config = config.PebbledocConfig()
     rst_str = (
         "This is a preceding paragraph.\n\n"
         ".. math::\n\n"
@@ -775,7 +775,7 @@ def test_parse_docstring_math_block() -> None:
 
 def test_parse_docstring_code_inline() -> None:
     """Test parsing inline code."""
-    default_config = config.MinidocConfig()
+    default_config = config.PebbledocConfig()
     rst_str = "This text contains :code:`inline code`."
     output = parsing.parse_docstring(rst_str, default_config)
     expected = "This text contains `inline code`.\n"
@@ -784,11 +784,11 @@ def test_parse_docstring_code_inline() -> None:
 
 def test_parse_docstring_code_block_no_language() -> None:
     """Test parsing a code block without specified language."""
-    default_config = config.MinidocConfig()
+    default_config = config.PebbledocConfig()
     expected = (
         "This is a preceding paragraph.\n\n"
         "```\n"
-        "pip install minidoc-md\n"
+        "pip install pebbledoc\n"
         "```\n\n"
         "This is a closing paragraph.\n"
     )
@@ -797,7 +797,7 @@ def test_parse_docstring_code_block_no_language() -> None:
     rst_str = (
         "This is a preceding paragraph.\n\n"
         ".. code::\n\n"
-        "    pip install minidoc-md\n\n"
+        "    pip install pebbledoc\n\n"
         "This is a closing paragraph."
     )
     output = parsing.parse_docstring(rst_str, default_config)
@@ -807,7 +807,7 @@ def test_parse_docstring_code_block_no_language() -> None:
     rst_str = (
         "This is a preceding paragraph.\n\n"
         ".. code-block::\n\n"
-        "    pip install minidoc-md\n\n"
+        "    pip install pebbledoc\n\n"
         "This is a closing paragraph."
     )
     output = parsing.parse_docstring(rst_str, default_config)
@@ -816,7 +816,7 @@ def test_parse_docstring_code_block_no_language() -> None:
 
 def test_parse_docstring_code_block_with_language() -> None:
     """Test parsing a code block with a specified language."""
-    default_config = config.MinidocConfig()
+    default_config = config.PebbledocConfig()
     expected = (
         "This is a preceding paragraph.\n\n"
         "```Python\n"
@@ -864,7 +864,7 @@ _SPHINX_ROLES = [
 @pytest.mark.parametrize("role", _SPHINX_ROLES)
 def test_parse_docstring_sphinx_role_simple(role: str) -> None:
     """Test parsing a simple sphinx role."""
-    default_config = config.MinidocConfig()
+    default_config = config.PebbledocConfig()
     rst_str = f"This text contains a Sphinx ref (:{role}:`target_name`)."
     output = parsing.parse_docstring(rst_str, default_config)
     expected = (
@@ -876,7 +876,7 @@ def test_parse_docstring_sphinx_role_simple(role: str) -> None:
 @pytest.mark.parametrize("role", _SPHINX_ROLES)
 def test_parse_docstring_sphinx_role_path(role: str) -> None:
     """Test parsing a sphinx role with a full target path."""
-    default_config = config.MinidocConfig()
+    default_config = config.PebbledocConfig()
     rst_str = (
         f"This text contains a Sphinx ref "
         f"(:{role}:`my_module.submodule.target_name`)."
@@ -892,7 +892,7 @@ def test_parse_docstring_sphinx_role_path(role: str) -> None:
 @pytest.mark.parametrize("role", _SPHINX_ROLES)
 def test_parse_docstring_sphinx_role_shorthand(role: str) -> None:
     """Test parsing a sphinx role with a path, but shown shortened."""
-    default_config = config.MinidocConfig()
+    default_config = config.PebbledocConfig()
     rst_str = (
         f"This text contains a Sphinx ref "
         f"(:{role}:`~my_module.submodule.target_name`)."
@@ -908,7 +908,7 @@ def test_parse_docstring_sphinx_role_shorthand(role: str) -> None:
 @pytest.mark.parametrize("role", _SPHINX_ROLES)
 def test_parse_docstring_sphinx_disable_reference(role: str) -> None:
     """Test parsing a sphinx role which disables reference."""
-    default_config = config.MinidocConfig()
+    default_config = config.PebbledocConfig()
 
     # simple reference
     rst_str = f"This text contains a Sphinx ref (:{role}:`!target_name`)."
@@ -932,7 +932,7 @@ def test_parse_docstring_sphinx_disable_reference(role: str) -> None:
 @pytest.mark.parametrize("role", _SPHINX_ROLES)
 def test_parse_docstring_sphinx_including_private(role: str) -> None:
     """Test parsing a sphinx role which include private members."""
-    default_config = config.MinidocConfig()
+    default_config = config.PebbledocConfig()
 
     # private member
     rst_str = f"This links to nothing: :{role}:`parent._private_member`."
@@ -961,7 +961,7 @@ def test_parse_docstring_sphinx_including_private(role: str) -> None:
 @pytest.mark.parametrize("role", _SPHINX_ROLES)
 def test_parse_docstring_sphinx_role_valid_targets(role: str) -> None:
     """Test parsing Sphinx roles with valid targets."""
-    default_config = config.MinidocConfig()
+    default_config = config.PebbledocConfig()
     valid_targets = {"parent.target_name", "target_name"}
 
     # Only target name
@@ -988,7 +988,7 @@ def test_parse_docstring_sphinx_role_valid_targets(role: str) -> None:
 @pytest.mark.parametrize("role", _SPHINX_ROLES)
 def test_parse_docstring_sphinx_role_invalid_targets(role: str) -> None:
     """Test parsing Sphinx roles with invalid targets."""
-    default_config = config.MinidocConfig()
+    default_config = config.PebbledocConfig()
     rst_str = f"This is not a valid target: :{role}:`target_name`."
     valid_targets = {"parent.mock_member", "mock_member"}
     output = parsing.parse_docstring(rst_str, default_config, valid_targets)
@@ -998,7 +998,7 @@ def test_parse_docstring_sphinx_role_invalid_targets(role: str) -> None:
 
 def test_parse_docstring_version_added() -> None:
     """Test parsing a text block with a "version added" directive."""
-    default_config = config.MinidocConfig()
+    default_config = config.PebbledocConfig()
     expected = (
         "This is a preceding paragraph.\n\n"
         "> :heavy_plus_sign: Added in version 1.0.0: This is the feature "
@@ -1032,7 +1032,7 @@ def test_parse_docstring_version_added() -> None:
 
 def test_parse_docstring_version_changed() -> None:
     """Test parsing a text block with a "version changed" directive."""
-    default_config = config.MinidocConfig()
+    default_config = config.PebbledocConfig()
     expected = (
         "This is a preceding paragraph.\n\n"
         "> :recycle: Changed in version 1.0.0: This is the feature "
@@ -1066,7 +1066,7 @@ def test_parse_docstring_version_changed() -> None:
 
 def test_parse_docstring_version_deprecated() -> None:
     """Test parsing a text block with a "deprecated" directive."""
-    default_config = config.MinidocConfig()
+    default_config = config.PebbledocConfig()
     expected = (
         "This is a preceding paragraph.\n\n"
         "> :warning: Deprecated since version 1.0.0: This is the feature "
@@ -1100,7 +1100,7 @@ def test_parse_docstring_version_deprecated() -> None:
 
 def test_parse_docstring_version_removed() -> None:
     """Test parsing a text block with a "version removed" directive."""
-    default_config = config.MinidocConfig()
+    default_config = config.PebbledocConfig()
     expected = (
         "This is a preceding paragraph.\n\n"
         "> :x: Removed in version 1.0.0: This is the feature "
@@ -1141,7 +1141,7 @@ def test_parse_full_docstring(
     mock_docstring: str, expected_output_base: str
 ) -> None:
     """Test the parsing function with the default config."""
-    default_config = config.MinidocConfig()
+    default_config = config.PebbledocConfig()
     output = parsing.parse_docstring(mock_docstring, default_config)
     assert isinstance(output, str)
     assert output == expected_output_base
@@ -1151,7 +1151,7 @@ def test_parse_full_docstring_no_invalid_reference_targets(
     mock_docstring: str, expected_output_no_invalid_links: str
 ) -> None:
     """Test the parsing function with the default config."""
-    default_config = config.MinidocConfig()
+    default_config = config.PebbledocConfig()
     # deliberately do not allow links to methods of MatrixProcessor
     valid_targets = {"tensors", "linalg.norm", "MatrixProcessor"}
     output = parsing.parse_docstring(

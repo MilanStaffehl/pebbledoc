@@ -1,5 +1,5 @@
 [project]
-name = "minidoc-md"
+name = "pebbledoc"
 version = "0.1.0"
 description = "Lightweight API documentation generator for GitHub markdown."
 readme = "README.md"
@@ -34,13 +34,13 @@ dev = [
 
 # urls
 [project.urls]
-Github = "https://github.com/MilanStaffehl/minidoc-md"
-Homepage = "https://github.com/MilanStaffehl/minidoc-md"
-Issues = "https://github.com/MilanStaffehl/minidoc-md/issues"
+Github = "https://github.com/MilanStaffehl/pebbledoc"
+Homepage = "https://github.com/MilanStaffehl/pebbledoc"
+Issues = "https://github.com/MilanStaffehl/pebbledoc/issues"
 
 # entry points
 [project.scripts]
-minidoc-md = "minidoc_md.cli:main"
+pebbledoc = "pebbledoc.cli:main"
 
 
 # tools
@@ -57,8 +57,8 @@ max-line-length = 88
 max-complexity = 15
 
 [tool.isort]
-src_paths = ["src/minidoc_md", "tests"]
-known_first_party = ["minidoc_md"]
+src_paths = ["src/pebbledoc", "tests"]
+known_first_party = ["pebbledoc"]
 line_length = 79
 multi_line_output = 3
 include_trailing_comma = true
