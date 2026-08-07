@@ -15,6 +15,7 @@ def prepare_namespace(
     no_include_constants: bool = False,
     no_toc: bool = False,
     no_back_to_top: bool = False,
+    no_main_module_header: bool = False,
 ) -> argparse.Namespace:
     """
     Create a namespace with the attributes that minidoc expects.

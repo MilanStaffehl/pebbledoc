@@ -255,7 +255,7 @@ def _document_member(
     documentation.
 
     :param member: A member node from the member tree constructed by
-        :func:`_package_tree`.
+        :func:`_member_module`.
     :param config: The Minidoc configuration object.
     :param valid_reference_targets: A set of valid target names for
         Sphinx-style reference roles. When given, all references pointing
@@ -267,32 +267,44 @@ def _document_member(
         as GitHub-flavored Markdown.
     """
     snippet = ""
-    # add an anchor for references without the full name
-    full_name = _parent_name(member.name, member.parent)
-    parts = full_name.split(".")
-    targets = [".".join(parts[i:]) for i in range(1, len(parts))]
-    for target in targets:
-        snippet += f'<a name="{util.name_to_ref(target)}"></a>\n'
-    snippet += f"{'#' * member.header_level} "
-    snippet += f"`{full_name}`\n\n"
-    if config.include_back_to_top:
-        if config.document_title:
-            top_header = util.name_to_ref(config.document_title)
-        else:
-            top_header = util.name_to_ref(
-                f"{config.package_name} documentation"
-            )
-        snippet += f"<sup>[Back to top](#{top_header})</sup>\n\n"
+
+    # add a header, unless suppressed
+    is_pkg_root = member.name == config.package_name
+    exclude_header = is_pkg_root and not config.main_module_header
+    if not exclude_header:
+        # add an anchor for references without the full name
+        full_name = _parent_name(member.name, member.parent)
+        parts = full_name.split(".")
+        targets = [".".join(parts[i:]) for i in range(1, len(parts))]
+        for target in targets:
+            snippet += f'<a name="{util.name_to_ref(target)}"></a>\n'
+        snippet += f"{'#' * member.header_level} "
+        snippet += f"`{full_name}`\n\n"
+        if config.include_back_to_top:
+            if config.document_title:
+                top_header = util.name_to_ref(config.document_title)
+            else:
+                top_header = util.name_to_ref(
+                    f"{config.package_name} documentation"
+                )
+            snippet += f"<sup>[Back to top](#{top_header})</sup>\n\n"
+
+    # Add a signature
     if member.signature:
         snippet += f"```Python\n{member.signature}\n```\n\n"
+
+    # Render and add the docstring
     if member.raw_docstring:
         snippet += parse_docstring(
             member.raw_docstring, config, valid_reference_targets
         )
         snippet += "\n"
+
+    # Recursively render children as well
     if member.children:
         for child in member.children:
             snippet += _document_member(child, config, valid_reference_targets)
+
     return snippet
 
 
@@ -593,23 +605,37 @@ def _build_toc(root: Member, config: MinidocConfig) -> str:
     links to the names of all members, and returns it as string. The
     function will only create the list of sections, not the TOC header.
 
+    .. important::
+
+        To determine when a given node is the root node of a package
+        which we aim to document, the ``config`` object **must** have
+        its ``package_name`` attribute filled with the correct name.
+        Otherwise, the ``no_main_module_header`` option will not be
+        respected.
+
     :param root: The root :class:`Member` node of a package for which to
         build a table of contents.
     :param config: The Minidoc config object.
     :return: A nested list of links, pointing to the header of the section
         for each of the children of ``root``.
     """
-    # First entry for the root node
+    # find out if we are handling the top-level node
+    is_pkg_root = root.name == config.package_name
+    toc = ""
     full_name = _parent_name(root.name, root.parent)
-    toc = f"> - [`{full_name}`](#{util.name_to_ref(full_name)})\n"
-    # then iteratively add children, descending into submodules
+    if not is_pkg_root or config.main_module_header:
+        toc = f"> - [`{full_name}`](#{util.name_to_ref(full_name)})\n"
+    # iteratively add children, descending into submodules
     for child in root.children:
         full_name = _parent_name(child.name, child.parent)
         if child.kind == "module":
             toc += _build_toc(child, config)  # descend into submodules
         else:
             ref_target = util.name_to_ref(full_name)
-            toc += f">   - [`{full_name}`](#{ref_target})\n"
+            spacer = (
+                "" if is_pkg_root and not config.main_module_header else "  "
+            )
+            toc += f"> {spacer}- [`{full_name}`](#{ref_target})\n"
     return toc
 
 

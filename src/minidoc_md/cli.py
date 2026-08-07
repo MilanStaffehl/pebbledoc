@@ -121,6 +121,11 @@ def _build_parser() -> argparse.ArgumentParser:
         help="omit the 'back to top' links at the beginning of each section.",
         action="store_true",
     )
+    options.add_argument(
+        "--no-main-module-header",
+        help="omit the h2 header for the main module.",
+        action="store_true",
+    )
 
     return parser
 
@@ -147,6 +152,7 @@ def _update_for_cli_args(
         "no_include_constants": "document_constants",
         "no_toc": "include_toc",
         "no_back_to_top": "include_back_to_top",
+        "no_main_module_header": "main_module_header",
     }
     for arg_name, config_name in options.items():
         if getattr(args, arg_name):
@@ -186,15 +192,7 @@ def build_config(args: argparse.Namespace) -> MinidocConfig:
     :return: A MinidocConfig object, built according to the CLI args.
     """
     # initialize the default config
-    config = MinidocConfig(
-        package_name=args.package,
-        admonition_style="mix",
-        document_title=None,
-        document_constants=True,
-        module_docstring=True,
-        include_toc=True,
-        include_back_to_top=True,
-    )
+    config = MinidocConfig(package_name=args.package)
 
     # check if there is a config
     config_file = args.config_file

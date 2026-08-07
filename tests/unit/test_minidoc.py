@@ -661,6 +661,46 @@ def test_document_member_custom_document_title(
     )
 
 
+def test_document_member_no_main_module_header(
+    patch_parse_docstring: Mock,
+) -> None:
+    """Test the function when main module headers are disabled."""
+    test_docstring = "This is a test docstring."
+    test_member = minidoc.Member(
+        name="test_member",
+        parent="",
+        kind="test_kind",
+        signature="",
+        raw_docstring=test_docstring,
+        header_level=2,
+    )
+
+    # test behavior with the option disabled
+    test_config = config.MinidocConfig(package_name="test_member")
+    output = minidoc._document_member(test_member, test_config)
+    expected = (
+        "## `test_member`\n\n"
+        "<sup>[Back to top](#test_member-documentation)</sup>\n\n"
+        "This is a test docstring.\n\n"
+    )
+    assert output == expected
+    patch_parse_docstring.assert_called_once_with(
+        test_docstring, test_config, None
+    )
+    patch_parse_docstring.reset_mock()
+
+    # ...and once with the option enabled
+    test_config = config.MinidocConfig(
+        package_name="test_member", main_module_header=False
+    )
+    output = minidoc._document_member(test_member, test_config)
+    expected = "This is a test docstring.\n\n"
+    assert output == expected
+    patch_parse_docstring.assert_called_once_with(
+        test_docstring, test_config, None
+    )
+
+
 # == HELPER FUNCTIONS ==================================================
 
 
@@ -1274,7 +1314,7 @@ def test_build_toc() -> None:
     module = MockMember("module", "class", "", [member_1, member_2, submodule])
 
     # test the function
-    test_config = config.MinidocConfig()
+    test_config = config.MinidocConfig(package_name="module")
     toc = minidoc._build_toc(
         module,  # pyrefly: ignore[bad-argument-type]
         test_config,
@@ -1285,6 +1325,57 @@ def test_build_toc() -> None:
         "> - [`module`](#module)\n"
         ">   - [`module.member 1`](#modulemember-1)\n"
         ">   - [`module.member 2`](#modulemember-2)\n"
+        "> - [`module.submodule`](#modulesubmodule)\n"
+        ">   - [`subparent.sub-member 1`](#subparentsub-member-1)\n"
+        ">   - [`subparent.sub-member 2`](#subparentsub-member-2)\n"
+        "> - [`submodule.subsubmodule`](#submodulesubsubmodule)\n"
+        ">   - [`subsubparent.sub-sub-member 1`](#subsubparentsub-sub-member-1)\n"
+        ">   - [`subsubparent.sub-sub-member 2`](#subsubparentsub-sub-member-2)\n"
+    )
+    assert toc == expected
+
+
+def test_build_toc_no_main_module_header() -> None:
+    """Test the function to create TOC list without the main module header."""
+
+    @dataclass
+    class MockMember:
+        name: str
+        kind: str
+        parent: str
+        children: list[MockMember] = field(default_factory=list)
+
+    # build a small mock hierarchy
+    subsubmember_1 = MockMember("sub-sub-member 1", "class", "subsubparent")
+    subsubmember_2 = MockMember("sub-sub-member 2", "function", "subsubparent")
+    subsubmodule = MockMember(
+        "subsubmodule", "module", "submodule", [subsubmember_1, subsubmember_2]
+    )
+    submember_1 = MockMember("sub-member 1", "class", "subparent")
+    submember_2 = MockMember("sub-member 2", "function", "subparent")
+    submodule = MockMember(
+        "submodule",
+        "module",
+        "module",
+        [submember_1, submember_2, subsubmodule],
+    )
+    member_1 = MockMember("member 1", "class", "module")
+    member_2 = MockMember("member 2", "function", "module")
+    module = MockMember("module", "class", "", [member_1, member_2, submodule])
+
+    # test the function
+    test_config = config.MinidocConfig(
+        package_name="module", main_module_header=False
+    )
+    toc = minidoc._build_toc(
+        module,  # pyrefly: ignore[bad-argument-type]
+        test_config,
+    )
+
+    # check output
+    expected = (
+        "> - [`module.member 1`](#modulemember-1)\n"
+        "> - [`module.member 2`](#modulemember-2)\n"
         "> - [`module.submodule`](#modulesubmodule)\n"
         ">   - [`subparent.sub-member 1`](#subparentsub-member-1)\n"
         ">   - [`subparent.sub-member 2`](#subparentsub-member-2)\n"

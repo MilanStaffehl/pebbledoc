@@ -17,3 +17,4 @@ class MinidocConfig:
     module_docstring: bool = True
     include_toc: bool = True
     include_back_to_top: bool = True
+    main_module_header: bool = True
