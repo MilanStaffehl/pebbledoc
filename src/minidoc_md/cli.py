@@ -213,7 +213,7 @@ def build_config(args: argparse.Namespace) -> MinidocConfig:
     # get the config values as dictionary
     if config_path.name not in SUPPORTED_CONFIG_FILES:
         raise IOError(
-            f"Config file must either be one of the following: "
+            f"Config file must be one of the following: "
             f"{', '.join(SUPPORTED_CONFIG_FILES)}"
         )
     with open(config_path, "rb") as f:
@@ -271,6 +271,9 @@ def handle_args(args: argparse.Namespace) -> int:
     output = Path(args.output) if args.output else Path("API.md")
     if output.exists() and output.is_dir():
         error("Output must be a file, not a directory")
+        return 1
+    elif not output.parent.exists():
+        error(f"Output directory {output.parent} does not exist")
         return 1
 
     source_dir = args.source_directory

@@ -234,7 +234,7 @@ def test_build_config_invalid_file_name(mocker: MockerFixture) -> None:
     with pytest.raises(IOError) as exc_info:
         cli.build_config(namespace)
     assert exc_info.value.args[0] == (
-        "Config file must either be one of the following: minidoc-md.toml, "
+        "Config file must be one of the following: minidoc-md.toml, "
         ".minidoc-md.toml, pyproject.toml"
     )
     mock_open.assert_not_called()
