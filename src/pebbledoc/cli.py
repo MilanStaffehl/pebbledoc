@@ -49,7 +49,7 @@ def _build_parser() -> argparse.ArgumentParser:
     parser.add_argument(
         "-p",
         "--package",
-        help="name of the package to document.",
+        help="name of the package to document",
         metavar="",
         required=True,
     )
@@ -57,8 +57,8 @@ def _build_parser() -> argparse.ArgumentParser:
         "-s",
         "--source-directory",
         help=(
-            "source directory of the package, must be specified if the "
-            "package is not installed in the current environment."
+            "source directory of the package; must be specified if the "
+            "package is not installed in the current environment"
         ),
         metavar="",
         default=None,
@@ -103,27 +103,27 @@ def _build_parser() -> argparse.ArgumentParser:
     options = parser.add_argument_group(title="formatting")
     options.add_argument(
         "--no-module-docstring",
-        help="omit module-level docstrings for submodules and sub-packages.",
+        help="omit module-level docstrings for submodules and sub-packages",
         action="store_true",
     )
     options.add_argument(
         "--no-include-constants",
-        help="omit constants defined as module-level globals.",
+        help="omit constants defined as module-level globals",
         action="store_true",
     )
     options.add_argument(
         "--no-toc",
-        help="omit the table of contents at the beginning of the file.",
+        help="omit the table of contents at the beginning of the file",
         action="store_true",
     )
     options.add_argument(
         "--no-back-to-top",
-        help="omit the 'back to top' links at the beginning of each section.",
+        help="omit the 'back to top' links at the beginning of each section",
         action="store_true",
     )
     options.add_argument(
         "--no-main-module-header",
-        help="omit the h2 header for the main module.",
+        help="omit the h2 header for the main module",
         action="store_true",
     )
 
