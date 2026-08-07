@@ -29,13 +29,13 @@
 #### Table of contents
 
 - [About](#about)
-- [Installation & prerequisites](#installation-&-prerequisites)
+- [Installation & prerequisites](#installation--prerequisites)
 - [Usage](#usage)
   - [Command line usage](#command-line-usage)
   - [Admonitions](#admonitions)
-  - [Sphinx roles & directives](#sphinx-roles-&-directives)
+  - [Sphinx roles & directives](#sphinx-roles--directives)
 - [Supported rst syntax](#supported-rst-syntax)
-- [Limitations & caveats](#limitations-&-caveats)
+- [Limitations & caveats](#limitations--caveats)
 - [Examples](#examples)
 - [Integration](#integration)
   - [pre-commit](#pre-commit)
