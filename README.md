@@ -45,7 +45,9 @@
 `pebbledoc` sits between full documentation tools like Sphinx, and manually copy-pasting docstrings into a README. It automatically creates a single file Markdown documentation for your rst-documented project. Here is what it does to a single function docstring:
 
 <details>
-<summary>**Input** (`my_module.py`)</summary>
+<summary><b>Input</b></summary>
+
+Input function (`my_module.py`):
 
 ```Python
 def hello(name: str, place: str | None = None) -> None:
@@ -64,7 +66,9 @@ def hello(name: str, place: str | None = None) -> None:
 </details>
 
 <details>
-<summary>**Output** (`API.md`)</summary>
+<summary><b>Output</b></summary>
+
+Output documentation (`API.md`):
 
 > ### `my_module.hello`
 >
