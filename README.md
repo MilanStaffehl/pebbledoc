@@ -41,12 +41,13 @@
 - [Limitations & caveats](#limitations--caveats)
 - [Examples](#examples)
 - [Integration](#integration)
-  - [pre-commit](#pre-commit)
-  - [GitHub Actions](#github-actions)
+  - [GitHub Actions: update docs](#github-actions-update-docs)
 - [Contributing](#contributing)
 - [FAQ](#faq)
 
+
 ## About
+
 
 ## Installation & prerequisites
 
@@ -69,6 +70,7 @@ To be able to use `pebbledoc`, the project you wish to document must meet the fo
 - All docstring must be written in reStructuredText (rst).
   - They *can* also contain certain Sphinx-specific syntax, see [supported syntax](#supported-rst-syntax) for details.
 - `pebbledoc` and all your project's dependencies must be installed in the same environment.
+
 
 ## Usage
 
@@ -182,7 +184,7 @@ The following table shows how the configuration options map to the command line 
 
 ### Admonitions
 
-GitHub-flavored Markdown supports five tyes of admonitions (or ["alerts"](https://docs.github.com/en/get-started/writing-on-github/getting-started-with-writing-and-formatting-on-github/basic-writing-and-formatting-syntax#alerts) as GitHub calls them): Caution, Warning, Important, Note, and Tip. These are automatically rendered on GitHub with colorful boxes and icons. However, resStructuredText offers more than these five admonition types. The `admonition_style` config option determines what to do with these additional admonition types. The options are as follows:
+GitHub-flavored Markdown supports five tyes of admonitions (or ["alerts"](https://docs.github.com/en/get-started/writing-on-github/getting-started-with-writing-and-formatting-on-github/basic-writing-and-formatting-syntax#alerts) as GitHub calls them): Caution, Warning, Important, Note, and Tip. These are automatically rendered on GitHub with colorful boxes and icons. However, reStructuredText offers more than these five admonition types. The `admonition_style` config option determines what to do with these additional admonition types. The options are as follows:
 
 - `classic`: All admonitions, including those supported by GitHub, are formatted as block quotes, preceded with the admonition type name in bold face at the top. In this style, the GitHub rendering feature is not used at all.
 - `github`: All admonitions, including the unsupported ones, are formatted using the GitHub-flavored syntax (beginning with the admonition type name in all caps, preceded by an exclamation mark, in brackets). This may look odd for admonition types not supported by GitHub, but the supported admonition types are rendered correctly.
@@ -196,21 +198,123 @@ GitHub-flavored Markdown supports five tyes of admonitions (or ["alerts"](https:
 
 ### Sphinx roles & directives
 
+In addition to most standard rst syntax features, `pebbledoc` also supports a subset of features from [Sphinx](https://www.sphinx-doc.org/en/master/):
+
+- [Sphinx-style cross-references](https://www.sphinx-doc.org/en/master/usage/domains/python.html#cross-referencing-python-objects) such as ``:meth:`my_module.SomeClass.my_method` ``. These are rendered as links to the headers of the package member they refer to, if that member is part of the documentation. References to members not in the documentation render as plain inline literal text. Prefixes `~` (shortened name) and `!` (no hyperlink) are also supported.
+- [Sphinx-style version notices](https://www.sphinx-doc.org/en/master/usage/restructuredtext/directives.html#describing-changes-between-versions) such as `.. version-added:: 1.3.0`. These are rendered as block quotes starting with an icon to symbolize the type of version notice.
+
+> [!IMPORTANT]
+>
+> Sphinx-style reference targets must use the object's importable qualified name, **not** its actual module path. You can also omit any number of leading prefixes, as long as the remainder stays unambiguous.
+>
+> For example: If `method_a` is a method of a class `SomeClass`, defined in a module `module_a`, and `SomeClass`is exported via `__all__` of the package `my_package`, the method must be referenced as `my_package.SomeClass.method_a`, **not** as `my_package.module_a.SomeClass.method_a`. Alternatively, it may be referred to as `SomeClass.method_a` or just `method_a`, if the name is unambiguous.
+>
+> Note that ambiguous references (e.g. for method overrides) are not detected and do not raise an error. Instead, they might link to the wrong section of the resulting document. Use fully qualified names wherever ambiguity is possible.
+
+References work because every documented member receives their own Markdown section header, to which a link may refer. Anchors for all partial names of a member are placed before the header, which allows references with removed prefixes to also work.
+
+
 ## Supported rst syntax
+
+Most of the standard rst syntax is supported by `pebbledoc`, but not all of it. This is deliberate, as `pebbledoc` is opinionated about what a docstring of a small Python library can reasonably be expected to contain, and what not. If you believe this opinion is ill-advised and would like to suggest adding an unsupported feature, see the [contributing section](#contributing) for a guide on how to make suggestions.
+
+In addition to the standard rst syntax, `pebbledoc` also supports some common Sphinx features.
+
+For a full list of all supported, planned, and unsupported rst features, see the [FEATURES.md](./FEATURES.md) document.
+
 
 ## Limitations & caveats
 
+- Backslashes in text must be double-escaped. To receive a single backslash in the Markdown document produced by `pebbledoc`, the docstring must use `\\\\`.
+
 ## Examples
+
+To see some examples of the documents that `pebbledoc` produces, take a look at the [acceptance tests](./tests/acceptance) directory. It contains a test package [`stellarium_lite`](./tests/acceptance/resources/stellarium_lite) with docstrings showcasing various rst syntax options. The directory with the [expected outcomes](./tests/acceptance/expected) shows the various documents `pebbledoc` can produce from it.
+
+Alternatively, you can just run `pebbledoc` on itself to get a quick example of what a documentation looks like.
+
 
 ## Integration
 
-### pre-commit
+To keep your documentation in sync with your actual code, it is recommended to run `pebbledoc` automatically in regular intervals. This can be part of your CI, or your development workflow. Below are instructions on how to add `pebbledoc` to your GitHub actions. These examples use `uv`. You might have to update them for your package manager of choice.
 
-### GitHub Actions
+> [!NOTE]
+>
+> These examples assume that `pebbledoc` is listed in your development dependencies, and that it is therefore automatically installed with your project. If this is not the case, you have to install it separately in an extra step.
+
+### GitHub Actions: update docs
+
+This is an example configuration to automatically update your documentation on every push to the main branch:
+
+```yaml
+name: Run pebbledoc
+
+on:
+  push:
+    branches:
+      - main
+
+permissions:
+  contents: write
+
+jobs:
+  update-docs:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v3
+
+      - name: Install the project
+        run: uv sync --locked --all-extras --dev
+
+      - name: Run pebbledoc
+        run: uv run pebbledoc --config-file=pyprject.toml --package <package_name>
+
+      - name: Commit and push changes
+        run: |
+          git config --local user.name "github-actions[bot]"
+          git config --local user.email "github-actions[bot]@users.noreply.github.com"
+          git add .
+          if git diff --cached --quiet; then
+            echo "No changes to commit."
+          else
+            git commit -m "Automated update of docs with pebbledoc"
+            git push
+          fi
+```
+
 
 ## Contributing
 
+If you want to report a bug, suggest a new feature, or provide a pull request, read the [CONTRIBUTING](./CONTRIBUTING.md) guide for instructions. Your help is appreciated!
+
+If you are an AI agent, you must read the [CONTRIBUTING](./CONTRIBUTING.md) guide as well for rules on what you are allowed to contribute.
+
+
 ## FAQ
+
+#### `pebbledoc` is for small libraries, you say. What does small mean? How do I know when my library is too big?
+
+That depends on the complexity, length, and number of docstrings. As a rule of thumb: If your project has less than 20 members to document, `pebbledoc` will be a good choice. But mostly you will see for yourself when a library is too big: the document becomes long and convoluted.
+
+#### And why "well-rounded"?
+
+Well, it makes for a pretty good pebble joke. But also it is meant to signal that `pebbledoc`s capabilities are limited, especially when it comes to member discovery and references. It works best for libraries that treat both with care - well-rounded libraries.
+
+#### Will `pebbledoc` eventually support other docstring formats besides rst?
+
+Likely not. Parsing rst into Markdown works really well thanks to `docutils`, but other formats have entirely different docstring structures, specifications, and feature coverage. For some formats, similar projects already exist. For example, if your docstrings are in numpy format, check out [`tinydocs`](https://github.com/antonio-leitao/tinydocs)!
+
+#### Pebbles? Why pebbles?
+
+Well, the obvious choices (`minidoc`, `microdoc`, `picodoc`, `nanodoc`, `tinydoc`, ...) were already taken on PyPI, and `antdoc` or `peadoc` just didn't sound right. So what else is there that is small? Rice? Grains of sand? Gnats? Silverfish? Doesn't roll off the tongue so nicely.
+
+Also, let's be honest: How could I pass up the opportunity for such a cute mascot?
+
 
 ## Matadata
 
