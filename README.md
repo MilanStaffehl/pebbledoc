@@ -42,9 +42,48 @@
 
 ## About
 
-Have you ever written a Python library so small that hosting an entire documentation website seemed excessive, but you still needed to document your functions, classes, and modules? Needed something in between a full documentation tool like Sphinx, and manually copying docstrings into your README? Then `pebbledoc` might be for you!
+`pebbledoc` sits between full documentation tools like Sphinx, and manually copy-pasting docstrings into a README. It automatically creates a single file Markdown documentation for your rst-documented project. Here is what it does to a single function docstring:
 
-`pebbledoc` automatically creates a single file documentation for your project, by retrieving the docstrings of all its public members, written in reStructuredText, and organizing them into a single structure. The resulting documentation is a GitHub-flavored Markdown file that renders beautifully on GitHub - perfect to display it there without a dedicated website!
+<details>
+<summary>**Input** (`my_module.py`)</summary>
+
+```Python
+def hello(name: str, place: str | None = None) -> None:
+    """
+    Greet the world - or whoever you would like!
+
+    :param name: The name of the person greeting.
+    :param place: The place to greet. If None, greet *the whole world*!
+    :return: None, function prints greeting to ``stdout``.
+    """
+    if place is None:
+      place = "world"
+    print(f"{name} says: Hello, {place}!")
+```
+
+</details>
+
+<details>
+<summary>**Output** (`API.md`)</summary>
+
+> ### `my_module.hello`
+>
+> ```Python
+> hello(name: str, place: str | None = None) -> None
+> ```
+>
+> Greet the world - or whoever you would like!
+>
+> **Parameters:**
+>
+> - `name`: The name of the person greeting.
+> - `place`: The place to greet. If None, greet *the whole world*!
+>
+> **Returns:**
+>
+> None, function prints greeting to `stdout`.
+
+</details>
 
 
 ## Installation & prerequisites
