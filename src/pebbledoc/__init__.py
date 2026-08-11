@@ -1,3 +1,16 @@
+"""
+pebbledoc offers utilities for creating documentation.
+
+Primarily, ``pebbledoc`` acts as a command line interface (CLI) tool to
+create GitHub-flavored Markdown documentation. See the README of the
+project for details or run ``pebbledoc --help`` to get an overview over
+its functionalities.
+
+However, for convenience, ``pebbledoc`` also exposes some of its more
+generally useful functions for programmatic use in Python scripts and
+libraries.
+"""
+
 from .directives import register_sphinx_version_notice_directives
 from .inspect_runtime import discover_public_members, markdown_documentation
 from .parsing import parse_docstring
