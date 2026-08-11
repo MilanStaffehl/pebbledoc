@@ -187,7 +187,7 @@ Run `pebbledoc --package pebbledoc` for a full API reference of what is availabl
 
 ## Configuration
 
-You can provide a persistent configuration to `pebbledoc` by creating a configuration file. `pebbledoc` recognizes one of three config file formats:
+You can provide a persistent configuration to `pebbledoc` by creating a configuration file. `pebbledoc` recognizes three files:
 
 - `pyproject.toml` (recommended)
 - `pebbledoc.toml`
@@ -233,7 +233,7 @@ GitHub-flavored Markdown supports five [alert types](https://docs.github.com/en/
 | Style             | Supported as alert types      | Other admonition types                                |
 |-------------------|-------------------------------|-------------------------------------------------------|
 | `classic`         | Block quote, bold face header | Block quote, bold face header                         |
-| `github`          | GitHub alert syntax           | GitHub alert syntax                                   |
+| `github`          | GitHub alert syntax           | GitHub alert syntax (rendered as plain block quote)   |
 | `mix` *(default)* | GitHub alert syntax           | Block quote, bold face header                         |
 | `map`             | GitHub alert syntax           | Mapped to nearest type, then rendered as GitHub alert |
 
