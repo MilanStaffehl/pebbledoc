@@ -36,8 +36,8 @@
 - [Configuration](#configuration)
   - [Options](#options)
   - [Admonitions](#admonitions)
-  - [Sphinx roles & directives](#sphinx-roles--directives)
 - [Supported rst syntax](#supported-rst-syntax)
+  - [Sphinx roles & directives](#sphinx-roles--directives)
 - [Limitations & caveats](#limitations--caveats)
 - [Examples](#examples)
 - [Integration](#integration)
@@ -196,6 +196,15 @@ GitHub-flavored Markdown supports five tyes of admonitions (or ["alerts"](https:
   - `hint` $\to$ `tip`
   - `admonition` (general admonition) $\to$ `note` (custom titles are lost)
 
+
+## Supported rst syntax
+
+Most of the standard rst syntax is supported by `pebbledoc`, but not all of it. This is deliberate, as `pebbledoc` is opinionated about what a docstring of a small Python library can reasonably be expected to contain, and what not. If you believe this opinion is ill-advised and would like to suggest adding an unsupported feature, see the [contributing section](#contributing) for a guide on how to make suggestions.
+
+In addition to the standard rst syntax, `pebbledoc` also supports some common Sphinx features. The next section gives some details.
+
+For a full list of all supported, planned, and unsupported rst features, see the [FEATURES.md](./FEATURES.md) document.
+
 ### Sphinx roles & directives
 
 In addition to most standard rst syntax features, `pebbledoc` also supports a subset of features from [Sphinx](https://www.sphinx-doc.org/en/master/):
@@ -212,15 +221,6 @@ In addition to most standard rst syntax features, `pebbledoc` also supports a su
 > Note that ambiguous references (e.g. for method overrides) are not detected and do not raise an error. Instead, they might link to the wrong section of the resulting document. Use fully qualified names wherever ambiguity is possible.
 
 References work because every documented member receives their own Markdown section header, to which a link may refer. Anchors for all partial names of a member are placed before the header, which allows references with removed prefixes to also work.
-
-
-## Supported rst syntax
-
-Most of the standard rst syntax is supported by `pebbledoc`, but not all of it. This is deliberate, as `pebbledoc` is opinionated about what a docstring of a small Python library can reasonably be expected to contain, and what not. If you believe this opinion is ill-advised and would like to suggest adding an unsupported feature, see the [contributing section](#contributing) for a guide on how to make suggestions.
-
-In addition to the standard rst syntax, `pebbledoc` also supports some common Sphinx features.
-
-For a full list of all supported, planned, and unsupported rst features, see the [FEATURES.md](./FEATURES.md) document.
 
 
 ## Limitations & caveats
