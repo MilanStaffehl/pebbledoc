@@ -14,7 +14,7 @@
 ·
 <a href="./tests/acceptance/expected">Examples</a>
 ·
-<a href="./FFEATURES.md">Features</a>
+<a href="./FEATURES.md">Features</a>
 ·
 <a href="./CONTRIBUTING.md">Contributing</a>
 ·
@@ -31,22 +31,20 @@
 - [About](#about)
 - [Installation & prerequisites](#installation--prerequisites)
 - [Usage](#usage)
-  - [Command line usage](#command-line-usage)
-  - [As a library](#as-a-library)
 - [Configuration](#configuration)
-  - [Options](#options)
-  - [Admonitions](#admonitions)
 - [Supported rst syntax](#supported-rst-syntax)
-  - [Sphinx roles & directives](#sphinx-roles--directives)
-- [Limitations & caveats](#limitations--caveats)
 - [Examples](#examples)
 - [Integration](#integration)
-  - [GitHub Actions: update docs](#github-actions-update-docs)
 - [Contributing](#contributing)
 - [FAQ](#faq)
+- [Metadata](#metadata)
 
 
 ## About
+
+Have you ever written a Python library so small that hosting an entire documentation website seemed excessive, but you still needed to document your functions, classes, and modules? Needed something in between a full documentation tool like Sphinx, and manually copying docstrings into your README? Then `pebbledoc` might be for you!
+
+`pebbledoc` automatically creates a single file documentation for your project, by retrieving the docstrings of all its public members, written in reStructuredText, and organizing them into a single structure. The resulting documentation is a GitHub-flavored Markdown file that renders beautifully on GitHub - perfect to display it there without a dedicated website!
 
 
 ## Installation & prerequisites
@@ -65,7 +63,7 @@ pip install pebbledoc
 
 To be able to use `pebbledoc`, the project you wish to document must meet the following requirements:
 
-- It must be a Python library, supporting Python 3.12 or higher.
+- It must be a Python library, supporting Python 3.13 or higher.
 - It must either provide `__all__` in all packages, or explicitly re-export members of its API in the package's `__init__.py`.
 - All docstring must be written in reStructuredText (rst).
   - They *can* also contain certain Sphinx-specific syntax, see [supported syntax](#supported-rst-syntax) for details.
@@ -135,11 +133,14 @@ For a more in-depth description of the configuration options, see the section on
 
 ### As a library
 
-In addition to the command line interface, `pebbledoc` also exposes some of its more useful utilities for use in your Python code. To use them, simply import `pebbledoc` in your code using `import pebbledoc`. Run `pebbledoc` on itself to get an overview of the provided utilities:
+In addition to the command line interface, `pebbledoc` also exposes some of its more useful utilities for programmatic use. To use them, simply import `pebbledoc` in your code:
 
-```bash
-pebbledoc --package pebbledoc --output pebbledoc_docs.md
+```Python
+from pebbledoc import parse_docstring, markdown_documentation, discover_public_members
 ```
+
+Run `pebbledoc --package pebbledoc` for a full API reference of what is available.
+
 
 ## Configuration
 
@@ -176,25 +177,30 @@ The following table shows how the configuration options map to the command line 
 | `package_name`        | `--package`               | Also used as the document title if `document_title` isn't set |
 | `admonition_style`    | `--admonition-style`      | See [Admonitions](#admonitions) for details on each style     |
 | `document_title`      | `--title`                 | Overrides the default title derived from `package_name`       |
-| `document_constants`  | `--no-include-constants`  |                                                               |
-| `module_docstring`    | `--no-module-docstring`   |                                                               |
-| `include_toc`         | `--no-toc`                |                                                               |
-| `include_back_to_top` | `--no-back-to-top`        |                                                               |
-| `main_module_header`  | `--no-main-module-header` |                                                               |
+| `document_constants`  | `--no-include-constants`  | Config default: `true`                                        |
+| `module_docstring`    | `--no-module-docstring`   | Config default: `true`                                        |
+| `include_toc`         | `--no-toc`                | Config default: `true`                                        |
+| `include_back_to_top` | `--no-back-to-top`        | Config default: `true`                                        |
+| `main_module_header`  | `--no-main-module-header` | Config default: `true`                                        |
 
 ### Admonitions
 
-GitHub-flavored Markdown supports five tyes of admonitions (or ["alerts"](https://docs.github.com/en/get-started/writing-on-github/getting-started-with-writing-and-formatting-on-github/basic-writing-and-formatting-syntax#alerts) as GitHub calls them): Caution, Warning, Important, Note, and Tip. These are automatically rendered on GitHub with colorful boxes and icons. However, reStructuredText offers more than these five admonition types. The `admonition_style` config option determines what to do with these additional admonition types. The options are as follows:
+GitHub-flavored Markdown supports five [alert types](https://docs.github.com/en/get-started/writing-on-github/getting-started-with-writing-and-formatting-on-github/basic-writing-and-formatting-syntax#alerts): Caution, Warning, Important, Note, and Tip. These are automatically rendered on GitHub with colorful boxes and icons. However, reStructuredText offers more admonition types than these five. The `admonition_style` config option determines how to handle the additional admonition types. The options are as follows:
 
-- `classic`: All admonitions, including those supported by GitHub, are formatted as block quotes, preceded with the admonition type name in bold face at the top. In this style, the GitHub rendering feature is not used at all.
-- `github`: All admonitions, including the unsupported ones, are formatted using the GitHub-flavored syntax (beginning with the admonition type name in all caps, preceded by an exclamation mark, in brackets). This may look odd for admonition types not supported by GitHub, but the supported admonition types are rendered correctly.
-- `mix`: This is the default style. It leaves the five supported admonition styles in GitHub syntax, causing them to be rendered as colorful boxes, while formatting all unsupported types in `classic` style. This leaves inconsistent styles, but offers a visually pleasant compromise.
-- `map`: All unsupported admonition types are mapped to the closest supported type, then formatted as GitHub-flavored alerts. This results in all admonitions being rendered as alerts, albeit not necessarily with their original type. The mapping from admonitions to alerts is as follows:
-  - `attention` $\to$ `important`
-  - `danger` $\to$ `caution`
-  - `error` $\to$ `caution`
-  - `hint` $\to$ `tip`
-  - `admonition` (general admonition) $\to$ `note` (custom titles are lost)
+| Style             | Supported as alert types      | Other admonition types                                |
+|-------------------|-------------------------------|-------------------------------------------------------|
+| `classic`         | Block quote, bold face header | Block quote, bold face header                         |
+| `github`          | GitHub alert syntax           | GitHub alert syntax                                   |
+| `mix` *(default)* | GitHub alert syntax           | Block quote, bold face header                         |
+| `map`             | GitHub alert syntax           | Mapped to nearest type, then rendered as GitHub alert |
+
+The mapping from admonitions to alerts in `map` style is as follows:
+
+- `attention` → `important`
+- `danger` → `caution`
+- `error` → `caution`
+- `hint` → `tip`
+- `admonition` (general admonition) → `note` (custom titles are lost)
 
 
 ## Supported rst syntax
@@ -222,10 +228,6 @@ In addition to most standard rst syntax features, `pebbledoc` also supports a su
 
 References work because every documented member receives their own Markdown section header, to which a link may refer. Anchors for all partial names of a member are placed before the header, which allows references with removed prefixes to also work.
 
-
-## Limitations & caveats
-
-- Backslashes in text must be double-escaped. To receive a single backslash in the Markdown document produced by `pebbledoc`, the docstring must use `\\\\`.
 
 ## Examples
 
@@ -272,7 +274,7 @@ jobs:
         run: uv sync --locked --all-extras --dev
 
       - name: Run pebbledoc
-        run: uv run pebbledoc --config-file=pyprject.toml --package <package_name>
+        run: uv run pebbledoc --config-file=pyproject.toml --package <package_name>
 
       - name: Commit and push changes
         run: |
@@ -316,7 +318,7 @@ Well, the obvious choices (`minidoc`, `microdoc`, `picodoc`, `nanodoc`, `tinydoc
 Also, let's be honest: How could I pass up the opportunity for such a cute mascot?
 
 
-## Matadata
+## Metadata
 
 - **Author:** [Milan Staffehl](https://github.com/MilanStaffehl)
 - **License:** [MIT license](./LICENSE)
