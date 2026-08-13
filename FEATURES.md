@@ -11,7 +11,7 @@ show support status for each feature:
 | :yellow_circle:    | Feature is partially or conditionally supported |
 | :soon:             | Feature is planned and will be supported soon   |
 | :x:                | Feature is not and will not be supported        |
-| :question:         | Support is uncertain and hasn't been tested     |
+| :grey_question:    | Support is uncertain and hasn't been tested     |
 
 For an explanation and examples of each listed feature, see the [RST Quick Reference](https://docutils.sourceforge.io/docs/user/rst/quickref.html).
 
@@ -28,8 +28,8 @@ For an explanation and examples of each listed feature, see the [RST Quick Refer
 | ` ``inline literal`` `              | :white_check_mark: |                               |
 | `reference_`                        | :white_check_mark: |                               |
 | `` `phrase reference`_ ``           | :white_check_mark: |                               |
-| `` `anonymous`__ ``                 | :question:         |                               |
-| `` _`inline literal target` ``      | :question:         |                               |
+| `` `anonymous`__ ``                 | :grey_question:    |                               |
+| `` _`inline literal target` ``      | :grey_question:    |                               |
 | `\| substitution reference \|`      | :x:                |                               |
 | `footnote reference [1]_`           | :soon:             |                               |
 | `citation reference [CIT2026]_`     | :soon:             |                               |
@@ -40,11 +40,11 @@ For an explanation and examples of each listed feature, see the [RST Quick Refer
 Headers inside docstrings are generally not supported by `pebbledoc`, as it must
 control headers itself.
 
-| Feature           | Status     | Note                                                                 |
-|-------------------|------------|----------------------------------------------------------------------|
-| Headers           | :x:        |                                                                      |
-| Transitions       | :question: |                                                                      |
-| Table of contents | :x:        | From directive `.. contents::`; TOC is managed by `pebbledoc` itself |
+| Feature           | Status          | Note                                                                 |
+|-------------------|-----------------|----------------------------------------------------------------------|
+| Headers           | :x:             |                                                                      |
+| Transitions       | :grey_question: |                                                                      |
+| Table of contents | :x:             | From directive `.. contents::`; TOC is managed by `pebbledoc` itself |
 
 ### Lists
 
@@ -96,15 +96,15 @@ control headers itself.
 | Figures (`.. figure::`)                      | :x:                |                                                                                                 |
 | Topic (`.. topic::`)                         | :soon:             |                                                                                                 |
 | Sidebar (`.. sidebar::`                      | :soon:             |                                                                                                 |
-| Parsed literal block (`.. parsed-literal::`) | :question:         |                                                                                                 |
+| Parsed literal block (`.. parsed-literal::`) | :grey_question:    |                                                                                                 |
 | Code block (`.. code::`)                     | :white_check_mark: | Sphinx version `.. code-block::` is also supported                                              |
 | Math block (`.. math::`)                     | :white_check_mark: |                                                                                                 |
 | Rubric (`.. rubric::`)                       | :soon:             |                                                                                                 |
-| Epigraph (`.. epigraph::`)                   | :question:         |                                                                                                 |
-| Highlights (`.. highlights::`)               | :question:         |                                                                                                 |
-| Pull-Quote (`.. pull-quote::`)               | :question:         |                                                                                                 |
+| Epigraph (`.. epigraph::`)                   | :grey_question:    |                                                                                                 |
+| Highlights (`.. highlights::`)               | :grey_question:    |                                                                                                 |
+| Pull-Quote (`.. pull-quote::`)               | :grey_question:    |                                                                                                 |
 | Compound paragraph (`.. compound::`)         | :x:                |                                                                                                 |
-| Container                                    | :yellow_sphere:    | Containers are ignored                                                                          |
+| Container                                    | :yellow_circle:    | Containers are ignored                                                                          |
 
 
 ### Roles
@@ -202,7 +202,7 @@ to be used in docstrings. Hence, most are unsupported.
 | `.. hlist::`              | :x:                |                                                    |
 | `.. highlight::`          | :soon:             |                                                    |
 | `.. code-block::`         | :white_check_mark: |                                                    |
-| `.. sourcecode::`         | :question:         |                                                    |
+| `.. sourcecode::`         | :grey_question:    |                                                    |
 | `.. literalinclude::`     | :x:                |                                                    |
 | `.. glossary::`           | :x:                |                                                    |
 | `.. sectionauthor::`      | :x:                |                                                    |
@@ -242,7 +242,7 @@ References may contain further syntax:
 | Suppressed link (`!` prefix)                               | :white_check_mark: | Reference renders as plain inline literal instead                 |
 | Shortened name (`~` prefix)                                | :white_check_mark: | Does not affect target (i.e. target name remains fully qualified) |
 
-### Auto-documenting directives
+### Manual member documentation directives
 
 The Python domain provides directives to mark documentation for Python members.
 As `pebbledoc` specializes in *automated* documentation generation (as opposed
@@ -269,7 +269,8 @@ to manual documentation), these are not supported.
 
 Within the docstrings of classes, functions, methods, etc. one can use the
 following supported field list special field names to invoke special rendering
-of the resulting field list.
+of the resulting field list. See [Sphinx documentation](https://www.sphinx-doc.org/en/master/usage/domains/python.html#info-field-lists)
+of info field lists for more information and examples.
 
 > [!CAUTION]
 >
