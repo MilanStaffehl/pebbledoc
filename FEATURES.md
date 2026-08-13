@@ -2,7 +2,7 @@
 
 This document lists all features of the RST markup language and the additional
 features supported by the Sphinx documentation tool and shows whether they are
-currently supported by `pebbledoc`. The document uses four icons to quickly
+currently supported by `pebbledoc`. The document uses five icons to quickly
 show support status for each feature:
 
 | Icon               | Meaning                                         |
@@ -13,32 +13,32 @@ show support status for each feature:
 | :x:                | Feature is not and will not be supported        |
 | :grey_question:    | Support is uncertain and hasn't been tested     |
 
-For an explanation and examples of each listed feature, see the [RST Quick Reference](https://docutils.sourceforge.io/docs/user/rst/quickref.html).
-
 
 ## RST features
 
+For an explanation and examples of each listed feature, see the [RST Quick Reference](https://docutils.sourceforge.io/docs/user/rst/quickref.html).
+
 ### Inline markup
 
-| Feature                             | Status             | Note                          |
-|-------------------------------------|--------------------|-------------------------------|
-| `*emphasis*`                        | :white_check_mark: |                               |
-| `**strong emphasis**`               | :white_check_mark: |                               |
-| `` `interpreted text` ``            | :white_check_mark: | Interpreted as inline literal |
-| ` ``inline literal`` `              | :white_check_mark: |                               |
-| `reference_`                        | :white_check_mark: |                               |
-| `` `phrase reference`_ ``           | :white_check_mark: |                               |
-| `` `anonymous`__ ``                 | :grey_question:    |                               |
-| `` _`inline literal target` ``      | :grey_question:    |                               |
-| `\| substitution reference \|`      | :x:                |                               |
-| `footnote reference [1]_`           | :soon:             |                               |
-| `citation reference [CIT2026]_`     | :soon:             |                               |
-| Direct links (`https://github.com`) | :white_check_mark: |                               |
+| Feature                             | Status             | Note                                                            |
+|-------------------------------------|--------------------|-----------------------------------------------------------------|
+| `*emphasis*`                        | :white_check_mark: |                                                                 |
+| `**strong emphasis**`               | :white_check_mark: |                                                                 |
+| `` `interpreted text` ``            | :white_check_mark: | Interpreted as inline literal                                   |
+| ` ``inline literal`` `              | :white_check_mark: |                                                                 |
+| `reference_`                        | :white_check_mark: |                                                                 |
+| `` `phrase reference`_ ``           | :white_check_mark: |                                                                 |
+| `` `anonymous`__ ``                 | :grey_question:    |                                                                 |
+| `` _`inline literal target` ``      | :grey_question:    |                                                                 |
+| `\| substitution reference \|`      | :x:                |                                                                 |
+| `footnote reference [1]_`           | :soon:             | [See #66](https://github.com/MilanStaffehl/pebbledoc/issues/66) |
+| `citation reference [CIT2026]_`     | :soon:             | [See #66](https://github.com/MilanStaffehl/pebbledoc/issues/66) |
+| Direct links (`https://github.com`) | :white_check_mark: |                                                                 |
 
 ### Document structure
 
-Headers inside docstrings are generally not supported by `pebbledoc`, as it must
-control headers itself.
+Headers inside docstrings are generally not supported by `pebbledoc`, as
+`pebbledoc` must control headers itself.
 
 | Feature           | Status          | Note                                                                 |
 |-------------------|-----------------|----------------------------------------------------------------------|
@@ -55,20 +55,22 @@ control headers itself.
 | Enumerated lists        | :white_check_mark: | Including lists not starting at 1                                                     |
 | Nested enumerated lists | :white_check_mark: |                                                                                       |
 | Mixed nested lists      | :white_check_mark: |                                                                                       |
-| Definition lists        | :soon:             |                                                                                       |
+| Definition lists        | :soon:             | [See #67](https://github.com/MilanStaffehl/pebbledoc/issues/67)                       |
 | Field lists             | :white_check_mark: | Including support for function parameter field lists ([see below](#info-field-lists)) |
-| Option lists            | :x:                |                                                                                       |
+| Option lists            | :x:                | Use literal block as an alternative                                                   |
 
 ### Blocks
 
-| Feature                 | Status             | Note                   |
-|-------------------------|--------------------|------------------------|
-| Literal blocks (`::`)   | :white_check_mark: |                        |
-| Line blocks (`\|`)      | :soon:             |                        |
-| Block quotes            | :white_check_mark: | Including attributions |
-| Docstest blocks (`>>>`) | :white_check_mark: |                        |
+| Feature                 | Status             | Note                                                            |
+|-------------------------|--------------------|-----------------------------------------------------------------|
+| Literal blocks (`::`)   | :white_check_mark: |                                                                 |
+| Line blocks (`\|`)      | :soon:             | [See #68](https://github.com/MilanStaffehl/pebbledoc/issues/68) |
+| Block quotes            | :white_check_mark: | Including attributions                                          |
+| Docstest blocks (`>>>`) | :white_check_mark: |                                                                 |
 
 ### Tables
+
+For status of the upcoming support, see [#69](https://github.com/MilanStaffehl/pebbledoc/issues/69).
 
 | Feature      | Status | Note                                                               |
 |--------------|--------|--------------------------------------------------------------------|
@@ -78,6 +80,8 @@ control headers itself.
 | List table   | :soon: | From directive `.. list-table::`                                   |
 
 ### Footnotes
+
+For status of the upcoming support, see [#66](https://github.com/MilanStaffehl/pebbledoc/issues/66).
 
 | Feature                          | Status | Note |
 |----------------------------------|--------|------|
@@ -92,38 +96,38 @@ control headers itself.
 |----------------------------------------------|--------------------|-------------------------------------------------------------------------------------------------|
 | Admonitions (e.g. `.. note::`)               | :white_check_mark: | Admonitions not supported as GitHub alerts are managed via the `admonition_style` config option |
 | Generic admonition (`.. admonition::`)       | :white_check_mark: |                                                                                                 |
-| Images (`.. image::`)                        | :soon:             |                                                                                                 |
+| Images (`.. image::`)                        | :soon:             | [See #71](https://github.com/MilanStaffehl/pebbledoc/issues/71)                                 |
 | Figures (`.. figure::`)                      | :x:                |                                                                                                 |
-| Topic (`.. topic::`)                         | :soon:             |                                                                                                 |
-| Sidebar (`.. sidebar::`                      | :soon:             |                                                                                                 |
+| Topic (`.. topic::`)                         | :soon:             | [See #70](https://github.com/MilanStaffehl/pebbledoc/issues/70)                                 |
+| Sidebar (`.. sidebar::`                      | :soon:             | [See #70](https://github.com/MilanStaffehl/pebbledoc/issues/70)                                 |
 | Parsed literal block (`.. parsed-literal::`) | :grey_question:    |                                                                                                 |
 | Code block (`.. code::`)                     | :white_check_mark: | Sphinx version `.. code-block::` is also supported                                              |
 | Math block (`.. math::`)                     | :white_check_mark: |                                                                                                 |
-| Rubric (`.. rubric::`)                       | :soon:             |                                                                                                 |
+| Rubric (`.. rubric::`)                       | :soon:             | [See #70](https://github.com/MilanStaffehl/pebbledoc/issues/70)                                 |
 | Epigraph (`.. epigraph::`)                   | :grey_question:    |                                                                                                 |
 | Highlights (`.. highlights::`)               | :grey_question:    |                                                                                                 |
 | Pull-Quote (`.. pull-quote::`)               | :grey_question:    |                                                                                                 |
 | Compound paragraph (`.. compound::`)         | :x:                |                                                                                                 |
-| Container                                    | :yellow_circle:    | Containers are ignored                                                                          |
+| Container (`.. container::`)                 | :yellow_circle:    | Containers are ignored                                                                          |
 
 
 ### Roles
 
-| Feature                 | Status             | Note                   |
-|-------------------------|--------------------|------------------------|
-| `:abbreviation:`        | :yellow_circle:    | Rendered as plain text |
-| `:acronym:`             | :yellow_circle:    | Rendered as plain text |
-| `:code:`                | :white_check_mark: |                        |
-| `:emphasis`             | :white_check_mark: |                        |
-| `:literal:`             | :white_check_mark: |                        |
-| `:math:`                | :white_check_mark: |                        |
-| `:PEP:` (PEP reference) | :soon:             |                        |
-| `:RFC:` (RFC reference) | :x:                |                        |
-| `:strong:`              | :white_check_mark: |                        |
-| `:subscript:`           | :white_check_mark: |                        |
-| `:superscript:`         | :white_check_mark: |                        |
-| `:title:`               | :yellow_circle:    | Rendered as plain text |
-| `:raw:`                 | :x:                |                        |
+| Feature                 | Status             | Note                                                            |
+|-------------------------|--------------------|-----------------------------------------------------------------|
+| `:abbreviation:`        | :yellow_circle:    | Rendered as plain text                                          |
+| `:acronym:`             | :yellow_circle:    | Rendered as plain text                                          |
+| `:code:`                | :white_check_mark: |                                                                 |
+| `:emphasis`             | :white_check_mark: |                                                                 |
+| `:literal:`             | :white_check_mark: |                                                                 |
+| `:math:`                | :white_check_mark: |                                                                 |
+| `:PEP:` (PEP reference) | :soon:             | [See #72](https://github.com/MilanStaffehl/pebbledoc/issues/72) |
+| `:RFC:` (RFC reference) | :x:                |                                                                 |
+| `:strong:`              | :white_check_mark: |                                                                 |
+| `:subscript:`           | :white_check_mark: |                                                                 |
+| `:superscript:`         | :white_check_mark: |                                                                 |
+| `:title:`               | :yellow_circle:    | Rendered as plain text                                          |
+| `:raw:`                 | :x:                |                                                                 |
 
 ### Comments
 
@@ -153,7 +157,7 @@ to be used in docstrings. Hence, most are unsupported.
 | `:keyword:`       | :x:    |                                                                                   |
 | `:numref:`        | :x:    |                                                                                   |
 | `:option:`        | :x:    |                                                                                   |
-| `:ref:`           | :soon: |                                                                                   |
+| `:ref:`           | :soon: | [See #73](https://github.com/MilanStaffehl/pebbledoc/issues/73)                   |
 | `:term:`          | :x:    |                                                                                   |
 | `:token:`         | :x:    |                                                                                   |
 | `:eq:`            | :x:    |                                                                                   |
@@ -162,7 +166,7 @@ to be used in docstrings. Hence, most are unsupported.
 | `:dfn:`           | :x:    |                                                                                   |
 | `:file:`          | :x:    |                                                                                   |
 | `:guilabel:`      | :x:    |                                                                                   |
-| `:kbd:`           | :soon: |                                                                                   |
+| `:kbd:`           | :soon: | [See #74](https://github.com/MilanStaffehl/pebbledoc/issues/74)                   |
 | `:mailheader:`    | :x:    |                                                                                   |
 | `:makevar:`       | :x:    |                                                                                   |
 | `:manpage:`       | :x:    |                                                                                   |
@@ -186,31 +190,31 @@ to be used in docstrings. Hence, most are unsupported.
 
 ### Directives
 
-| Feature                   | Status             | Name                                               |
-|---------------------------|--------------------|----------------------------------------------------|
-| `.. toctree::`            | :x:                | TOC trees are directly controlled by `pebbledoc`   |
-| `.. seealso::`            | :soon:             | Sphinx-specific admonition                         |
-| `.. version-added::`      | :white_check_mark: | Includes custom rendering as block quote with icon |
-| `.. versionadded::`       | :white_check_mark: | Includes custom rendering as block quote with icon |
-| `.. version-changed::`    | :white_check_mark: | Includes custom rendering as block quote with icon |
-| `.. versionchanged::`     | :white_check_mark: | Includes custom rendering as block quote with icon |
-| `.. version-deprecated::` | :white_check_mark: | Includes custom rendering as block quote with icon |
-| `.. deprecated::`         | :white_check_mark: | Includes custom rendering as block quote with icon |
-| `.. version-removed::`    | :white_check_mark: | Includes custom rendering as block quote with icon |
-| `.. versionremoved::`     | :white_check_mark: | Includes custom rendering as block quote with icon |
-| `.. centered::`           | :soon:             |                                                    |
-| `.. hlist::`              | :x:                |                                                    |
-| `.. highlight::`          | :soon:             |                                                    |
-| `.. code-block::`         | :white_check_mark: |                                                    |
-| `.. sourcecode::`         | :grey_question:    |                                                    |
-| `.. literalinclude::`     | :x:                |                                                    |
-| `.. glossary::`           | :x:                |                                                    |
-| `.. sectionauthor::`      | :x:                |                                                    |
-| `.. codeauthor::`         | :x:                |                                                    |
-| `.. index::`              | :x:                |                                                    |
-| `.. only::`               | :x:                |                                                    |
-| `.. tabularcolumns::`     | :x:                |                                                    |
-| `.. productionlist::`     | :x:                |                                                    |
+| Feature                   | Status             | Name                                                                                        |
+|---------------------------|--------------------|---------------------------------------------------------------------------------------------|
+| `.. toctree::`            | :x:                | TOC trees are directly controlled by `pebbledoc`                                            |
+| `.. seealso::`            | :soon:             | Sphinx-specific admonition, [see #75](https://github.com/MilanStaffehl/pebbledoc/issues/75) |
+| `.. version-added::`      | :white_check_mark: | Includes custom rendering as block quote with icon                                          |
+| `.. versionadded::`       | :white_check_mark: | Includes custom rendering as block quote with icon                                          |
+| `.. version-changed::`    | :white_check_mark: | Includes custom rendering as block quote with icon                                          |
+| `.. versionchanged::`     | :white_check_mark: | Includes custom rendering as block quote with icon                                          |
+| `.. version-deprecated::` | :white_check_mark: | Includes custom rendering as block quote with icon                                          |
+| `.. deprecated::`         | :white_check_mark: | Includes custom rendering as block quote with icon                                          |
+| `.. version-removed::`    | :white_check_mark: | Includes custom rendering as block quote with icon                                          |
+| `.. versionremoved::`     | :white_check_mark: | Includes custom rendering as block quote with icon                                          |
+| `.. centered::`           | :soon:             | [See #76](https://github.com/MilanStaffehl/pebbledoc/issues/76)                             |
+| `.. hlist::`              | :x:                |                                                                                             |
+| `.. highlight::`          | :grey_question:    |                                                                                             |
+| `.. code-block::`         | :white_check_mark: |                                                                                             |
+| `.. sourcecode::`         | :grey_question:    |                                                                                             |
+| `.. literalinclude::`     | :x:                |                                                                                             |
+| `.. glossary::`           | :x:                |                                                                                             |
+| `.. sectionauthor::`      | :x:                |                                                                                             |
+| `.. codeauthor::`         | :x:                |                                                                                             |
+| `.. index::`              | :x:                |                                                                                             |
+| `.. only::`               | :x:                |                                                                                             |
+| `.. tabularcolumns::`     | :x:                |                                                                                             |
+| `.. productionlist::`     | :x:                |                                                                                             |
 
 ### Cross-references and domains
 
@@ -279,24 +283,24 @@ of info field lists for more information and examples.
 > following field names with other field names will cause a parsing error when
 > attempting to generate documentation.
 
-| Feature       | Status             | Note                                                                |
-|---------------|--------------------|---------------------------------------------------------------------|
-| `:param:`     | :white_check_mark: |                                                                     |
-| `:parameter:` | :soon:             |                                                                     |
-| `:arg:`       | :soon:             |                                                                     |
-| `:argument:`  | :soon:             |                                                                     |
-| `:key:`       | :soon:             |                                                                     |
-| `:keyword:`   | :soon:             |                                                                     |
-| `:type:`      | :white_check_mark: |                                                                     |
-| `:raises:`    | :white_check_mark: |                                                                     |
-| `:raise:`     | :white_check_mark: |                                                                     |
-| `:except:`    | :soon:             |                                                                     |
-| `:exception:` | :soon:             |                                                                     |
-| `:var:`       | :soon:             |                                                                     |
-| `:ivar:`      | :soon:             |                                                                     |
-| `:cvar:`      | :soon:             |                                                                     |
-| `:vartype:`   | :soon:             |                                                                     |
-| `:return:`    | :white_check_mark: | May appear multiple times                                           |
-| `:returns:`   | :white_check_mark: | May appear multiple times                                           |
-| `:rtype:`     | :white_check_mark: | May appear only once; last appearance is used otherwise             |
-| `:meta:`      | :soon:             | Is ignored, but will cause errors when used in any other field list |
+| Feature       | Status             | Note                                                                                                                                 |
+|---------------|--------------------|--------------------------------------------------------------------------------------------------------------------------------------|
+| `:param:`     | :white_check_mark: |                                                                                                                                      |
+| `:parameter:` | :soon:             | [See #77](https://github.com/MilanStaffehl/pebbledoc/issues/77)                                                                      |
+| `:arg:`       | :soon:             | [See #77](https://github.com/MilanStaffehl/pebbledoc/issues/77)                                                                      |
+| `:argument:`  | :soon:             | [See #77](https://github.com/MilanStaffehl/pebbledoc/issues/77)                                                                      |
+| `:key:`       | :soon:             | [See #77](https://github.com/MilanStaffehl/pebbledoc/issues/77)                                                                      |
+| `:keyword:`   | :soon:             | [See #77](https://github.com/MilanStaffehl/pebbledoc/issues/77)                                                                      |
+| `:type:`      | :white_check_mark: |                                                                                                                                      |
+| `:raises:`    | :white_check_mark: |                                                                                                                                      |
+| `:raise:`     | :white_check_mark: |                                                                                                                                      |
+| `:except:`    | :soon:             | [See #77](https://github.com/MilanStaffehl/pebbledoc/issues/77)                                                                      |
+| `:exception:` | :soon:             | [See #77](https://github.com/MilanStaffehl/pebbledoc/issues/77)                                                                      |
+| `:var:`       | :soon:             | [See #77](https://github.com/MilanStaffehl/pebbledoc/issues/77)                                                                      |
+| `:ivar:`      | :soon:             | [See #77](https://github.com/MilanStaffehl/pebbledoc/issues/77)                                                                      |
+| `:cvar:`      | :soon:             | [See #77](https://github.com/MilanStaffehl/pebbledoc/issues/77)                                                                      |
+| `:vartype:`   | :soon:             | [See #77](https://github.com/MilanStaffehl/pebbledoc/issues/77)                                                                      |
+| `:return:`    | :white_check_mark: | May appear multiple times                                                                                                            |
+| `:returns:`   | :white_check_mark: | May appear multiple times                                                                                                            |
+| `:rtype:`     | :white_check_mark: | May appear only once; last appearance is used otherwise                                                                              |
+| `:meta:`      | :soon:             | [See #77](https://github.com/MilanStaffehl/pebbledoc/issues/77); is ignored, but will cause errors when used in any other field list |
