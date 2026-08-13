@@ -22,7 +22,7 @@
 
 </div>
 
-**pebbledoc** automatically builds a single GitHub-flavored Markdown documentation file from the rst-docstrings of your small Python library. Ideal for tiny libraries for which a whole documentation website is simply overkill!
+**pebbledoc** automatically builds a single GitHub-flavored Markdown documentation file from the RST-docstrings of your small Python library. Ideal for tiny libraries for which a whole documentation website is simply overkill!
 
 <hr />
 
@@ -42,7 +42,7 @@
 
 ## About
 
-`pebbledoc` sits between full documentation tools like Sphinx, and manually copy-pasting docstrings into a README. It automatically creates a single file Markdown documentation for your rst-documented project. Here is what it does to a single function docstring:
+`pebbledoc` sits between full documentation tools like Sphinx, and manually copy-pasting docstrings into a README. It automatically creates a single file Markdown documentation for your RST-documented project. Here is what it does to a single function docstring:
 
 <details>
 <summary><b>Input</b></summary>
@@ -108,7 +108,7 @@ To be able to use `pebbledoc`, the project you wish to document must meet the fo
 
 - It must be a Python library, supporting Python 3.13 or higher.
 - It must either provide `__all__` in all packages, or explicitly re-export members of its API in the package's `__init__.py`.
-- All docstring must be written in reStructuredText (rst).
+- All docstring must be written in reStructuredText (RST).
   - They *can* also contain certain Sphinx-specific syntax, see [supported syntax](#supported-rst-syntax) for details.
 - `pebbledoc` and all your project's dependencies must be installed in the same environment.
 
@@ -246,17 +246,17 @@ The mapping from admonitions to alerts in `map` style is as follows:
 - `admonition` (general admonition) → `note` (custom titles are lost)
 
 
-## Supported rst syntax
+## Supported RST syntax
 
-Most of the standard rst syntax is supported by `pebbledoc`, but not all of it. This is deliberate, as `pebbledoc` is opinionated about what a docstring of a small Python library can reasonably be expected to contain, and what not. If you believe this opinion is ill-advised and would like to suggest adding an unsupported feature, see the [contributing section](#contributing) for a guide on how to make suggestions.
+Most of the standard RST syntax is supported by `pebbledoc`, but not all of it. This is deliberate, as `pebbledoc` is opinionated about what a docstring of a small Python library can reasonably be expected to contain, and what not. If you believe this opinion is ill-advised and would like to suggest adding an unsupported feature, see the [contributing section](#contributing) for a guide on how to make suggestions.
 
-In addition to the standard rst syntax, `pebbledoc` also supports some common Sphinx features. The next section gives some details.
+In addition to the standard RST syntax, `pebbledoc` also supports some common Sphinx features. The next section gives some details.
 
-For a full list of all supported, planned, and unsupported rst features, see the [FEATURES.md](./FEATURES.md) document.
+For a full list of all supported, planned, and unsupported RST features, see the [FEATURES.md](./FEATURES.md) document.
 
 ### Sphinx roles & directives
 
-In addition to most standard rst syntax features, `pebbledoc` also supports a subset of features from [Sphinx](https://www.sphinx-doc.org/en/master/):
+In addition to most standard RST syntax features, `pebbledoc` also supports a subset of features from [Sphinx](https://www.sphinx-doc.org/en/master/):
 
 - [Sphinx-style cross-references](https://www.sphinx-doc.org/en/master/usage/domains/python.html#cross-referencing-python-objects) such as ``:meth:`my_module.SomeClass.my_method` ``. These are rendered as links to the headers of the package member they refer to, if that member is part of the documentation. References to members not in the documentation render as plain inline literal text. Prefixes `~` (shortened name) and `!` (no hyperlink) are also supported.
 - [Sphinx-style version notices](https://www.sphinx-doc.org/en/master/usage/restructuredtext/directives.html#describing-changes-between-versions) such as `.. version-added:: 1.3.0`. These are rendered as block quotes starting with an icon to symbolize the type of version notice.
@@ -274,7 +274,7 @@ References work because every documented member receives their own Markdown sect
 
 ## Examples
 
-To see some examples of the documents that `pebbledoc` produces, take a look at the [acceptance tests](./tests/acceptance) directory. It contains a test package [`stellarium_lite`](./tests/acceptance/resources/stellarium_lite) with docstrings showcasing various rst syntax options. The directory with the [expected outcomes](./tests/acceptance/expected) shows the various documents `pebbledoc` can produce from it.
+To see some examples of the documents that `pebbledoc` produces, take a look at the [acceptance tests](./tests/acceptance) directory. It contains a test package [`stellarium_lite`](./tests/acceptance/resources/stellarium_lite) with docstrings showcasing various RST syntax options. The directory with the [expected outcomes](./tests/acceptance/expected) shows the various documents `pebbledoc` can produce from it.
 
 Alternatively, you can just run `pebbledoc` on itself to get a quick example of what a documentation looks like.
 
@@ -350,9 +350,9 @@ That depends on the complexity, length, and number of docstrings. As a rule of t
 
 Well, it makes for a pretty good pebble joke. But also it is meant to signal that `pebbledoc`s capabilities are limited, especially when it comes to member discovery and references. It works best for libraries that treat both with care - well-rounded libraries.
 
-#### Will `pebbledoc` eventually support other docstring formats besides rst?
+#### Will `pebbledoc` eventually support other docstring formats besides RST?
 
-Likely not. Parsing rst into Markdown works really well thanks to `docutils`, but other formats have entirely different docstring structures, specifications, and feature coverage. For some formats, similar projects already exist. For example, if your docstrings are in numpy format, check out [`tinydocs`](https://github.com/antonio-leitao/tinydocs)!
+Likely not. Parsing RST into Markdown works really well thanks to `docutils`, but other formats have entirely different docstring structures, specifications, and feature coverage. For some formats, similar projects already exist. For example, if your docstrings are in numpy format, check out [`tinydocs`](https://github.com/antonio-leitao/tinydocs)!
 
 #### Pebbles? Why pebbles?
 
