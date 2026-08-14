@@ -28,8 +28,8 @@ For an explanation and examples of each listed feature, see the [RST Quick Refer
 | ` ``inline literal`` `              | :white_check_mark: |                                                                 |
 | `reference_`                        | :white_check_mark: |                                                                 |
 | `` `phrase reference`_ ``           | :white_check_mark: |                                                                 |
-| `` `anonymous`__ ``                 | :grey_question:    |                                                                 |
-| `` _`inline literal target` ``      | :grey_question:    |                                                                 |
+| `` `anonymous`__ ``                 | :white_check_mark: |                                                                 |
+| `` _`inline literal target` ``      | :white_check_mark: |                                                                 |
 | `\| substitution reference \|`      | :x:                |                                                                 |
 | `footnote reference [1]_`           | :soon:             | [See #66](https://github.com/MilanStaffehl/pebbledoc/issues/66) |
 | `citation reference [CIT2026]_`     | :soon:             | [See #66](https://github.com/MilanStaffehl/pebbledoc/issues/66) |
@@ -40,11 +40,11 @@ For an explanation and examples of each listed feature, see the [RST Quick Refer
 Headers inside docstrings are generally not supported by `pebbledoc`, as
 `pebbledoc` must control headers itself.
 
-| Feature           | Status          | Note                                                                 |
-|-------------------|-----------------|----------------------------------------------------------------------|
-| Headers           | :x:             |                                                                      |
-| Transitions       | :grey_question: |                                                                      |
-| Table of contents | :x:             | From directive `.. contents::`; TOC is managed by `pebbledoc` itself |
+| Feature           | Status             | Note                                                                 |
+|-------------------|--------------------|----------------------------------------------------------------------|
+| Headers           | :x:                |                                                                      |
+| Transitions       | :white_check_mark: | Renders as a horizontal rule (`<hr />`)                              |
+| Table of contents | :x:                | From directive `.. contents::`; TOC is managed by `pebbledoc` itself |
 
 ### Lists
 
@@ -100,13 +100,13 @@ For status of the upcoming support, see [#66](https://github.com/MilanStaffehl/p
 | Figures (`.. figure::`)                      | :x:                |                                                                                                 |
 | Topic (`.. topic::`)                         | :soon:             | [See #70](https://github.com/MilanStaffehl/pebbledoc/issues/70)                                 |
 | Sidebar (`.. sidebar::`                      | :soon:             | [See #70](https://github.com/MilanStaffehl/pebbledoc/issues/70)                                 |
-| Parsed literal block (`.. parsed-literal::`) | :grey_question:    |                                                                                                 |
+| Parsed literal block (`.. parsed-literal::`) | :white_check_mark: |                                                                                                 |
 | Code block (`.. code::`)                     | :white_check_mark: | Sphinx version `.. code-block::` is also supported                                              |
 | Math block (`.. math::`)                     | :white_check_mark: |                                                                                                 |
 | Rubric (`.. rubric::`)                       | :soon:             | [See #70](https://github.com/MilanStaffehl/pebbledoc/issues/70)                                 |
-| Epigraph (`.. epigraph::`)                   | :grey_question:    |                                                                                                 |
-| Highlights (`.. highlights::`)               | :grey_question:    |                                                                                                 |
-| Pull-Quote (`.. pull-quote::`)               | :grey_question:    |                                                                                                 |
+| Epigraph (`.. epigraph::`)                   | :white_check_mark: | Renders as block quote.                                                                         |
+| Highlights (`.. highlights::`)               | :white_check_mark: | Renders as block quote.                                                                         |
+| Pull-Quote (`.. pull-quote::`)               | :white_check_mark: | Renders as block quote.                                                                         |
 | Compound paragraph (`.. compound::`)         | :x:                |                                                                                                 |
 | Container (`.. container::`)                 | :yellow_circle:    | Containers are ignored                                                                          |
 
@@ -204,9 +204,9 @@ to be used in docstrings. Hence, most are unsupported.
 | `.. versionremoved::`     | :white_check_mark: | Includes custom rendering as block quote with icon                                          |
 | `.. centered::`           | :soon:             | [See #76](https://github.com/MilanStaffehl/pebbledoc/issues/76)                             |
 | `.. hlist::`              | :x:                |                                                                                             |
-| `.. highlight::`          | :grey_question:    |                                                                                             |
+| `.. highlight::`          | :x:                | Use `.. code-block::` or `.. code::` instead                                                |
 | `.. code-block::`         | :white_check_mark: |                                                                                             |
-| `.. sourcecode::`         | :grey_question:    |                                                                                             |
+| `.. sourcecode::`         | :white_check_mark: |                                                                                             |
 | `.. literalinclude::`     | :x:                |                                                                                             |
 | `.. glossary::`           | :x:                |                                                                                             |
 | `.. sectionauthor::`      | :x:                |                                                                                             |

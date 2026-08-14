@@ -116,6 +116,21 @@ def test_parse_docstring_inline_literal() -> None:
     assert output == expected
 
 
+def test_parse_docstring_transition() -> None:
+    """Test parsing text with transition."""
+    default_config = config.PebbledocConfig()
+    rst_str = (
+        "This text contains transition.\n\n-----\n\nThis is another paragraph."
+    )
+    output = parsing.parse_docstring(rst_str, default_config)
+    expected = (
+        "This text contains transition.\n\n"
+        "<hr />\n\n"
+        "This is another paragraph.\n"
+    )
+    assert output == expected
+
+
 def test_parse_docstring_simple_bullet_list() -> None:
     """Test parsing a simple bullet list."""
     default_config = config.PebbledocConfig()
@@ -256,6 +271,28 @@ def test_parse_docstring_literal_block() -> None:
     assert output == expected
 
 
+def test_parse_docstring_parsed_literal_block() -> None:
+    """Test parsing a literal block."""
+    default_config = config.PebbledocConfig()
+    rst_str = (
+        "This is a preceding paragraph.\n\n"
+        ".. parsed-literal::\n\n"
+        "    This is a *parsed* literal block.\n"
+        "    It should render as such.\n\n"
+        "This is a closing paragraph."
+    )
+    output = parsing.parse_docstring(rst_str, default_config)
+    expected = (
+        "This is a preceding paragraph.\n\n"
+        "```\n"
+        "This is a *parsed* literal block.\n"
+        "It should render as such.\n"
+        "```\n\n"
+        "This is a closing paragraph.\n"
+    )
+    assert output == expected
+
+
 def test_parse_docstring_block_quote() -> None:
     """Test parsing a block quote."""
     default_config = config.PebbledocConfig()
@@ -297,6 +334,81 @@ def test_parse_docstring_block_quote_with_attribution() -> None:
         "> It should render as such.\n"
         ">\n"
         "> -- Albert Einstein\n\n"
+        "This is a closing paragraph.\n"
+    )
+    assert output == expected
+
+
+def test_parse_docstring_epigraph() -> None:
+    """Test parsing an epigraph directive."""
+    default_config = config.PebbledocConfig()
+    rst_str = (
+        "This is a preceding paragraph.\n\n"
+        ".. epigraph::\n\n"
+        "    This is an epigraph.\n"
+        "    It should render as such.\n\n"
+        "    This is a second paragraph in\n"
+        "    the epigraph.\n\n"
+        "This is a closing paragraph."
+    )
+    output = parsing.parse_docstring(rst_str, default_config)
+    expected = (
+        "This is a preceding paragraph.\n\n"
+        "> This is an epigraph.\n"
+        "> It should render as such.\n"
+        ">\n"
+        "> This is a second paragraph in\n"
+        "> the epigraph.\n\n"
+        "This is a closing paragraph.\n"
+    )
+    assert output == expected
+
+
+def test_parse_docstring_highlights() -> None:
+    """Test parsing a highlights directive."""
+    default_config = config.PebbledocConfig()
+    rst_str = (
+        "This is a preceding paragraph.\n\n"
+        ".. highlights::\n\n"
+        "    This is a highlights block.\n"
+        "    It should render as such.\n\n"
+        "    This is a second paragraph in\n"
+        "    the highlights.\n\n"
+        "This is a closing paragraph."
+    )
+    output = parsing.parse_docstring(rst_str, default_config)
+    expected = (
+        "This is a preceding paragraph.\n\n"
+        "> This is a highlights block.\n"
+        "> It should render as such.\n"
+        ">\n"
+        "> This is a second paragraph in\n"
+        "> the highlights.\n\n"
+        "This is a closing paragraph.\n"
+    )
+    assert output == expected
+
+
+def test_parse_docstring_pull_quote() -> None:
+    """Test parsing a pull quote directive."""
+    default_config = config.PebbledocConfig()
+    rst_str = (
+        "This is a preceding paragraph.\n\n"
+        ".. pull-quote::\n\n"
+        "    This is a pull quote block.\n"
+        "    It should render as such.\n\n"
+        "    This is a second paragraph in\n"
+        "    the pull quote.\n\n"
+        "This is a closing paragraph."
+    )
+    output = parsing.parse_docstring(rst_str, default_config)
+    expected = (
+        "This is a preceding paragraph.\n\n"
+        "> This is a pull quote block.\n"
+        "> It should render as such.\n"
+        ">\n"
+        "> This is a second paragraph in\n"
+        "> the pull quote.\n\n"
         "This is a closing paragraph.\n"
     )
     assert output == expected
@@ -843,6 +955,47 @@ def test_parse_docstring_code_block_with_language() -> None:
         "This is a closing paragraph."
     )
     output = parsing.parse_docstring(rst_str, default_config)
+    assert output == expected
+
+
+@pytest.mark.xfail(reason="Highlight directive not yet supported")
+def test_parse_docstring_highlight() -> None:
+    """Test parsing a code block with the "highlight" directive."""
+    default_config = config.PebbledocConfig()
+    rst_str = (
+        "This is a preceding paragraph.\n\n"
+        ".. highlight:: Python\n\n"
+        "    import numpy as np\n\n"
+        "This is a closing paragraph."
+    )
+    output = parsing.parse_docstring(rst_str, default_config)
+    expected = (
+        "This is a preceding paragraph.\n\n"
+        "```Python\n"
+        "import numpy as np\n"
+        "```\n\n"
+        "This is a closing paragraph.\n"
+    )
+    assert output == expected
+
+
+def test_parse_docstring_sourcecode() -> None:
+    """Test parsing a code block with the "sourcecode" directive."""
+    default_config = config.PebbledocConfig()
+    rst_str = (
+        "This is a preceding paragraph.\n\n"
+        ".. sourcecode:: Python\n\n"
+        "    import numpy as np\n\n"
+        "This is a closing paragraph."
+    )
+    output = parsing.parse_docstring(rst_str, default_config)
+    expected = (
+        "This is a preceding paragraph.\n\n"
+        "```Python\n"
+        "import numpy as np\n"
+        "```\n\n"
+        "This is a closing paragraph.\n"
+    )
     assert output == expected
 
 

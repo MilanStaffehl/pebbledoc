@@ -347,6 +347,9 @@ class SphinxRstVisitor(nodes.SparseNodeVisitor):
     def depart_literal(self, node: nodes.literal) -> None:
         self.body.append("`")
 
+    def visit_transition(self, node: nodes.transition) -> None:
+        self.body.append("<hr />\n\n")
+
     def visit_title_reference(self, node: nodes.title_reference) -> None:
         self.body.append("`")  # interpreted text treated as literal
 
