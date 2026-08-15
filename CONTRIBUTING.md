@@ -19,7 +19,7 @@
 
 Welcome to the contributing guide for `pebbledoc`! Unless you came here by accident
 or out of curiosity, that means you want to help `pebbledoc` improve. So first of all:
-Thank you!
+Thank you! :heart:
 
 This guide tells you how you can best contribute to `pebbledoc` and how your
 contributions are expected to look like. Read it carefully - doubly so if you
@@ -340,7 +340,7 @@ well. PRs without an updated CHANGELOG cannot be accepted.
 ## Disclaimer about rejections
 
 The maintainers of `pebbledoc` reserve the right to reject contributions that
-are not adhering to this contributing guide, the code of conduct, or the quality
+do not adhere to this contributing guide, the code of conduct, or the quality
 standards of `pebbledoc`. Furthermore, contributions that are too large in scope
 to be reasonably reviewed by a single human will also be rejected.
 
@@ -348,6 +348,6 @@ Additionally, the maintainers reserve the right to reject unsolicited PRs if
 the provided changes are not aligning with the purpose or future direction of
 the `pebbledoc` project.
 
-All PRs that merely fix change whitespaces, fix some typos, fix formatting, etc.
+All PRs that merely change whitespaces, fix some typos, fix formatting, etc.
 without substantive impact (i.e. fixing factually wrong wording, removing
 ambiguity, or fixing incorrect rendering) will be rejected.
