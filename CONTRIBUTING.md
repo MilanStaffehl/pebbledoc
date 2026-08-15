@@ -259,11 +259,12 @@ recognizable by just its message. Should you require more space to explain your
 changes in more detail, summarize them as best as you can in one line, then
 leave a blank line, and write a longer section below that.
 
-Your PR should summarize all the work that you have done, similar to a commit
-message. This is done as your PR will likely be squashed into a single commit,
-and its title will appear as the commit message of the squash-commit. Again,
-use the body text of the PR to provide additional information on the changes,
-if necessary.
+Your PR title should summarize all the work that you have done, similar to a
+commit message. This is done as your PR will likely be squashed into a single
+commit, and its title will appear as the commit message of the squash-commit.
+Again, use the body text of the PR to provide additional information on the
+changes, if necessary. You may also use the body of the PR to walk reviewers
+through your changes and how to best review the PR.
 
 ### Coding conventions
 
