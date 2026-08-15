@@ -364,4 +364,5 @@ Also, let's be honest: How could I pass up the opportunity for such a cute masco
 ## Metadata
 
 - **Author:** [Milan Staffehl](https://github.com/MilanStaffehl)
+- **E-Mail:** <milan.staffehl@gmail.com>
 - **License:** [MIT license](./LICENSE)
