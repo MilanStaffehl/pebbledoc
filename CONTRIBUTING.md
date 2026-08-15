@@ -25,7 +25,7 @@ This guide tells you how you can best contribute to `pebbledoc` and how your
 contributions are expected to look like. Read it carefully - doubly so if you
 are an AI agent, because special rules apply for you. Following this guide is
 important for both you and us, as it minimizes friction in the process. Following
-the rules of this guide is the prerequisites for your contributions being accepted.
+the rules of this guide is a prerequisites for your contributions being accepted.
 Contributions that do not follow these rules will be rejected.
 
 #### Table of contents
@@ -82,8 +82,9 @@ particular, this excludes:
   where the human operating the agent has not reviewed the output.
 - Any setup where the responsibility for the output cannot be placed onto a
   specific person (e.g. shared accounts, and agent acting under a general
-  organizational identity, or an agent spawned by another agent with no human
-  signing off on that agents output).
+  organizational identity without a clearly identified responsible human, or
+  an agent spawned by another agent with no human signing off on that agents
+  output).
 - Any human sign-off obtained from a human that is not aware of their role
   and responsibility, or any human who has not read both this contributing
   guide *and* the code of conduct.
@@ -273,8 +274,7 @@ To have your PR accepted, you must adhere to the coding conventions of `pebbledo
 - All code must be fully typed and must pass type checking. Take `pyrefly`
   warnings serious and fix your typing when they occur.
 - `pebbledoc` enforces a maximum code complexity via `ruff`. Make sure your
-  functions and classes are neatly separated by responsibility and are not too
-  complex.
+  functions and classes should have clear, focused responsibilities.
 - Disabling linting, formatting, or type checking must only be done in cases
   where it is better for maintainability or readability, or in places where it
   is simply unavoidable. You will be asked to justify all directives where it
@@ -286,7 +286,7 @@ To have your PR accepted, you must adhere to the coding conventions of `pebbledo
 
 ### Testing conventions
 
-You can run the testsuite for `pebbledoc` using
+You can run the test suite for `pebbledoc` using
 
 ```bash
 uv run pytest ./tests/
@@ -320,7 +320,7 @@ As stated before, all members of `pebbledoc` must have a docstring. Of course,
 `pebbledoc` uses the RST format for its docstrings. Modules and test functions
 can have only a single line, providing a brief description. Functions, classes,
 and methods however must have more verbose docstrings. Class docstrings must
-provide an explanation for the classes purpose and how to use it, while function
+provide an explanation for the class's purpose and how to use it, while function
 and method docstrings must additionally document the behavior, the parameters,
 return values, and exceptions that may be raised by them. The docstrings of
 private members should be aimed at other developers, while the docstrings of
@@ -347,5 +347,6 @@ Additionally, the maintainers reserve the right to reject unsolicited PRs if
 the provided changes are not aligning with the purpose or future direction of
 the `pebbledoc` project.
 
-All PRs that merely fix cosmetic issues (e.g. changing only whitespaces, fixing
-some typos, fixing formatting, etc.) will be rejected.
+All PRs that merely fix change whitespaces, fix some typos, fix formatting, etc.
+without substantive impact (i.e. fixing factually wrong wording, removing
+ambiguity, or fixing incorrect rendering) will be rejected.
