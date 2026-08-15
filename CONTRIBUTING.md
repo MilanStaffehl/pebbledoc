@@ -308,11 +308,11 @@ the public `markdown_documentation` function would not have provided the
 granularity needed to quickly spot regressions. Use your best judgment for what
 private members require unit test coverage.
 
-Acceptance tests are meant to prove that `pebbledoc` works from end-to-end.
-They mimic user interaction by providing faux user input and inspecting the
-output that would have been written to file by `pebbledoc`. If you implement
-a new feature, you must also provide an acceptance test that tests this feature.
-If you only provide a new RST syntax support, you must add this syntax to the
+Acceptance tests are meant to prove that `pebbledoc` works end-to-end. They
+mimic user interaction by providing faux user input and inspecting the output
+that would have been written to file by `pebbledoc`. If you implement a new
+feature, you must also provide an acceptance test that tests this feature. If
+you only provide a new RST syntax support, you must add this syntax to the
 existing acceptance tests.
 
 ### Documentation conventions
