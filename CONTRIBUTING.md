@@ -275,7 +275,7 @@ To have your PR accepted, you must adhere to the coding conventions of `pebbledo
 - All code must be fully typed and must pass type checking. Take `pyrefly`
   warnings serious and fix your typing when they occur.
 - `pebbledoc` enforces a maximum code complexity via `ruff`. Make sure your
-  functions and classes should have clear, focused responsibilities.
+  functions and classes have clear, focused responsibilities.
 - Disabling linting, formatting, or type checking must only be done in cases
   where it is better for maintainability or readability, or in places where it
   is simply unavoidable. You will be asked to justify all directives where it
