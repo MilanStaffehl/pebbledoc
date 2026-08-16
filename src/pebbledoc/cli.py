@@ -141,6 +141,10 @@ def _update_for_cli_args(
     :return: The config, with all explicitly provided arguments replaced.
     """
     # overwrite with CLI arguments, if given:
+    if args.source_directory is not None:
+        config.source_directory = args.source_directory
+    if args.output is not None:
+        config.output = args.output
     if args.admonition_style is not None:
         config.admonition_style = args.admonition_style
     if args.title is not None:
@@ -266,7 +270,7 @@ def handle_args(args: argparse.Namespace) -> int:
         error(f"Could not locate config file: {exc_info}")
         return 4
 
-    output = Path(args.output) if args.output else Path("API.md")
+    output = Path(config.output).resolve()
     if output.exists() and output.is_dir():
         error("Output must be a file, not a directory")
         return 1
@@ -274,7 +278,7 @@ def handle_args(args: argparse.Namespace) -> int:
         error(f"Output directory {output.parent} does not exist")
         return 1
 
-    source_dir = args.source_directory
+    source_dir = config.source_directory
     if isinstance(source_dir, str):
         source_dir = Path(args.source_directory).resolve()
     if source_dir is not None and not source_dir.exists():

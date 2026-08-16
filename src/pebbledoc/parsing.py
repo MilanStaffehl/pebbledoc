@@ -239,7 +239,7 @@ class SphinxRstVisitor(nodes.SparseNodeVisitor):
 
     .. code-block:: python
 
-        doctree = core.publish_doctree(docstring)
+        doctree = docutils.core.publish_doctree(docstring)
         visitor = SphinxRstVisitor(config, doctree, valid_reference_targets)
         doctree.walkabout(visitor)
         markdown = visitor.astext()
