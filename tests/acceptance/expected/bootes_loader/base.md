@@ -1,10 +1,10 @@
 # bootes_loader documentation
 
-> #### Table of contents
-> - [`bootes_loader`](#bootes_loader)
->   - [`bootes_loader.SUPPORTED_CATALOGS`](#bootes_loadersupported_catalogs)
->   - [`bootes_loader.Catalog`](#bootes_loadercatalog)
->   - [`bootes_loader.load_catalog`](#bootes_loaderload_catalog)
+#### Table of contents
+- [`bootes_loader`](#bootes_loader)
+  - [`bootes_loader.SUPPORTED_CATALOGS`](#bootes_loadersupported_catalogs)
+  - [`bootes_loader.Catalog`](#bootes_loadercatalog)
+  - [`bootes_loader.load_catalog`](#bootes_loaderload_catalog)
 
 
 ## `bootes_loader`

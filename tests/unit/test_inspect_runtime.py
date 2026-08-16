@@ -1330,15 +1330,15 @@ def test_build_toc() -> None:
 
     # check output
     expected = (
-        "> - [`module`](#module)\n"
-        ">   - [`module.member 1`](#modulemember-1)\n"
-        ">   - [`module.member 2`](#modulemember-2)\n"
-        "> - [`module.submodule`](#modulesubmodule)\n"
-        ">   - [`subparent.sub-member 1`](#subparentsub-member-1)\n"
-        ">   - [`subparent.sub-member 2`](#subparentsub-member-2)\n"
-        "> - [`submodule.subsubmodule`](#submodulesubsubmodule)\n"
-        ">   - [`subsubparent.sub-sub-member 1`](#subsubparentsub-sub-member-1)\n"
-        ">   - [`subsubparent.sub-sub-member 2`](#subsubparentsub-sub-member-2)\n"
+        "- [`module`](#module)\n"
+        "  - [`module.member 1`](#modulemember-1)\n"
+        "  - [`module.member 2`](#modulemember-2)\n"
+        "- [`module.submodule`](#modulesubmodule)\n"
+        "  - [`subparent.sub-member 1`](#subparentsub-member-1)\n"
+        "  - [`subparent.sub-member 2`](#subparentsub-member-2)\n"
+        "- [`submodule.subsubmodule`](#submodulesubsubmodule)\n"
+        "  - [`subsubparent.sub-sub-member 1`](#subsubparentsub-sub-member-1)\n"
+        "  - [`subsubparent.sub-sub-member 2`](#subsubparentsub-sub-member-2)\n"
     )
     assert toc == expected
 
@@ -1382,13 +1382,13 @@ def test_build_toc_no_main_module_header() -> None:
 
     # check output
     expected = (
-        "> - [`module.member 1`](#modulemember-1)\n"
-        "> - [`module.member 2`](#modulemember-2)\n"
-        "> - [`module.submodule`](#modulesubmodule)\n"
-        ">   - [`subparent.sub-member 1`](#subparentsub-member-1)\n"
-        ">   - [`subparent.sub-member 2`](#subparentsub-member-2)\n"
-        "> - [`submodule.subsubmodule`](#submodulesubsubmodule)\n"
-        ">   - [`subsubparent.sub-sub-member 1`](#subsubparentsub-sub-member-1)\n"
-        ">   - [`subsubparent.sub-sub-member 2`](#subsubparentsub-sub-member-2)\n"
+        "- [`module.member 1`](#modulemember-1)\n"
+        "- [`module.member 2`](#modulemember-2)\n"
+        "- [`module.submodule`](#modulesubmodule)\n"
+        "  - [`subparent.sub-member 1`](#subparentsub-member-1)\n"
+        "  - [`subparent.sub-member 2`](#subparentsub-member-2)\n"
+        "- [`submodule.subsubmodule`](#submodulesubsubmodule)\n"
+        "  - [`subsubparent.sub-sub-member 1`](#subsubparentsub-sub-member-1)\n"
+        "  - [`subsubparent.sub-sub-member 2`](#subsubparentsub-sub-member-2)\n"
     )
     assert toc == expected

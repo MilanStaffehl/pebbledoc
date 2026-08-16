@@ -624,7 +624,7 @@ def _build_toc(root: Member, config: PebbledocConfig) -> str:
     toc = ""
     full_name = _parent_name(root.name, root.parent)
     if not is_pkg_root or config.main_module_header:
-        toc = f"> - [`{full_name}`](#{util.name_to_ref(full_name)})\n"
+        toc = f"- [`{full_name}`](#{util.name_to_ref(full_name)})\n"
     # iteratively add children, descending into submodules
     for child in root.children:
         full_name = _parent_name(child.name, child.parent)
@@ -635,7 +635,7 @@ def _build_toc(root: Member, config: PebbledocConfig) -> str:
             spacer = (
                 "" if is_pkg_root and not config.main_module_header else "  "
             )
-            toc += f"> {spacer}- [`{full_name}`](#{ref_target})\n"
+            toc += f"{spacer}- [`{full_name}`](#{ref_target})\n"
     return toc
 
 
@@ -682,7 +682,7 @@ def markdown_documentation(
 
     # build TOC
     if config.include_toc:
-        toc = "> #### Table of contents\n"
+        toc = "#### Table of contents\n"
         toc += _build_toc(root, config)
         toc += "\n\n"
     else:

@@ -1,16 +1,16 @@
 # stellarium_lite documentation
 
-> #### Table of contents
-> - [`stellarium_lite`](#stellarium_lite)
->   - [`stellarium_lite.load_catalog`](#stellarium_liteload_catalog)
->   - [`stellarium_lite.CelestialObject`](#stellarium_litecelestialobject)
->   - [`stellarium_lite.Star`](#stellarium_litestar)
-> - [`stellarium_lite.observation`](#stellarium_liteobservation)
->   - [`stellarium_lite.observation.plan_session`](#stellarium_liteobservationplan_session)
->   - [`stellarium_lite.observation.ObservableMixin`](#stellarium_liteobservationobservablemixin)
->   - [`stellarium_lite.observation.VariableStar`](#stellarium_liteobservationvariablestar)
->   - [`stellarium_lite.observation.HybridObject`](#stellarium_liteobservationhybridobject)
->   - [`stellarium_lite.observation.Observation`](#stellarium_liteobservationobservation)
+#### Table of contents
+- [`stellarium_lite`](#stellarium_lite)
+  - [`stellarium_lite.load_catalog`](#stellarium_liteload_catalog)
+  - [`stellarium_lite.CelestialObject`](#stellarium_litecelestialobject)
+  - [`stellarium_lite.Star`](#stellarium_litestar)
+- [`stellarium_lite.observation`](#stellarium_liteobservation)
+  - [`stellarium_lite.observation.plan_session`](#stellarium_liteobservationplan_session)
+  - [`stellarium_lite.observation.ObservableMixin`](#stellarium_liteobservationobservablemixin)
+  - [`stellarium_lite.observation.VariableStar`](#stellarium_liteobservationvariablestar)
+  - [`stellarium_lite.observation.HybridObject`](#stellarium_liteobservationhybridobject)
+  - [`stellarium_lite.observation.Observation`](#stellarium_liteobservationobservation)
 
 
 ## `stellarium_lite`
