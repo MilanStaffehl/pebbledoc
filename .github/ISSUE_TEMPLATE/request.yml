@@ -2,7 +2,6 @@ name: Request
 description: Request a feature or an improvement.
 title: "Request: "
 labels: ["request"]
-type: request
 body:
   - type: markdown
     attributes:
