@@ -199,12 +199,78 @@ def _render_admonition(
 
 
 class SphinxRstVisitor(nodes.SparseNodeVisitor):
+    """
+    Visit or class for parsing RST into GitHub-flavored Markdown.
+
+    Implementation of a docutils visitor class that parses RST into
+    GitHub-flavored Markdown, including support for some Sphinx-specific
+    RST syntax. The class acts as a visitor in a visitor pattern, and
+    visits elements of a doctree previously built from an RST document
+    or string. Support for various RST elements is added by implementing
+    the ``visit_*`` and ``depart_*`` methods of the corresponding tree
+    element.
+
+    The class parses RST by building a stack of text elements in Markdown
+    onto which each visit adds content. Once the visitor has traversed
+    the entire doctree, the resulting text can be retrieved as a string
+    using the ``astext`` method. In order to properly parse nested
+    structures such as nested lists or RST inside of blocks, the class
+    also keeps record of where it is inside a list, or inside a block.
+    It does so by two separate stacks ``self.block_context`` and
+    ``self.list_context``. The latter uses a special type
+    :class:`ListContext` to save important context information for the
+    current position in a list.
+
+    The visitor can be configured using a ``pebbledoc`` configuration
+    object, which determines how certain RST elements are parsed. Most
+    notably, this determines the Markdown representation of admonitions.
+
+    Since the visitor supports parsing Sphinx-style references such as
+    :literal:` :meth:`SphinxRstVisitor.astext` `, it also allows to
+    provide a set of valid link targets. In the context of ``pebbledoc``
+    this is particularly useful as the created document might not contain
+    all members of a package, even though references to them might exist
+    in docstrings (think of private functions for example). To avoid
+    generating dead references in the Markdown output, the visitor will
+    render all references whose target are not in the set of valid targets
+    as plain inline literal instead.
+
+    You can use the visitor like so:
+
+    .. code-block:: python
+
+        doctree = core.publish_doctree(docstring)
+        visitor = SphinxRstVisitor(config, doctree, valid_reference_targets)
+        doctree.walkabout(visitor)
+        markdown = visitor.astext()
+
+    The exact snippet above is also wrapped into a convenient function,
+    :func:`parse_docstring`. Use this function, unless you really need a
+    new visitor. To parse multiple doctree nodes at once, you can also
+    use the :func:`_parse_multiple_nodes` function.
+    """
+
     def __init__(
         self,
         config: PebbledocConfig,
         document: nodes.document,
         valid_targets: set[str] | None = None,
     ) -> None:
+        """
+        :param config: The pebbledoc configuration object with options
+            for how to parse RST to Markdown.
+        :param document: The docutils document upon which the visitor
+            is to be built.
+        :param valid_targets: A set of strings, giving all valid targets
+            for Sphinx-style references, or None. When set to None, all
+            references will be parsed as links to their respective targets,
+            which can lead to dead links. If a set is provided, only
+            references with targets in that set are parsed as links. All
+            references with targets not in the set are parsed as plain
+            inline literals instead, preventing dead links from appearing.
+            This does not affect internal or external links, only Sphinx-
+            style references.
+        """
         super().__init__(document)
         self.config: PebbledocConfig = config
         self.valid_targets = valid_targets
