@@ -1,0 +1,98 @@
+name: Bug Report
+description: File a bug report.
+title: "Bug: "
+labels: ["bug"]
+type: bug
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thank you for submitting a report! Please make sure to provide as much relevant details as possible.
+
+  - type: checkboxes
+    id: pre-flight-checks
+    attributes:
+      label: Pre-flight checks
+      description: "I confirm that I have followed these steps before submitting my report:"
+      options:
+        - label: |
+            I have read the [contributing guide](https://github.com/MilanStaffehl/pebbledoc/blob/main/CONTRIBUTING.md)
+          required: true
+        - label: |
+            I have read and will adhere to the
+            [Code of Conduct](https://github.com/MilanStaffehl/pebbledoc/blob/main/CODE_OF_CONDUCT.md)
+          required: true
+        - label: |
+            I have checked the bug has not already been reported by someone else
+          required: true
+
+  - type: textarea
+    id: bug-description
+    validations:
+      required: true
+    attributes:
+      label: Describe the bug
+      description: |
+        How did you encounter the bug? What steps were you performing? What did
+        you expect to happen?
+      placeholder: Tell us how you encountered the bug
+
+  - type: textarea
+    id: reproduce-example
+    attributes:
+      label: Example to reproduce
+      description: |
+        If you can, provide a minimal code example below that reproduces the bug
+        when following the steps you described above. You can also upload files
+        further below.
+      placeholder: "# provide a minimum code example that produces the bug"
+      render: Python
+
+  - type: input
+    id: python-version
+    validations:
+      required: true
+    attributes:
+      label: Python version
+      description: Please tell us under what Python version the bug occurred.
+      placeholder: "e.g. 3.13"
+
+  - type: input
+    id: pebbeldoc-version
+    validations:
+      required: true
+    attributes:
+      label: pebbledoc version
+      description: Please tell us what version of pebbledoc you were using.
+      placeholder: "e.g. 0.1.0"
+
+  - type: input
+    id: docutils-version
+    validations:
+      required: false
+    attributes:
+      label: pebbledoc version
+      description: If you know, please tell us what version of docutils you were using.
+      placeholder: "e.g. 0.23"
+
+  - type: input
+    id: markdown-editor
+    attributes:
+      label: Markdown editor/viewer
+      description: "If you were using one: which Markdown editor or viewer are you using?"
+      placeholder: e.g. Typora, marktext, VS Code, ...
+
+  - type: upload
+    id: file-upload
+    validations:
+      required: false
+    attributes:
+      label: "Optional: upload files"
+      description: |
+        If you have any files like screenshots, code examples, faulty Markdown
+        files produced by the bug, etc. you can add them here.
+
+  - type: markdown
+    attributes:
+      value: |
+        Thank you for taking the time to submit a report! It helps us a lot!

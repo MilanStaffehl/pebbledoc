@@ -1,0 +1,61 @@
+name: Request
+description: Request a feature or an improvement.
+title: "Request: "
+labels: ["request"]
+type: bug
+body:
+  - type: markdown
+    attributes:
+      value: |
+        We are happy to help! Before we get started, take some time to check if
+        the following documents already have the information you are looking for:
+
+        - The project [README](https://github.com/MilanStaffehl/pebbledoc/) contains general information on the project
+        - The [FEATURES.md](https://github.com/MilanStaffehl/pebbledoc/blob/main/FEATURES.md) document lists supported, planned and unsupported RST syntax
+        - The [acceptance tests](https://github.com/MilanStaffehl/pebbledoc/tree/main/tests/acceptance) directory contains example applications of `pebbledoc`
+
+        Still haven't found what you are looking for? Fill out the following form
+        and we will get back to you as soon as possible!
+
+        > [!IMPORTANT]
+        >
+        > Please do not report Code of Conduct violations with this form. Instead,
+        > check out the reporting mail address in the Code of Conduct!
+
+  - type: checkboxes
+    id: pre-flight-checks
+    attributes:
+      label: Pre-flight checks
+      description: "I confirm that I have followed these steps before submitting my request:"
+      options:
+        - label: |
+            I have read the [contributing guide](https://github.com/MilanStaffehl/pebbledoc/blob/main/CONTRIBUTING.md)
+          required: true
+        - label: |
+            I have read and will adhere to the
+            [Code of Conduct](https://github.com/MilanStaffehl/pebbledoc/blob/main/CODE_OF_CONDUCT.md)
+          required: true
+
+  - type: textarea
+    id: support-request
+    validations:
+      required: true
+    attributes:
+      label: Describe your question
+      description: |
+        Tell us how we can help: What question do you have? What do you need
+        assistance with?
+      placeholder: Tell us how we can help
+
+  - type: input
+    id: contact
+    attributes:
+      label: Contact information
+      description: |
+        If you want to be contacted via another channel than the GitHub issue,
+        leave contact information here.
+      placeholder: "e.g. user@example.com"
+
+  - type: markdown
+    attributes:
+      value: We will get back to you soon!

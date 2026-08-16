@@ -1,0 +1,75 @@
+name: Request
+description: Request a feature or an improvement.
+title: "Request: "
+labels: ["request"]
+type: bug
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thank you for sharing your ideas!
+
+  - type: checkboxes
+    id: pre-flight-checks
+    attributes:
+      label: Pre-flight checks
+      description: "I confirm that I have followed these steps before submitting my request:"
+      options:
+        - label: |
+            I have read the [contributing guide](https://github.com/MilanStaffehl/pebbledoc/blob/main/CONTRIBUTING.md)
+          required: true
+        - label: |
+            I have read and will adhere to the
+            [Code of Conduct](https://github.com/MilanStaffehl/pebbledoc/blob/main/CODE_OF_CONDUCT.md)
+          required: true
+        - label: |
+            I have checked the feature has not already been requested by someone
+            else and has not been marked as "planned" in the [FEATURES.md](https://github.com/MilanStaffehl/pebbledoc/blob/main/FEATURES.md)
+            document
+          required: true
+
+  - type: textarea
+    id: feature-description
+    validations:
+      required: true
+    attributes:
+      label: Describe your request
+      description: |
+        What new feature would you like to see? How do you think we can improve
+        pebbledoc? Describe your idea as best as you can!
+      placeholder: Tell us what you would like to see
+
+  - type: textarea
+    id: reasoning
+    attributes:
+      label: Reasoning
+      description: |
+        Why do you think this feature or improvement might be useful? Who would
+        benefit from it? Note that this field is mandatory if you request
+        support for RST syntax marked as "not supported" in `FEATURES.md`.
+      placeholder: Tell us why you think the feature is useful
+
+  - type: textarea
+    id: example
+    attributes:
+      label: Example
+      description: |
+        If you would like, show us an example of what your feature could look
+        like: What would the resulting Markdown look like? What would you add
+        to the documents of the project?
+      placeholder: Provide a Markdown example
+
+  - type: upload
+    id: file-upload
+    validations:
+      required: false
+    attributes:
+      label: "Optional: upload files"
+      description: |
+        If you want to add any files to help explain your request, upload
+        them here.
+
+  - type: markdown
+    attributes:
+      value: |
+        Thank you for taking the time to share your idea with us!
