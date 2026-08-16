@@ -202,6 +202,8 @@ The example below shows a full configuration file, showing all available options
 
 [tool.pebbledoc]
 package_name = "my_package"
+source_directory = "~/pylibs/my_package"
+output = "DOCUMENTATION.md"
 admonition_style = "mix"
 document_title = "My Package - documentation"
 document_constants = true
@@ -218,6 +220,8 @@ The following table shows how the configuration options map to the command line 
 | Config key            | CLI flag                  | Notes                                                         |
 |-----------------------|---------------------------|---------------------------------------------------------------|
 | `package_name`        | `--package`               | Also used as the document title if `document_title` isn't set |
+| `source_directory`    | `--source-directory`      | Must be given if package is not installed                     |
+| `output`              | `--output`                | Defaults to `API.md` in the current directory                 |
 | `admonition_style`    | `--admonition-style`      | See [Admonitions](#admonitions) for details on each style     |
 | `document_title`      | `--title`                 | Overrides the default title derived from `package_name`       |
 | `document_constants`  | `--no-include-constants`  | Config default: `true`                                        |
