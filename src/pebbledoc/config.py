@@ -10,6 +10,8 @@ from .types import AdmonitionStyle
 @dataclass(kw_only=True)
 class PebbledocConfig:
     package_name: str = ""
+    source_directory: str | None = None
+    output: str = "API.md"
     admonition_style: AdmonitionStyle = "mix"
     document_title: str | None = None
 

@@ -48,7 +48,7 @@ def assert_write_call(
     # check everything worked
     if output_file is None:
         output_file = "API.md"
-    mock_write.assert_called_once_with(Path(output_file), "w")
+    mock_write.assert_called_once_with(Path(output_file).resolve(), "w")
     handle = mock_write()
     handle.write.assert_called_once()
     assert handle.write.call_count == 1
@@ -321,7 +321,66 @@ def test_pebbledoc_config_file(
         Path("pebbledoc.toml").resolve(),
         "rb",
     )
-    assert mock_open.call_args_list[1].args == (Path("API.md"), "w")
+    assert mock_open.call_args_list[1].args == (Path("API.md").resolve(), "w")
+    handle = mock_open()
+    handle.write.assert_called_once()
+    assert handle.write.call_count == 1
+
+    # check contents
+    actual = handle.write.call_args[0][0]
+    if not actual == expected:
+        lines_actual = actual.splitlines(keepends=True)
+        lines_expected = expected.splitlines(keepends=True)
+        diff = difflib.unified_diff(lines_expected, lines_actual)
+        msg = (
+            f"Output was not identical to expected Markdown:\n\n"
+            f"{''.join(diff)}"
+        )
+        pytest.fail(msg)
+    assert exit_code == 0
+
+
+def test_pebbledoc_config_file_with_output_renamed(
+    mocker: MockerFixture, patch_config_discovery: None
+) -> None:
+    """Test pebbledoc when config file renames the output file."""
+    mock_pyproject = (
+        b"[pebbledoc]\n"
+        b'package_name = "stellarium_lite"\n'
+        b'output = "DOCUMENTATION.md"\n'
+        b'admonition_style = "classic"\n'
+        b"include_back_to_top = false\n"
+        b"include_toc = false\n"
+    )
+    m = mocker.mock_open(read_data=mock_pyproject)
+    mock_open = mocker.patch("pebbledoc.cli.open", m)
+    # ensure the config file "exists"
+    mocker.patch("pathlib.Path.exists", return_value=True)
+    mocker.patch("pathlib.Path.is_file", return_value=True)
+
+    input_file = Path(__file__).parent / "expected" / "from_config_file.md"
+    with open(input_file, "r") as f:
+        expected = f.read()
+    expected += "\n"
+
+    # create a run config and execute the code
+    namespace = utils.prepare_namespace(
+        source_directory=str(Path(__file__).parent / "resources"),
+        config_file="pebbledoc.toml",
+    )
+    exit_code = cli.handle_args(namespace)
+
+    assert (
+        mock_open.call_count == 2
+    )  # once for reading config, once for output
+    assert mock_open.call_args_list[0].args == (
+        Path("pebbledoc.toml").resolve(),
+        "rb",
+    )
+    assert mock_open.call_args_list[1].args == (
+        Path("DOCUMENTATION.md").resolve(),
+        "w",
+    )
     handle = mock_open()
     handle.write.assert_called_once()
     assert handle.write.call_count == 1
@@ -370,8 +429,8 @@ def test_pebbledoc_invalid_output_file(
 
     out = capsys.readouterr()
     expected_msg = (
-        f"{ERROR_PREFIX} Output directory {output_path.parent} does not "
-        f"exist\n"
+        f"{ERROR_PREFIX} Output directory {output_path.parent.resolve()} does "
+        f"not exist\n"
     )
     assert out.err == expected_msg
     assert exit_code == 1
@@ -431,8 +490,9 @@ def test_pebbledoc_unable_to_write_output(
     exit_code = cli.handle_args(namespace)
 
     out = capsys.readouterr()
+    output = Path("API.md").resolve()
     expected_msg = (
-        f"{ERROR_PREFIX} Could not write API.md: Not allowed to write\n"
+        f"{ERROR_PREFIX} Could not write {output}: Not allowed to write\n"
     )
     assert out.err == expected_msg
     assert exit_code == 3
