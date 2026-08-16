@@ -290,6 +290,20 @@ class SphinxRstVisitor(nodes.SparseNodeVisitor):
         """
         return "".join(self.body)
 
+    def clear(self) -> None:
+        """
+        Clear the visitors stacks, resetting it to its initial state.
+
+        This keeps calid targets and the configuration intact, but ensures
+        that a second walkabout yields a clean text, instead of adding
+        the newly visited text to the existing body.
+
+        :return: None.
+        """
+        self.body = []
+        self.block_context = ["paragraph"]
+        self.list_context = []
+
     def _is_valid_target(self, target: str) -> bool:
         """
         Return True if the target is valid according to ``self.valid_targets``.
