@@ -70,7 +70,7 @@ body:
     validations:
       required: false
     attributes:
-      label: pebbledoc version
+      label: docutils version
       description: If you know, please tell us what version of docutils you were using.
       placeholder: "e.g. 0.23"
 
