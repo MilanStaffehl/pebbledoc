@@ -1,8 +1,8 @@
 name: Request
 description: Request a feature or an improvement.
-title: "Request: "
-labels: ["request"]
-type: bug
+title: "Support: "
+labels: ["support"]
+type: support
 body:
   - type: markdown
     attributes:
