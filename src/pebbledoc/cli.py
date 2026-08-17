@@ -9,7 +9,7 @@ import warnings
 from pathlib import Path
 from typing import Final, Never
 
-from pebbledoc import inspect_runtime
+from pebbledoc import documenting
 from pebbledoc.config import PebbledocConfig
 
 # CAUTION: Order of the list determines order of precedence!
@@ -289,7 +289,7 @@ def handle_args(args: argparse.Namespace) -> int:
 
     try:
         package = importlib.import_module(args.package)
-        document_str = inspect_runtime.markdown_documentation(
+        document_str = documenting.markdown_documentation(
             args.package, package, config
         )
     except ImportError as exc_info:

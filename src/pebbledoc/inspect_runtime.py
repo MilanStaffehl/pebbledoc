@@ -18,9 +18,8 @@ from pathlib import Path
 from types import ModuleType
 from typing import Any
 
-from . import util
 from .config import PebbledocConfig
-from .parsing import parse_docstring
+from .util import full_qualified_name
 
 
 @dataclass
@@ -34,72 +33,6 @@ class Member:
     raw_docstring: str
     header_level: int
     children: list[Member] = field(default_factory=list)
-
-
-def _is_local(member: object, package: str) -> bool:
-    """
-    Whether the given member is defined in the specified package.
-
-    :param member: Any Python object.
-    :param package: The name of the package against which to check
-        membership.
-    :return: True, if the member is defined in the specified package,
-        otherwise False.
-    """
-    if inspect.ismodule(member):
-        return getattr(member, "__name__", "").startswith(package)
-    elif hasattr(member, "__module__"):
-        return getattr(member, "__module__", "").startswith(package)
-    # last option: neither a module nor a class/function, probably a const
-    return False
-
-
-def _explicitly_reexported(package: ModuleType) -> list[str]:
-    """
-    Find all members of a package that were explicitly reexported.
-
-    The function parses the file corresponding to the package into an
-    AST tree and extracts all members that were explicitly re-exported.
-    This includes all types of members, even from external packages.
-
-    Names marked as private (starting with an underscore) are excluded.
-
-    :param package: The package whose explicitly re-exported members to
-        extract. Must be an actual package object, not just the name.
-    :return: A list of the names of all members which the package
-        explicitly re-exports.
-    """
-    # attempt to discover origin of the package
-    init_file = None
-    if package.__spec__ is not None:
-        init_file = package.__spec__.origin
-    if init_file is None:
-        init_file = package.__file__
-    if init_file is None:
-        raise FileNotFoundError(
-            f"Unable to find origin of module {package.__name__}"
-        )
-    print(init_file)
-
-    # parse the __init__.py (or other origin) of the package as AST
-    init_file = Path(init_file).resolve()
-    ast_tree = ast.parse(
-        init_file.read_text(encoding="utf-8"),
-        filename=str(init_file),
-    )
-
-    # identify all re-exports and list them, unless private
-    explicit_reexports = set()
-    for node in ast_tree.body:
-        if isinstance(node, ast.Import):
-            for alias in node.names:
-                explicit_reexports.add(
-                    alias.asname or alias.name.split(".", 1)[0]
-                )
-        if isinstance(node, ast.ImportFrom):
-            for alias in node.names:
-                explicit_reexports.add(alias.asname or alias.name)
-    return [m for m in explicit_reexports if not m.startswith("_")]
 
 
 def discover_public_members(module: ModuleType) -> list[str]:
@@ -132,31 +65,22 @@ def discover_public_members(module: ModuleType) -> list[str]:
         if name.startswith("_"):
             # exclude private members
             continue
+        # avoid including external members (constants unfortunately carry
+        # no information on their origin, so external constants will be
+        # included. This is a known limitation):
+        is_local = _is_local(member, module.__name__)
+        is_constant = not hasattr(
+            member, "__module__"
+        ) and not inspect.ismodule(member)
+        if not is_local and not is_constant:
+            continue  # do not include external members into docs
         if inspect.ismodule(member) and name not in explicitly_reexported:
             # Modules that are only in module.__dict__ because we import
-            # something from them, but do not explicitly re-export them
+            # something *from* them, but do not explicitly re-export them
             # themselves do not go into list of public members!
             continue
         public_members.append(name)
     return public_members
-
-
-def _parent_name(name: str, parent_name: str) -> str:
-    """
-    Format the name of a member, depending on the parent name.
-
-    If there is a parent name, the format will be ``parent_name.name``,
-    otherwise the name is returned as-is.
-
-    :param name: Name of the member.
-    :param parent_name: Name of the parent, or an empty string if the
-        parent name shall not be added to the formatted name.
-    :return: The name of the member, spliced with the parent name, if
-        one was given.
-    """
-    if parent_name:
-        return f"{parent_name}.{name}"
-    return name
 
 
 def _signature_str(
@@ -211,101 +135,6 @@ def _signature_str(
     if return_annotation is not inspect.Signature.empty:
         signature_str += f" -> {return_annotation}"
     return signature_str
-
-
-def _valid_reference_targets(member: Member) -> set[str]:
-    """
-    Return a set of valid targets for the member and its children.
-
-    Given a :class:`Member` tree, construct a set of all valid targets
-    that these members will create. This includes the full qualified
-    name of each member, plus all partial names.
-
-    .. note::
-
-        The set will contain *actual* target names, the way that they
-        are written in the Sphinx reference role, i.e. including dots,
-        capitalization, etc. To turn them into Markdown references, they
-        must be run through the :func:`~util.name_to_ref` function first.
-
-    :param member: Any :class:`Member` instance, possibly including
-        children, for which to generate a set of valid target names.
-    :return: A set of valid target names, as they would be given by a
-        valid Sphinx-style reference role.
-    """
-    full_name = _parent_name(member.name, member.parent)
-    parts = full_name.split(".")
-    valid_targets = set([".".join(parts[i:]) for i in range(len(parts))])
-    if member.children:
-        for child in member.children:
-            valid_targets = valid_targets | _valid_reference_targets(child)
-    return valid_targets
-
-
-def _document_member(
-    member: Member,
-    config: PebbledocConfig,
-    valid_reference_targets: set[str] | None = None,
-) -> str:
-    """
-    Create the documentation section for the given member.
-
-    Function also recursively descends into the members children and
-    generates their documentation, and appends it to the member
-    documentation.
-
-    :param member: A member node from the member tree constructed by
-        :func:`_member_module`.
-    :param config: The pebbledoc configuration object.
-    :param valid_reference_targets: A set of valid target names for
-        Sphinx-style reference roles. When given, all references pointing
-        to targets that are not in this set will be rendered as plain
-        inline literals instead of links. When set to None, all
-        references will be rendered as links, even if they end up leading
-        to invalid targets. Defaults to None.
-    :return: Documentation section for ``member`` as a string, formatted
-        as GitHub-flavored Markdown.
-    """
-    snippet = ""
-
-    # add a header, unless suppressed
-    is_pkg_root = member.name == config.package_name
-    exclude_header = is_pkg_root and not config.main_module_header
-    if not exclude_header:
-        # add an anchor for references without the full name
-        full_name = _parent_name(member.name, member.parent)
-        parts = full_name.split(".")
-        targets = [".".join(parts[i:]) for i in range(1, len(parts))]
-        for target in targets:
-            snippet += f'<a name="{util.name_to_ref(target)}"></a>\n'
-        snippet += f"{'#' * member.header_level} "
-        snippet += f"`{full_name}`\n\n"
-        if config.include_back_to_top:
-            if config.document_title:
-                top_header = util.name_to_ref(config.document_title)
-            else:
-                top_header = util.name_to_ref(
-                    f"{config.package_name} documentation"
-                )
-            snippet += f"<sup>[Back to top](#{top_header})</sup>\n\n"
-
-    # Add a signature
-    if member.signature:
-        snippet += f"```Python\n{member.signature}\n```\n\n"
-
-    # Render and add the docstring
-    if member.raw_docstring:
-        snippet += parse_docstring(
-            member.raw_docstring, config, valid_reference_targets
-        )
-        snippet += "\n"
-
-    # Recursively render children as well
-    if member.children:
-        for child in member.children:
-            snippet += _document_member(child, config, valid_reference_targets)
-
-    return snippet
 
 
 def _member_constant(name: str, constant: object, parent: str) -> Member:
@@ -483,7 +312,7 @@ def _member_class(name: str, klass: type, parent: str) -> Member:
     # find all public members of the class
     class_members = [m for m in klass.__dict__.keys() if not m.startswith("_")]
     children = []
-    new_parent = _parent_name(name, parent)
+    new_parent = full_qualified_name(name, parent)
     for child_name in class_members:
         obj = getattr(klass, child_name)
         child_kind = klass.__dict__[child_name]
@@ -556,18 +385,9 @@ def _member_module(
     # find children, create their nodes
     children = []
     sub_modules = []
-    new_parent = _parent_name(name, parent)
+    new_parent = full_qualified_name(name, parent)
     for member_name in public_members:
         member = getattr(module, member_name)
-        # avoid including external members (unfortunately, re-exported
-        # external constants slip past this check - as would modules if
-        # we didn't exclude them explicitly)
-        is_local = _is_local(member, library_name)
-        is_constant = not hasattr(
-            member, "__module__"
-        ) and not inspect.ismodule(member)
-        if not is_local and not is_constant:
-            continue  # do not include external members into docs
         if inspect.isfunction(member):
             children.append(_member_function(member_name, member, new_parent))
         elif inspect.isclass(member):
@@ -596,96 +416,67 @@ def _member_module(
     return node
 
 
-def _build_toc(root: Member, config: PebbledocConfig) -> str:
+def _is_local(member: object, package: str) -> bool:
     """
-    Build a table of contents from the root member node of a package.
+    Whether the given member is defined in the specified package.
 
-    Given a root member node, assembled with for example
-    :func:`_member_module`, this function builds a table of contents with
-    links to the names of all members, and returns it as string. The
-    function will only create the list of sections, not the TOC header.
-
-    .. important::
-
-        To determine when a given node is the root node of a package
-        which we aim to document, the ``config`` object **must** have
-        its ``package_name`` attribute filled with the correct name.
-        Otherwise, the ``no_main_module_header`` option will not be
-        respected.
-
-    :param root: The root :class:`Member` node of a package for which to
-        build a table of contents.
-    :param config: The pebbledoc config object.
-    :return: A nested list of links, pointing to the header of the section
-        for each of the children of ``root``.
+    :param member: Any Python object.
+    :param package: The name of the package against which to check
+        membership.
+    :return: True, if the member is defined in the specified package,
+        otherwise False.
     """
-    # find out if we are handling the top-level node
-    is_pkg_root = root.name == config.package_name
-    toc = ""
-    full_name = _parent_name(root.name, root.parent)
-    if not is_pkg_root or config.main_module_header:
-        toc = f"- [`{full_name}`](#{util.name_to_ref(full_name)})\n"
-    # iteratively add children, descending into submodules
-    for child in root.children:
-        full_name = _parent_name(child.name, child.parent)
-        if child.kind == "module":
-            toc += _build_toc(child, config)  # descend into submodules
-        else:
-            ref_target = util.name_to_ref(full_name)
-            spacer = (
-                "" if is_pkg_root and not config.main_module_header else "  "
-            )
-            toc += f"{spacer}- [`{full_name}`](#{ref_target})\n"
-    return toc
+    if inspect.ismodule(member):
+        return getattr(member, "__name__", "").startswith(package)
+    elif hasattr(member, "__module__"):
+        return getattr(member, "__module__", "").startswith(package)
+    # last option: neither a module nor a class/function, probably a const
+    return False
 
 
-def markdown_documentation(
-    package_name: str,
-    package_obj: ModuleType,
-    config: PebbledocConfig,
-) -> str:
+def _explicitly_reexported(package: ModuleType) -> list[str]:
     """
-    Create a documentation for the package of the given name.
+    Find all members of a package that were explicitly reexported.
 
-    The function imports the package of name ``package_name`` and finds
-    its public API. It does this by looking for a defined ``__all__``
-    in the top-level of the package. If none is found, it instead attempts
-    to discover all public members. Sub-packages and sub-modules are
-    discovered recursively as well.
+    The function parses the file corresponding to the package into an
+    AST tree and extracts all members that were explicitly re-exported.
+    This includes all types of members, even from external packages.
 
-    The function then retrieves the docstring of every member and from
-    them builds a full API documentation, formatted as GitHub-flavored
-    Markdown. The resulting string is returned.
+    Names marked as private (starting with an underscore) are excluded.
 
-    :param package_name: The name of the package as it should appear in
-        the header of the document.
-    :param package_obj: The package to document as a Python object,
-        retrieved for example using ``importlib.import_module``.
-    :param config: A filled pebbledoc config object, detailing how to
-        parse the found docstrings and how to arrange them into the final
-        document.
-    :return: A full API document for the package, formatted as GitHub-
-        flavored Markdown, ready for use as a single-file documentation
-        or insertion into a template.
+    :param package: The package whose explicitly re-exported members to
+        extract. Must be an actual package object, not just the name.
+    :return: A list of the names of all members which the package
+        explicitly re-exports.
     """
-    # Build header
-    if config.document_title:
-        header = f"# {config.document_title}\n\n"
-    else:
-        header = f"# {package_name} documentation\n\n"
+    # attempt to discover origin of the package
+    init_file = None
+    if package.__spec__ is not None:
+        init_file = package.__spec__.origin
+    if init_file is None:
+        init_file = package.__file__
+    if init_file is None:
+        raise FileNotFoundError(
+            f"Unable to find origin of module {package.__name__}"
+        )
+    print(init_file)
 
-    root = _member_module(package_name, package_obj, config, package_name)
-    valid_targets = _valid_reference_targets(root)
-    main_body = _document_member(root, config, valid_targets)
+    # parse the __init__.py (or other origin) of the package as AST
+    init_file = Path(init_file).resolve()
+    ast_tree = ast.parse(
+        init_file.read_text(encoding="utf-8"),
+        filename=str(init_file),
+    )
 
-    # TODO: build an introductory paragraph
-
-    # build TOC
-    if config.include_toc:
-        toc = "#### Table of contents\n"
-        toc += _build_toc(root, config)
-        toc += "\n\n"
-    else:
-        toc = ""
-
-    return f"{header}{toc}{main_body}"
+    # identify all re-exports and list them, unless private
+    explicit_reexports = set()
+    for node in ast_tree.body:
+        if isinstance(node, ast.Import):
+            for alias in node.names:
+                explicit_reexports.add(
+                    alias.asname or alias.name.split(".", 1)[0]
+                )
+        if isinstance(node, ast.ImportFrom):
+            for alias in node.names:
+                explicit_reexports.add(alias.asname or alias.name)
+    return [m for m in explicit_reexports if not m.startswith("_")]

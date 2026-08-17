@@ -12,7 +12,8 @@ libraries.
 """
 
 from .directives import register_sphinx_version_notice_directives
-from .inspect_runtime import discover_public_members, markdown_documentation
+from .documenting import markdown_documentation
+from .inspect_runtime import discover_public_members
 from .parsing import parse_docstring
 from .roles import register_sphinx_reference_roles
 
