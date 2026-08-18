@@ -79,7 +79,7 @@ def test_build_config_pyrpoject(mocker: MockerFixture) -> None:
         b"include_toc = false\n"
     )
     m = mocker.mock_open(read_data=mock_pyproject)
-    mock_open = mocker.patch("pebbledoc.cli.open", m)
+    mock_open = mocker.patch("pebbledoc.config.open", m)
     # ensure that the file "exists"
     mocker.patch("pathlib.Path.exists", return_value=True)
     mocker.patch("pathlib.Path.is_file", return_value=True)
@@ -110,7 +110,7 @@ def test_build_config_pebbledoc_config(mocker: MockerFixture) -> None:
         b"include_toc = false\n"
     )
     m = mocker.mock_open(read_data=mock_pyproject)
-    mock_open = mocker.patch("pebbledoc.cli.open", m)
+    mock_open = mocker.patch("pebbledoc.config.open", m)
     # ensure that the file "exists"
     mocker.patch("pathlib.Path.exists", return_value=True)
     mocker.patch("pathlib.Path.is_file", return_value=True)
@@ -142,7 +142,7 @@ def test_build_config_pyrpoject_cli_override(mocker: MockerFixture) -> None:
         b"include_toc = false\n"
     )
     m = mocker.mock_open(read_data=mock_pyproject)
-    mock_open = mocker.patch("pebbledoc.cli.open", m)
+    mock_open = mocker.patch("pebbledoc.config.open", m)
     # ensure that the file "exists"
     mocker.patch("pathlib.Path.exists", return_value=True)
     mocker.patch("pathlib.Path.is_file", return_value=True)
@@ -182,7 +182,7 @@ def test_build_config_pebbledoc_cli_override(mocker: MockerFixture) -> None:
         b"include_toc = false\n"
     )
     m = mocker.mock_open(read_data=mock_pyproject)
-    mock_open = mocker.patch("pebbledoc.cli.open", m)
+    mock_open = mocker.patch("pebbledoc.config.open", m)
     # ensure that the file "exists"
     mocker.patch("pathlib.Path.exists", return_value=True)
     mocker.patch("pathlib.Path.is_file", return_value=True)
@@ -212,7 +212,7 @@ def test_build_config_pebbledoc_cli_override(mocker: MockerFixture) -> None:
 
 def test_build_config_missing_file(mocker: MockerFixture) -> None:
     """Test building a config when the given config file does not exist."""
-    mock_open = mocker.patch("pebbledoc.cli.open")
+    mock_open = mocker.patch("pebbledoc.config.open")
     # ensure that the file "does not exist"
     mocker.patch("pathlib.Path.exists", return_value=False)
     mocker.patch("pathlib.Path.is_file", return_value=True)
@@ -229,7 +229,7 @@ def test_build_config_missing_file(mocker: MockerFixture) -> None:
 
 def test_build_config_only_directory(mocker: MockerFixture) -> None:
     """Test building a config when the given config file is a dir."""
-    mock_open = mocker.patch("pebbledoc.cli.open")
+    mock_open = mocker.patch("pebbledoc.config.open")
     # ensure that the file "does not exist"
     mocker.patch("pathlib.Path.exists", return_value=True)
     mocker.patch("pathlib.Path.is_file", return_value=False)
@@ -246,7 +246,7 @@ def test_build_config_only_directory(mocker: MockerFixture) -> None:
 
 def test_build_config_invalid_file_name(mocker: MockerFixture) -> None:
     """Test building a config when the given config file name is invalid."""
-    mock_open = mocker.patch("pebbledoc.cli.open")
+    mock_open = mocker.patch("pebbledoc.config.open")
     # ensure that the file "does not exist"
     mocker.patch("pathlib.Path.exists", return_value=True)
     mocker.patch("pathlib.Path.is_file", return_value=True)
@@ -275,7 +275,7 @@ def test_build_config_unsupported_fields(mocker: MockerFixture) -> None:
         b"imaginary_option = false\n"
     )
     m = mocker.mock_open(read_data=mock_pyproject)
-    mock_open = mocker.patch("pebbledoc.cli.open", m)
+    mock_open = mocker.patch("pebbledoc.config.open", m)
     # ensure that the file "exists"
     mocker.patch("pathlib.Path.exists", return_value=True)
     mocker.patch("pathlib.Path.is_file", return_value=True)
@@ -336,7 +336,7 @@ def test_build_config_file_discovery(mocker: MockerFixture) -> None:
         b"include_toc = false\n"
     )
     m = mocker.mock_open(read_data=mock_pyproject)
-    mock_open = mocker.patch("pebbledoc.cli.open", m)
+    mock_open = mocker.patch("pebbledoc.config.open", m)
 
     namespace = utils.prepare_namespace(package="test_package")
     output = cli.build_config(namespace)

@@ -29,7 +29,7 @@ def patch_open(mocker: MockerFixture) -> Mock:
 @pytest.fixture
 def patch_config_discovery(mocker: MockerFixture) -> None:
     """Prevent config file discovery from running."""
-    mocker.patch("pebbledoc.cli._discover_config_file", return_value=None)
+    mocker.patch("pebbledoc.config._discover_config_file", return_value=None)
 
 
 @pytest.fixture
@@ -297,7 +297,9 @@ def test_pebbledoc_config_file(
         b"include_toc = false\n"
     )
     m = mocker.mock_open(read_data=mock_pyproject)
-    mock_open = mocker.patch("pebbledoc.cli.open", m)
+    mock_open = mocker.patch("pebbledoc.config.open", m)
+    m2 = mocker.mock_open()
+    mock_write = mocker.patch("pebbledoc.cli.open", m2)
     # ensure the config file "exists"
     mocker.patch("pathlib.Path.exists", return_value=True)
     mocker.patch("pathlib.Path.is_file", return_value=True)
@@ -314,15 +316,12 @@ def test_pebbledoc_config_file(
     )
     exit_code = cli.handle_args(namespace)
 
-    assert (
-        mock_open.call_count == 2
-    )  # once for reading config, once for output
-    assert mock_open.call_args_list[0].args == (
+    mock_open.assert_called_once_with(
         Path("pebbledoc.toml").resolve(),
         "rb",
     )
-    assert mock_open.call_args_list[1].args == (Path("API.md").resolve(), "w")
-    handle = mock_open()
+    mock_write.assert_called_once_with(Path("API.md").resolve(), "w")
+    handle = mock_write()
     handle.write.assert_called_once()
     assert handle.write.call_count == 1
 
@@ -353,7 +352,9 @@ def test_pebbledoc_config_file_with_output_renamed(
         b"include_toc = false\n"
     )
     m = mocker.mock_open(read_data=mock_pyproject)
-    mock_open = mocker.patch("pebbledoc.cli.open", m)
+    mock_open = mocker.patch("pebbledoc.config.open", m)
+    m2 = mocker.mock_open()
+    mock_write = mocker.patch("pebbledoc.cli.open", m2)
     # ensure the config file "exists"
     mocker.patch("pathlib.Path.exists", return_value=True)
     mocker.patch("pathlib.Path.is_file", return_value=True)
@@ -370,18 +371,15 @@ def test_pebbledoc_config_file_with_output_renamed(
     )
     exit_code = cli.handle_args(namespace)
 
-    assert (
-        mock_open.call_count == 2
-    )  # once for reading config, once for output
-    assert mock_open.call_args_list[0].args == (
+    mock_open.assert_called_once_with(
         Path("pebbledoc.toml").resolve(),
         "rb",
     )
-    assert mock_open.call_args_list[1].args == (
+    mock_write.assert_called_once_with(
         Path("DOCUMENTATION.md").resolve(),
         "w",
     )
-    handle = mock_open()
+    handle = mock_write()
     handle.write.assert_called_once()
     assert handle.write.call_count == 1
 
