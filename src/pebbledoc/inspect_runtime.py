@@ -156,6 +156,72 @@ def _signature_str(
     return signature_str
 
 
+def _is_local(member: object, package: str) -> bool:
+    """
+    Whether the given member is defined in the specified package.
+
+    :param member: Any Python object.
+    :param package: The name of the package against which to check
+        membership.
+    :return: True, if the member is defined in the specified package,
+        otherwise False.
+    """
+    if inspect.ismodule(member):
+        return getattr(member, "__name__", "").startswith(package)
+    elif hasattr(member, "__module__"):
+        return getattr(member, "__module__", "").startswith(package)
+    # last option: neither a module nor a class/function, probably a const
+    return False
+
+
+def _explicitly_reexported(package: ModuleType) -> list[str]:
+    """
+    Find all members of a package that were explicitly reexported.
+
+    The function parses the file corresponding to the package into an
+    AST tree and extracts all members that were explicitly re-exported.
+    This includes all types of members, even from external packages.
+
+    Names marked as private (starting with an underscore) are excluded.
+
+    :param package: The package whose explicitly re-exported members to
+        extract. Must be an actual package object, not just the name.
+    :return: A list of the names of all members which the package
+        explicitly re-exports.
+    """
+    # attempt to discover origin of the package
+    init_file = None
+    if package.__spec__ is not None:
+        init_file = package.__spec__.origin
+    if init_file is None:
+        init_file = package.__file__
+    if init_file is None:
+        raise FileNotFoundError(
+            f"Unable to find origin of module {package.__name__}"
+        )
+    print(init_file)
+
+    # parse the __init__.py (or other origin) of the package as AST
+    init_file = Path(init_file).resolve()
+    ast_tree = ast.parse(
+        init_file.read_text(encoding="utf-8"),
+        filename=str(init_file),
+    )
+
+    # identify all re-exports and list them, unless private
+    explicit_reexports = set()
+    for node in ast_tree.body:
+        if isinstance(node, ast.Import):
+            for alias in node.names:
+                explicit_reexports.add(
+                    alias.asname or alias.name.split(".", 1)[0]
+                )
+        if isinstance(node, ast.ImportFrom):
+            for alias in node.names:
+                explicit_reexports.add(alias.asname or alias.name)
+    return [m for m in explicit_reexports if not m.startswith("_")]
+
+
 def _member_constant(name: str, constant: object, parent: str) -> Member:
     """
     Create a :class:`Member` node for a constant.
@@ -433,69 +499,3 @@ def _member_module(
         children=children + sub_modules,  # submodules follow other members
     )
     return node
-
-
-def _is_local(member: object, package: str) -> bool:
-    """
-    Whether the given member is defined in the specified package.
-
-    :param member: Any Python object.
-    :param package: The name of the package against which to check
-        membership.
-    :return: True, if the member is defined in the specified package,
-        otherwise False.
-    """
-    if inspect.ismodule(member):
-        return getattr(member, "__name__", "").startswith(package)
-    elif hasattr(member, "__module__"):
-        return getattr(member, "__module__", "").startswith(package)
-    # last option: neither a module nor a class/function, probably a const
-    return False
-
-
-def _explicitly_reexported(package: ModuleType) -> list[str]:
-    """
-    Find all members of a package that were explicitly reexported.
-
-    The function parses the file corresponding to the package into an
-    AST tree and extracts all members that were explicitly re-exported.
-    This includes all types of members, even from external packages.
-
-    Names marked as private (starting with an underscore) are excluded.
-
-    :param package: The package whose explicitly re-exported members to
-        extract. Must be an actual package object, not just the name.
-    :return: A list of the names of all members which the package
-        explicitly re-exports.
-    """
-    # attempt to discover origin of the package
-    init_file = None
-    if package.__spec__ is not None:
-        init_file = package.__spec__.origin
-    if init_file is None:
-        init_file = package.__file__
-    if init_file is None:
-        raise FileNotFoundError(
-            f"Unable to find origin of module {package.__name__}"
-        )
-    print(init_file)
-
-    # parse the __init__.py (or other origin) of the package as AST
-    init_file = Path(init_file).resolve()
-    ast_tree = ast.parse(
-        init_file.read_text(encoding="utf-8"),
-        filename=str(init_file),
-    )
-
-    # identify all re-exports and list them, unless private
-    explicit_reexports = set()
-    for node in ast_tree.body:
-        if isinstance(node, ast.Import):
-            for alias in node.names:
-                explicit_reexports.add(
-                    alias.asname or alias.name.split(".", 1)[0]
-                )
-        if isinstance(node, ast.ImportFrom):
-            for alias in node.names:
-                explicit_reexports.add(alias.asname or alias.name)
-    return [m for m in explicit_reexports if not m.startswith("_")]
