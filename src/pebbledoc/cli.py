@@ -288,10 +288,7 @@ def handle_args(args: argparse.Namespace) -> int:
         sys.path.insert(0, str(source_dir))
 
     try:
-        package = importlib.import_module(args.package)
-        document_str = documenting.markdown_documentation(
-            args.package, package, config
-        )
+        document_str = documenting.markdown_documentation(args.package, config)
     except ImportError as exc_info:
         error(
             f"Could not import package {args.package} or its dependencies: {exc_info}"

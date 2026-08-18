@@ -11,6 +11,7 @@ GitHub-flavored Markdown.
 from __future__ import annotations
 
 import ast
+import importlib
 import inspect
 from collections.abc import Callable
 from dataclasses import dataclass, field, fields, is_dataclass
@@ -81,6 +82,24 @@ def discover_public_members(module: ModuleType) -> list[str]:
             continue
         public_members.append(name)
     return public_members
+
+
+def build_member_tree(package: str, config: PebbledocConfig) -> Member:
+    """
+    Construct a member tree of a package by importing it.
+
+    Build a tree of all public members of a package by importing it and
+    discovering all its members. The resulting member tree can be used
+    to document the package.
+
+    :param package: The name of the package. The package must be importable.
+    :param config: The pebbledoc config object.
+    :return: A :class:`Member` object for the package with its children
+        nodes filled, according to its public members.
+    """
+    root_module = importlib.import_module(package)
+    root = _member_module(package, root_module, config, package)
+    return root
 
 
 def _signature_str(

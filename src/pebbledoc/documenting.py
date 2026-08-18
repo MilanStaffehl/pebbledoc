@@ -2,16 +2,13 @@
 
 from __future__ import annotations
 
-from types import ModuleType
-
 from . import parsing, util
 from .config import PebbledocConfig
-from .inspect_runtime import Member, _member_module
+from .inspect_runtime import Member, build_member_tree
 
 
 def markdown_documentation(
     package_name: str,
-    package_obj: ModuleType,
     config: PebbledocConfig,
 ) -> str:
     """
@@ -44,7 +41,7 @@ def markdown_documentation(
     else:
         header = f"# {package_name} documentation\n\n"
 
-    root = _member_module(package_name, package_obj, config, package_name)
+    root = build_member_tree(package_name, config)
     valid_targets = _valid_reference_targets(root)
     main_body = _document_member(root, config, valid_targets)
 
