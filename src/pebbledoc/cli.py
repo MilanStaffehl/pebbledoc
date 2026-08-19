@@ -192,6 +192,7 @@ def _handle_args(args: argparse.Namespace) -> int:
 
 
 def main() -> Never:
+    """Entry point for pebbledoc as a command-line tool."""
     parser = _build_parser()
     args = parser.parse_args()
     sys.exit(_handle_args(args))

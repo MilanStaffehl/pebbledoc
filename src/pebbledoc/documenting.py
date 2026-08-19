@@ -45,8 +45,6 @@ def markdown_documentation(
     valid_targets = _valid_reference_targets(root)
     main_body = _document_member(root, config, valid_targets)
 
-    # TODO: build an introductory paragraph
-
     # build TOC
     if config.include_toc:
         toc = "#### Table of contents\n"

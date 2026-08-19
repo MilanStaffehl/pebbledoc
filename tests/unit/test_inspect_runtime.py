@@ -288,7 +288,7 @@ def check_constant_mock_constant(node: inspect_runtime.Member) -> None:
     assert node.parent == "mock_module"
     assert node.kind == "constant"
     assert node.signature == "MOCK_CONSTANT: float = 3.12"
-    assert node.raw_docstring == ""  # TODO: retrieve docstring
+    assert node.raw_docstring == ""
     assert node.header_level == 3
 
 
@@ -298,7 +298,7 @@ def check_constant_undocumented(node: inspect_runtime.Member) -> None:
     assert node.parent == "mock_module"
     assert node.kind == "constant"
     assert node.signature == "UNDOCUMENTED: bool = False"
-    assert node.raw_docstring == ""  # TODO: retrieve docstring
+    assert node.raw_docstring == ""
     assert node.header_level == 3
 
 
@@ -590,7 +590,7 @@ def test_member_constant_string_types() -> None:
     assert output.parent == "mock_module"
     assert output.kind == "constant"
     assert output.signature == "STRING_CONSTANT: str = 'abc'"
-    assert output.raw_docstring == ""  # TODO: retrieve docstring
+    assert output.raw_docstring == ""
     assert output.header_level == 3
 
 
@@ -607,7 +607,7 @@ def test_member_constant_string_literal_types() -> None:
     assert output.parent == "mock_module"
     assert output.kind == "constant"
     assert output.signature == "STRING_CONSTANT: Literal['abc', 'xyz'] = 'abc'"
-    assert output.raw_docstring == ""  # TODO: retrieve docstring
+    assert output.raw_docstring == ""
     assert output.header_level == 3
 
 
