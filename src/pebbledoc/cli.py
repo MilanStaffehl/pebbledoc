@@ -118,12 +118,12 @@ def _build_parser() -> argparse.ArgumentParser:
     return parser
 
 
-def error(msg: str) -> None:
+def _error(msg: str) -> None:
     """Helper function to emit to ``stderr``."""
     print(f"\033[91mError:\033[0m {msg}", file=sys.stderr)
 
 
-def handle_args(args: argparse.Namespace) -> int:
+def _handle_args(args: argparse.Namespace) -> int:
     """
     Handle the given configuration and run pebbledoc.
 
@@ -147,22 +147,22 @@ def handle_args(args: argparse.Namespace) -> int:
     try:
         config = build_config(args)
     except IOError as exc_info:
-        error(f"Could not locate config file: {exc_info}")
+        _error(f"Could not locate config file: {exc_info}")
         return 4
 
     output = Path(config.output).resolve()
     if output.exists() and output.is_dir():
-        error("Output must be a file, not a directory")
+        _error("Output must be a file, not a directory")
         return 1
     elif not output.parent.exists():
-        error(f"Output directory {output.parent} does not exist")
+        _error(f"Output directory {output.parent} does not exist")
         return 1
 
     source_dir = config.source_directory
     if isinstance(source_dir, str):
         source_dir = Path(args.source_directory).resolve()
     if source_dir is not None and not source_dir.exists():
-        error(f"Source directory {source_dir} does not exist")
+        _error(f"Source directory {source_dir} does not exist")
         return 1
     if source_dir is not None:
         sys.path.insert(0, str(source_dir))
@@ -170,12 +170,12 @@ def handle_args(args: argparse.Namespace) -> int:
     try:
         document_str = documenting.markdown_documentation(args.package, config)
     except ImportError as exc_info:
-        error(
+        _error(
             f"Could not import package {args.package} or its dependencies: {exc_info}"
         )
         return 2
     except FileNotFoundError as exc_info:
-        error(f"One or more (sub-)packages could not be found: {exc_info}")
+        _error(f"One or more (sub-)packages could not be found: {exc_info}")
         return 5
     finally:
         if source_dir is not None:
@@ -185,7 +185,7 @@ def handle_args(args: argparse.Namespace) -> int:
         with open(output, "w") as f:
             f.write(document_str)
     except IOError as exc_info:
-        error(f"Could not write {output}: {exc_info}")
+        _error(f"Could not write {output}: {exc_info}")
         return 3
 
     return 0
@@ -194,4 +194,4 @@ def handle_args(args: argparse.Namespace) -> int:
 def main() -> Never:
     parser = _build_parser()
     args = parser.parse_args()
-    sys.exit(handle_args(args))
+    sys.exit(_handle_args(args))
