@@ -173,7 +173,8 @@ accessibility issues or would like to improve the README? Let us know!
 ## Pull requests
 
 If you want to provide code contributions to `pebbledoc`, you can open a pull
-request.
+request, provided you are a human, or an AI agent fulfilling the conditions
+[described above](#guidelines-for-ai-usage-and-ai-agents).
 
 Pull requests for existing issues are preferred over unsolicited PRs. If you
 find an issue that you would like to work on which has ideally not been assigned
