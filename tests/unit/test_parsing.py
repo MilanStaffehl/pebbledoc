@@ -493,6 +493,16 @@ def test_parse_docstring_standalone_url() -> None:
     assert output == expected
 
 
+def test_parse_docstring_email_address() -> None:
+    """Test parsing a standalone URLs."""
+    default_config = config.PebbledocConfig()
+    rst_str = "This is a paragraph with a mail address: mail@example.com"
+    output = parsing.parse_docstring(rst_str, default_config)
+    # GitHub can auto-render valid links, nothing needs to be done.
+    expected = "This is a paragraph with a mail address: <mail@example.com>\n"
+    assert output == expected
+
+
 def test_parse_docstring_external_hyperlink() -> None:
     """Test parsing an external hyperlinks."""
     default_config = config.PebbledocConfig()
