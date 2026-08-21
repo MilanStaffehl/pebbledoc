@@ -5,7 +5,8 @@
 A tiny mock astronomy package used to exercise an RST-to-Markdown docstring renderer.
 
 This package is not a real astronomy library -- every function is a stub and
-every constant is arbitrary. It exists purely as a fixture.
+every constant is arbitrary. It exists purely as a fixture. If you have any
+questions, *don't* send an email to <user@example.com>!
 
 <a name="default_catalog_name"></a>
 ### `stellarium_lite.DEFAULT_CATALOG_NAME`

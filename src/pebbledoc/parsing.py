@@ -462,6 +462,8 @@ class SphinxRstVisitor(nodes.SparseNodeVisitor):
         target = hyperlink if hyperlink else f"#{reference}"
         if target is None:
             target = "#"  # link with no target
+        if target.startswith("mailto:"):
+            target = f"<{target.removeprefix('mailto:')}>"
         if name is None:
             self.body.append(target)
             raise nodes.SkipNode
