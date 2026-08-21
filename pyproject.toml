@@ -2,10 +2,12 @@
 name = "pebbledoc"
 version = "0.1.0"
 description = "Lightweight API documentation generator for GitHub markdown."
-readme = "README.md"
 authors = [
-    { name = "Milan Staffehl" }
+    { name = "Milan Staffehl", email = "milan.staffehl@gmail.com" }
 ]
+readme = "README.md"
+license = "MIT"
+license-files = ["LICENSE"]
 requires-python = ">=3.13"
 dependencies = [
     "docutils>=0.23",
@@ -13,12 +15,37 @@ dependencies = [
 keywords = [
     "documentation",
     "docs",
+    "doctools",
+    "autodocs",
     "rst",
     "rest",
     "restructuredtext",
     "markdown",
     "github-markdown",
 ]
+classifiers = [
+    "Natural Language :: English",
+    "Intended Audience :: Developers",
+    "Development Status :: 3 - Alpha",
+    "Programming Language :: Python",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3 :: Only",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
+    "Programming Language :: Python :: 3.14",
+    "License :: OSI Approved :: MIT License",
+    "Operating System :: OS Independent",
+    "Topic :: Documentation",
+    "Topic :: Software Development :: Documentation",
+    "Typing :: Typed",
+]
+
+# urls
+[project.urls]
+Github = "https://github.com/MilanStaffehl/pebbledoc"
+Homepage = "https://github.com/MilanStaffehl/pebbledoc"
+Issues = "https://github.com/MilanStaffehl/pebbledoc/issues"
+Changelog = "https://github.com/MilanStaffehl/pebbledoc/blob/main/CHANGELOG.md"
 
 # build system
 [build-system]
@@ -32,12 +59,6 @@ dev = [
     "pytest>=9.1.1",
     "pytest-mock>=3.15.1",
 ]
-
-# urls
-[project.urls]
-Github = "https://github.com/MilanStaffehl/pebbledoc"
-Homepage = "https://github.com/MilanStaffehl/pebbledoc"
-Issues = "https://github.com/MilanStaffehl/pebbledoc/issues"
 
 # entry points
 [project.scripts]
