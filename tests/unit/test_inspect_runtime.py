@@ -5,26 +5,13 @@ from __future__ import annotations
 import importlib
 import inspect
 import sys
-from dataclasses import dataclass, field
 from pathlib import Path
 from types import ModuleType
 from typing import Literal
-from unittest.mock import Mock
 
 import pytest
-from pytest_mock import MockerFixture
 
 from pebbledoc import config, inspect_runtime
-
-
-@pytest.fixture
-def patch_parse_docstring(mocker: MockerFixture) -> Mock:
-    """Patch the function to parse docstrings."""
-    mock_parse_docstring = mocker.patch(
-        "pebbledoc.inspect_runtime.parse_docstring",
-        side_effect=lambda d, c, vt: f"{d.rstrip('\n')}\n",
-    )
-    return mock_parse_docstring
 
 
 @pytest.fixture
@@ -52,10 +39,11 @@ def test_discover_public_members(mock_package: ModuleType) -> None:
     """Test that the mock package is correctly handled by the function."""
     output = inspect_runtime.discover_public_members(mock_package)
     expected = {
-        "sys",
-        "nodes",
-        "Path",
-        "logging",
+        # The commented members are there, but excluded for not being local:
+        # "sys",
+        # "nodes",
+        # "Path",
+        # "logging",
         "MyClass",
         "my_function",
         "submodule_b",
@@ -291,420 +279,6 @@ def test_signature_str_mixed_parameter_types_variadic_positionals() -> None:
     assert output == expected
 
 
-# == TESTS FOR _VALID_REFERENCE_TARGETS ================================
-
-
-def test_valid_reference_targets_single_member() -> None:
-    """Test the function for a single member with no children."""
-    test_member = inspect_runtime.Member(
-        name="test_member",
-        parent="parent",
-        kind="test_kind",
-        signature="test_member = pytest.mock.Mock()",
-        raw_docstring="Mock docstring",
-        header_level=3,
-    )
-    output = inspect_runtime._valid_reference_targets(test_member)
-    expected = {"parent.test_member", "test_member"}
-    assert output == expected
-
-
-def test_valid_reference_targets_member_tree() -> None:
-    """Test the function for a member tree with children."""
-    child_one = inspect_runtime.Member(
-        name="child_one",
-        parent="parent.test_member",
-        kind="test_kind",
-        signature="test_member = pytest.mock.Mock()",
-        raw_docstring="This is child one's docstring.\n\n",
-        header_level=4,
-    )
-    child_two = inspect_runtime.Member(
-        name="child_two",
-        parent="parent.test_member",
-        kind="test_kind",
-        signature="test_member = pytest.mock.Mock()",
-        raw_docstring="This is child two's docstring.\n\n",
-        header_level=4,
-    )
-    test_member = inspect_runtime.Member(
-        name="test_member",
-        parent="parent",
-        kind="test_kind",
-        signature="test_member = pytest.mock.Mock()",
-        raw_docstring="This is a test docstring.",
-        header_level=3,
-        children=[child_one, child_two],
-    )
-    output = inspect_runtime._valid_reference_targets(test_member)
-    expected = {
-        "parent.test_member",
-        "test_member",
-        "parent.test_member.child_one",
-        "test_member.child_one",
-        "child_one",
-        "parent.test_member.child_two",
-        "test_member.child_two",
-        "child_two",
-    }
-    assert output == expected
-
-
-# == TESTS FOR _DOCUMENT_MEMBER ========================================
-
-
-def test_document_member_all_fields(patch_parse_docstring: Mock) -> None:
-    """Test the function for a member with all fields."""
-
-    test_config = config.PebbledocConfig(package_name="parent")
-    test_docstring = "This is a test docstring."
-    test_member = inspect_runtime.Member(
-        name="test_member",
-        parent="parent",
-        kind="test_kind",
-        signature="test_member = pytest.mock.Mock()",
-        raw_docstring=test_docstring,
-        header_level=3,
-    )
-
-    output = inspect_runtime._document_member(test_member, test_config)
-    expected = (
-        '<a name="test_member"></a>\n'
-        "### `parent.test_member`\n\n"
-        "<sup>[Back to top](#parent-documentation)</sup>\n\n"
-        "```Python\n"
-        "test_member = pytest.mock.Mock()\n"
-        "```\n\n"
-        "This is a test docstring.\n\n"
-    )
-    assert output == expected
-    patch_parse_docstring.assert_called_once_with(
-        test_docstring, test_config, None
-    )
-
-
-def test_document_member_parent_hierarchy(patch_parse_docstring: Mock) -> None:
-    """Test the function adds anchors for all parents, except full name."""
-
-    test_config = config.PebbledocConfig(package_name="parent")
-    test_docstring = "This is a test docstring."
-    test_member = inspect_runtime.Member(
-        name="test_member",
-        parent="parent.subparent.subcontainer",
-        kind="test_kind",
-        signature="test_member = pytest.mock.Mock()",
-        raw_docstring=test_docstring,
-        header_level=3,
-    )
-
-    output = inspect_runtime._document_member(test_member, test_config)
-    expected = (
-        '<a name="subparentsubcontainertest_member"></a>\n'
-        '<a name="subcontainertest_member"></a>\n'
-        '<a name="test_member"></a>\n'
-        "### `parent.subparent.subcontainer.test_member`\n\n"
-        "<sup>[Back to top](#parent-documentation)</sup>\n\n"
-        "```Python\n"
-        "test_member = pytest.mock.Mock()\n"
-        "```\n\n"
-        "This is a test docstring.\n\n"
-    )
-    assert output == expected
-    patch_parse_docstring.assert_called_once_with(
-        test_docstring, test_config, None
-    )
-
-
-def test_document_member_no_docstring(patch_parse_docstring: Mock) -> None:
-    """Test the function for a member with no docstring."""
-
-    test_config = config.PebbledocConfig(package_name="parent")
-    test_member = inspect_runtime.Member(
-        name="test_member",
-        parent="parent",
-        kind="test_kind",
-        signature="test_member = pytest.mock.Mock()",
-        raw_docstring="",
-        header_level=3,
-    )
-
-    output = inspect_runtime._document_member(test_member, test_config)
-    expected = (
-        '<a name="test_member"></a>\n'
-        "### `parent.test_member`\n\n"
-        "<sup>[Back to top](#parent-documentation)</sup>\n\n"
-        "```Python\ntest_member = "
-        "pytest.mock.Mock()\n```\n\n"
-    )
-    assert output == expected
-    patch_parse_docstring.assert_not_called()
-
-
-def test_document_member_no_signature(patch_parse_docstring: Mock) -> None:
-    """Test the function for a member with no signature."""
-
-    test_config = config.PebbledocConfig(package_name="parent")
-    test_docstring = "This is a test docstring."
-    test_member = inspect_runtime.Member(
-        name="test_member",
-        parent="parent",
-        kind="test_kind",
-        signature="",
-        raw_docstring=test_docstring,
-        header_level=3,
-    )
-
-    output = inspect_runtime._document_member(test_member, test_config)
-    expected = (
-        '<a name="test_member"></a>\n'
-        "### `parent.test_member`\n\n"
-        "<sup>[Back to top](#parent-documentation)</sup>\n\n"
-        "This is a test docstring.\n\n"
-    )
-    assert output == expected
-    patch_parse_docstring.assert_called_once_with(
-        test_docstring, test_config, None
-    )
-
-
-def test_document_member_header_level(patch_parse_docstring: Mock) -> None:
-    """Test the function for a member with various header levels."""
-
-    test_config = config.PebbledocConfig(package_name="parent")
-    test_docstring = "This is a test docstring."
-    for lvl in range(1, 4):
-        test_member = inspect_runtime.Member(
-            name="test_member",
-            parent="parent",
-            kind="test_kind",
-            signature="test_member = pytest.mock.Mock()",
-            raw_docstring=test_docstring,
-            header_level=lvl,
-        )
-
-        output = inspect_runtime._document_member(test_member, test_config)
-        header_prefix = "#" * lvl
-        expected = (
-            '<a name="test_member"></a>\n'
-            f"{header_prefix} `parent.test_member`\n\n"
-            "<sup>[Back to top](#parent-documentation)</sup>\n\n"
-            "```Python\n"
-            "test_member = pytest.mock.Mock()\n"
-            "```\n\n"
-            "This is a test docstring.\n\n"
-        )
-        assert output == expected
-        patch_parse_docstring.assert_called_once_with(
-            test_docstring, test_config, None
-        )
-        patch_parse_docstring.reset_mock()
-
-
-def test_document_member_children(patch_parse_docstring: Mock) -> None:
-    """Test the function for a member with children."""
-
-    test_config = config.PebbledocConfig(package_name="parent")
-    child_one = inspect_runtime.Member(
-        name="child_one",
-        parent="parent.test_member",
-        kind="test_kind",
-        signature="test_member = pytest.mock.Mock()",
-        raw_docstring="This is child one's docstring.\n\n",
-        header_level=4,
-    )
-    child_two = inspect_runtime.Member(
-        name="child_two",
-        parent="parent.test_member",
-        kind="test_kind",
-        signature="test_member = pytest.mock.Mock()",
-        raw_docstring="This is child two's docstring.\n\n",
-        header_level=4,
-    )
-    test_member = inspect_runtime.Member(
-        name="test_member",
-        parent="parent",
-        kind="test_kind",
-        signature="test_member = pytest.mock.Mock()",
-        raw_docstring="This is a test docstring.",
-        header_level=3,
-        children=[child_one, child_two],
-    )
-
-    output = inspect_runtime._document_member(test_member, test_config)
-    expected = (
-        '<a name="test_member"></a>\n'
-        "### `parent.test_member`\n\n"
-        "<sup>[Back to top](#parent-documentation)</sup>\n\n"
-        "```Python\n"
-        "test_member = pytest.mock.Mock()\n"
-        "```\n\n"
-        "This is a test docstring.\n\n"
-        '<a name="test_memberchild_one"></a>\n'
-        '<a name="child_one"></a>\n'
-        "#### `parent.test_member.child_one`\n\n"
-        "<sup>[Back to top](#parent-documentation)</sup>\n\n"
-        "```Python\n"
-        "test_member = pytest.mock.Mock()\n"
-        "```\n\n"
-        "This is child one's docstring.\n\n"
-        '<a name="test_memberchild_two"></a>\n'
-        '<a name="child_two"></a>\n'
-        "#### `parent.test_member.child_two`\n\n"
-        "<sup>[Back to top](#parent-documentation)</sup>\n\n"
-        "```Python\n"
-        "test_member = pytest.mock.Mock()\n"
-        "```\n\n"
-        "This is child two's docstring.\n\n"
-    )
-    assert output == expected
-    assert patch_parse_docstring.call_count == 3
-    assert patch_parse_docstring.call_args_list[0].args[0] == (
-        "This is a test docstring."
-    )
-    assert patch_parse_docstring.call_args_list[1].args[0] == (
-        "This is child one's docstring.\n\n"
-    )
-    assert patch_parse_docstring.call_args_list[2].args[0] == (
-        "This is child two's docstring.\n\n"
-    )
-
-
-def test_document_member_valid_targets(patch_parse_docstring: Mock) -> None:
-    """Test the function when a set of valid targets is specified."""
-
-    test_config = config.PebbledocConfig(package_name="parent")
-    test_docstring = "This is a test docstring."
-    test_member = inspect_runtime.Member(
-        name="test_member",
-        parent="parent",
-        kind="test_kind",
-        signature="test_member = pytest.mock.Mock()",
-        raw_docstring=test_docstring,
-        header_level=3,
-    )
-
-    valid_targets = {"parent.test_member", "test_member"}
-    output = inspect_runtime._document_member(
-        test_member, test_config, valid_targets
-    )
-    expected = (
-        '<a name="test_member"></a>\n'
-        "### `parent.test_member`\n\n"
-        "<sup>[Back to top](#parent-documentation)</sup>\n\n"
-        "```Python\n"
-        "test_member = pytest.mock.Mock()\n"
-        "```\n\n"
-        "This is a test docstring.\n\n"
-    )
-    assert output == expected
-    patch_parse_docstring.assert_called_once_with(
-        test_docstring, test_config, valid_targets
-    )
-
-
-def test_document_member_no_back_to_top(patch_parse_docstring: Mock) -> None:
-    """Test the function for a member with "Back to top" links disabled."""
-
-    test_config = config.PebbledocConfig(include_back_to_top=False)
-    test_docstring = "This is a test docstring."
-    test_member = inspect_runtime.Member(
-        name="test_member",
-        parent="parent",
-        kind="test_kind",
-        signature="test_member = pytest.mock.Mock()",
-        raw_docstring=test_docstring,
-        header_level=3,
-    )
-
-    output = inspect_runtime._document_member(test_member, test_config)
-    expected = (
-        '<a name="test_member"></a>\n'
-        "### `parent.test_member`\n\n"
-        "```Python\n"
-        "test_member = pytest.mock.Mock()\n"
-        "```\n\n"
-        "This is a test docstring.\n\n"
-    )
-    assert output == expected
-    patch_parse_docstring.assert_called_once_with(
-        test_docstring, test_config, None
-    )
-
-
-def test_document_member_custom_document_title(
-    patch_parse_docstring: Mock,
-) -> None:
-    """Test the function when the document has a custom title."""
-
-    test_config = config.PebbledocConfig(
-        document_title="Custom document title"
-    )
-    test_docstring = "This is a test docstring."
-    test_member = inspect_runtime.Member(
-        name="test_member",
-        parent="parent",
-        kind="test_kind",
-        signature="test_member = pytest.mock.Mock()",
-        raw_docstring=test_docstring,
-        header_level=3,
-    )
-
-    output = inspect_runtime._document_member(test_member, test_config)
-    expected = (
-        '<a name="test_member"></a>\n'
-        "### `parent.test_member`\n\n"
-        "<sup>[Back to top](#custom-document-title)</sup>\n\n"
-        "```Python\n"
-        "test_member = pytest.mock.Mock()\n"
-        "```\n\n"
-        "This is a test docstring.\n\n"
-    )
-    assert output == expected
-    patch_parse_docstring.assert_called_once_with(
-        test_docstring, test_config, None
-    )
-
-
-def test_document_member_no_main_module_header(
-    patch_parse_docstring: Mock,
-) -> None:
-    """Test the function when main module headers are disabled."""
-    test_docstring = "This is a test docstring."
-    test_member = inspect_runtime.Member(
-        name="test_member",
-        parent="",
-        kind="test_kind",
-        signature="",
-        raw_docstring=test_docstring,
-        header_level=2,
-    )
-
-    # test behavior with the option disabled
-    test_config = config.PebbledocConfig(package_name="test_member")
-    output = inspect_runtime._document_member(test_member, test_config)
-    expected = (
-        "## `test_member`\n\n"
-        "<sup>[Back to top](#test_member-documentation)</sup>\n\n"
-        "This is a test docstring.\n\n"
-    )
-    assert output == expected
-    patch_parse_docstring.assert_called_once_with(
-        test_docstring, test_config, None
-    )
-    patch_parse_docstring.reset_mock()
-
-    # ...and once with the option enabled
-    test_config = config.PebbledocConfig(
-        package_name="test_member", main_module_header=False
-    )
-    output = inspect_runtime._document_member(test_member, test_config)
-    expected = "This is a test docstring.\n\n"
-    assert output == expected
-    patch_parse_docstring.assert_called_once_with(
-        test_docstring, test_config, None
-    )
-
-
 # == HELPER FUNCTIONS ==================================================
 
 
@@ -714,7 +288,7 @@ def check_constant_mock_constant(node: inspect_runtime.Member) -> None:
     assert node.parent == "mock_module"
     assert node.kind == "constant"
     assert node.signature == "MOCK_CONSTANT: float = 3.12"
-    assert node.raw_docstring == ""  # TODO: retrieve docstring
+    assert node.raw_docstring == ""
     assert node.header_level == 3
 
 
@@ -724,7 +298,7 @@ def check_constant_undocumented(node: inspect_runtime.Member) -> None:
     assert node.parent == "mock_module"
     assert node.kind == "constant"
     assert node.signature == "UNDOCUMENTED: bool = False"
-    assert node.raw_docstring == ""  # TODO: retrieve docstring
+    assert node.raw_docstring == ""
     assert node.header_level == 3
 
 
@@ -1016,7 +590,7 @@ def test_member_constant_string_types() -> None:
     assert output.parent == "mock_module"
     assert output.kind == "constant"
     assert output.signature == "STRING_CONSTANT: str = 'abc'"
-    assert output.raw_docstring == ""  # TODO: retrieve docstring
+    assert output.raw_docstring == ""
     assert output.header_level == 3
 
 
@@ -1033,7 +607,7 @@ def test_member_constant_string_literal_types() -> None:
     assert output.parent == "mock_module"
     assert output.kind == "constant"
     assert output.signature == "STRING_CONSTANT: Literal['abc', 'xyz'] = 'abc'"
-    assert output.raw_docstring == ""  # TODO: retrieve docstring
+    assert output.raw_docstring == ""
     assert output.header_level == 3
 
 
@@ -1288,107 +862,3 @@ def test_member_module_no_constants(mock_module: ModuleType) -> None:
     assert node.raw_docstring == "Another parent class docstring."
     assert node.header_level == 3
     assert len(node.children) == 0
-
-
-# == FUNCTIONS FOR BUILDING THE DOCS ===================================
-
-
-def test_build_toc() -> None:
-    """Test the function to create TOC lists."""
-
-    @dataclass
-    class MockMember:
-        name: str
-        kind: str
-        parent: str
-        children: list[MockMember] = field(default_factory=list)
-
-    # build a small mock hierarchy
-    subsubmember_1 = MockMember("sub-sub-member 1", "class", "subsubparent")
-    subsubmember_2 = MockMember("sub-sub-member 2", "function", "subsubparent")
-    subsubmodule = MockMember(
-        "subsubmodule", "module", "submodule", [subsubmember_1, subsubmember_2]
-    )
-    submember_1 = MockMember("sub-member 1", "class", "subparent")
-    submember_2 = MockMember("sub-member 2", "function", "subparent")
-    submodule = MockMember(
-        "submodule",
-        "module",
-        "module",
-        [submember_1, submember_2, subsubmodule],
-    )
-    member_1 = MockMember("member 1", "class", "module")
-    member_2 = MockMember("member 2", "function", "module")
-    module = MockMember("module", "class", "", [member_1, member_2, submodule])
-
-    # test the function
-    test_config = config.PebbledocConfig(package_name="module")
-    toc = inspect_runtime._build_toc(
-        module,  # pyrefly: ignore[bad-argument-type]
-        test_config,
-    )
-
-    # check output
-    expected = (
-        "- [`module`](#module)\n"
-        "  - [`module.member 1`](#modulemember-1)\n"
-        "  - [`module.member 2`](#modulemember-2)\n"
-        "- [`module.submodule`](#modulesubmodule)\n"
-        "  - [`subparent.sub-member 1`](#subparentsub-member-1)\n"
-        "  - [`subparent.sub-member 2`](#subparentsub-member-2)\n"
-        "- [`submodule.subsubmodule`](#submodulesubsubmodule)\n"
-        "  - [`subsubparent.sub-sub-member 1`](#subsubparentsub-sub-member-1)\n"
-        "  - [`subsubparent.sub-sub-member 2`](#subsubparentsub-sub-member-2)\n"
-    )
-    assert toc == expected
-
-
-def test_build_toc_no_main_module_header() -> None:
-    """Test the function to create TOC list without the main module header."""
-
-    @dataclass
-    class MockMember:
-        name: str
-        kind: str
-        parent: str
-        children: list[MockMember] = field(default_factory=list)
-
-    # build a small mock hierarchy
-    subsubmember_1 = MockMember("sub-sub-member 1", "class", "subsubparent")
-    subsubmember_2 = MockMember("sub-sub-member 2", "function", "subsubparent")
-    subsubmodule = MockMember(
-        "subsubmodule", "module", "submodule", [subsubmember_1, subsubmember_2]
-    )
-    submember_1 = MockMember("sub-member 1", "class", "subparent")
-    submember_2 = MockMember("sub-member 2", "function", "subparent")
-    submodule = MockMember(
-        "submodule",
-        "module",
-        "module",
-        [submember_1, submember_2, subsubmodule],
-    )
-    member_1 = MockMember("member 1", "class", "module")
-    member_2 = MockMember("member 2", "function", "module")
-    module = MockMember("module", "class", "", [member_1, member_2, submodule])
-
-    # test the function
-    test_config = config.PebbledocConfig(
-        package_name="module", main_module_header=False
-    )
-    toc = inspect_runtime._build_toc(
-        module,  # pyrefly: ignore[bad-argument-type]
-        test_config,
-    )
-
-    # check output
-    expected = (
-        "- [`module.member 1`](#modulemember-1)\n"
-        "- [`module.member 2`](#modulemember-2)\n"
-        "- [`module.submodule`](#modulesubmodule)\n"
-        "  - [`subparent.sub-member 1`](#subparentsub-member-1)\n"
-        "  - [`subparent.sub-member 2`](#subparentsub-member-2)\n"
-        "- [`submodule.subsubmodule`](#submodulesubsubmodule)\n"
-        "  - [`subsubparent.sub-sub-member 1`](#subsubparentsub-sub-member-1)\n"
-        "  - [`subsubparent.sub-sub-member 2`](#subsubparentsub-sub-member-2)\n"
-    )
-    assert toc == expected

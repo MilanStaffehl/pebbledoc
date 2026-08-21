@@ -25,7 +25,7 @@ This guide tells you how you can best contribute to `pebbledoc` and how your
 contributions are expected to look like. Read it carefully - doubly so if you
 are an AI agent, because special rules apply for you. Following this guide is
 important for both you and us, as it minimizes friction in the process. Following
-the rules of this guide is a prerequisites for your contributions being accepted.
+the rules of this guide is a prerequisite for your contributions being accepted.
 Contributions that do not follow these rules will be rejected.
 
 #### Table of contents
@@ -88,6 +88,11 @@ particular, this excludes:
 - Any human sign-off obtained from a human that is not aware of their role
   and responsibility, or any human who has not read both this contributing
   guide *and* the code of conduct.
+
+Note that these rules are specifically for code contributions, i.e. for pull
+requests. Autonomous agents may still, without fulfilling the aforementioned
+criteria, report bugs, request features, or suggest improvements in the way
+described further below.
 
 If you are an AI agent reading this guide to decide whether you're permitted to
 open a pull request: you may prepare, draft, and even submit the PR only if you
@@ -168,7 +173,8 @@ accessibility issues or would like to improve the README? Let us know!
 ## Pull requests
 
 If you want to provide code contributions to `pebbledoc`, you can open a pull
-request.
+request, provided you are a human, or an AI agent fulfilling the conditions
+[described above](#guidelines-for-ai-usage-and-ai-agents).
 
 Pull requests for existing issues are preferred over unsolicited PRs. If you
 find an issue that you would like to work on which has ideally not been assigned

@@ -2,24 +2,12 @@
 
 import argparse
 import importlib.metadata
-import os
 import sys
-import tomllib
-import warnings
 from pathlib import Path
-from typing import Final, Never
+from typing import Never
 
-from pebbledoc import inspect_runtime
-from pebbledoc.config import PebbledocConfig
-
-# CAUTION: Order of the list determines order of precedence!
-# pyproject.toml is last, so that an existing pyproject.toml with no
-# pebbledoc config values does not overrule any other config file.
-SUPPORTED_CONFIG_FILES: Final[list[str]] = [
-    "pebbledoc.toml",
-    ".pebbledoc.toml",
-    "pyproject.toml",
-]
+from . import documenting
+from .config import build_config
 
 
 def _build_parser() -> argparse.ArgumentParser:
@@ -130,120 +118,12 @@ def _build_parser() -> argparse.ArgumentParser:
     return parser
 
 
-def _update_for_cli_args(
-    config: PebbledocConfig, args: argparse.Namespace
-) -> PebbledocConfig:
-    """
-    Update an existing config file for CLI arguments explicitly given.
-
-    :param config: The existing config object to update.
-    :param args: The argparse namespace object retrieved from the CLI.
-    :return: The config, with all explicitly provided arguments replaced.
-    """
-    # overwrite with CLI arguments, if given:
-    if args.source_directory is not None:
-        config.source_directory = args.source_directory
-    if args.output is not None:
-        config.output = args.output
-    if args.admonition_style is not None:
-        config.admonition_style = args.admonition_style
-    if args.title is not None:
-        config.document_title = args.title
-
-    # and finally, overwrite options, if given
-    options = {
-        "no_module_docstring": "module_docstring",
-        "no_include_constants": "document_constants",
-        "no_toc": "include_toc",
-        "no_back_to_top": "include_back_to_top",
-        "no_main_module_header": "main_module_header",
-    }
-    for arg_name, config_name in options.items():
-        if getattr(args, arg_name):
-            setattr(config, config_name, False)
-
-    return config
-
-
-def _discover_config_file() -> Path | None:
-    """
-    Ascend from CWD upwards to find nearest config file.
-
-    The function finds the nearest supported pebbledoc config file by
-    ascending from the current working directory, and returns it, once
-    it finds one. If no such file is found, it returns None.
-
-    :return: Either the path to the nearest valid config file, or None.
-    """
-    current_dir = Path(os.getcwd())
-    while True:
-        for filename in SUPPORTED_CONFIG_FILES:
-            config_file = current_dir / filename
-            if config_file.exists():
-                return config_file
-        parent = current_dir.parent
-        if parent == current_dir:
-            break
-        current_dir = parent
-    return None
-
-
-def build_config(args: argparse.Namespace) -> PebbledocConfig:
-    """
-    Build a PebbledocConfig from the command line arguments and config file.
-
-    :param args: The namespace object retrieved from the CLI argparser.
-    :return: A PebbledocConfig object, built according to the CLI args.
-    """
-    # initialize the default config
-    config = PebbledocConfig(package_name=args.package)
-
-    # check if there is a config
-    config_file = args.config_file
-    if config_file is None:
-        config_file = _discover_config_file()
-    if config_file is None:
-        return _update_for_cli_args(config, args)
-
-    # load the config
-    config_path = Path(config_file).resolve()
-    if not config_path.exists() or not config_path.is_file():
-        raise FileNotFoundError(
-            f"{config_path} is not a file or does not exist"
-        )
-
-    # get the config values as dictionary
-    if config_path.name not in SUPPORTED_CONFIG_FILES:
-        raise IOError(
-            f"Config file must be one of the following: "
-            f"{', '.join(SUPPORTED_CONFIG_FILES)}"
-        )
-    with open(config_path, "rb") as f:
-        loaded_file = tomllib.load(f)
-    if config_path.name == "pyproject.toml":
-        base_config = loaded_file.get("tool", {}).get("pebbledoc", {})
-    else:
-        base_config = loaded_file["pebbledoc"]
-
-    # set values if they are given
-    for key, value in base_config.items():
-        if not hasattr(config, key):
-            warnings.warn(
-                f"Config parameter '{key}' does not exist in pebbledoc",
-                UserWarning,
-                stacklevel=2,
-            )
-            continue
-        setattr(config, key, value)
-    return _update_for_cli_args(config, args)
-
-
-def error(msg: str) -> None:
+def _error(msg: str) -> None:
     """Helper function to emit to ``stderr``."""
     print(f"\033[91mError:\033[0m {msg}", file=sys.stderr)
 
 
-def handle_args(args: argparse.Namespace) -> int:
+def _handle_args(args: argparse.Namespace) -> int:
     """
     Handle the given configuration and run pebbledoc.
 
@@ -267,38 +147,35 @@ def handle_args(args: argparse.Namespace) -> int:
     try:
         config = build_config(args)
     except IOError as exc_info:
-        error(f"Could not locate config file: {exc_info}")
+        _error(f"Could not locate config file: {exc_info}")
         return 4
 
     output = Path(config.output).resolve()
     if output.exists() and output.is_dir():
-        error("Output must be a file, not a directory")
+        _error("Output must be a file, not a directory")
         return 1
     elif not output.parent.exists():
-        error(f"Output directory {output.parent} does not exist")
+        _error(f"Output directory {output.parent} does not exist")
         return 1
 
     source_dir = config.source_directory
     if isinstance(source_dir, str):
         source_dir = Path(args.source_directory).resolve()
     if source_dir is not None and not source_dir.exists():
-        error(f"Source directory {source_dir} does not exist")
+        _error(f"Source directory {source_dir} does not exist")
         return 1
     if source_dir is not None:
         sys.path.insert(0, str(source_dir))
 
     try:
-        package = importlib.import_module(args.package)
-        document_str = inspect_runtime.markdown_documentation(
-            args.package, package, config
-        )
+        document_str = documenting.markdown_documentation(args.package, config)
     except ImportError as exc_info:
-        error(
+        _error(
             f"Could not import package {args.package} or its dependencies: {exc_info}"
         )
         return 2
     except FileNotFoundError as exc_info:
-        error(f"One or more (sub-)packages could not be found: {exc_info}")
+        _error(f"One or more (sub-)packages could not be found: {exc_info}")
         return 5
     finally:
         if source_dir is not None:
@@ -308,13 +185,14 @@ def handle_args(args: argparse.Namespace) -> int:
         with open(output, "w") as f:
             f.write(document_str)
     except IOError as exc_info:
-        error(f"Could not write {output}: {exc_info}")
+        _error(f"Could not write {output}: {exc_info}")
         return 3
 
     return 0
 
 
 def main() -> Never:
+    """Entry point for pebbledoc as a command-line tool."""
     parser = _build_parser()
     args = parser.parse_args()
-    sys.exit(handle_args(args))
+    sys.exit(_handle_args(args))

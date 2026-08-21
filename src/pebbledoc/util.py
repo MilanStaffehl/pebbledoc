@@ -1,5 +1,7 @@
 """Utilities used in multiple modules."""
 
+from __future__ import annotations
+
 import re
 
 
@@ -22,3 +24,21 @@ def name_to_ref(name: str) -> str:
     target = re.sub(r"[^a-z0-9\s\-_]", "", name.lower())
     target = target.strip().replace(" ", "-")
     return target
+
+
+def full_qualified_name(name: str, parent_name: str) -> str:
+    """
+    Format the name of a member, depending on the parent name.
+
+    If there is a parent name, the format will be ``parent_name.name``,
+    otherwise the name is returned as-is.
+
+    :param name: Name of the member.
+    :param parent_name: Name of the parent, or an empty string if the
+        parent name shall not be added to the formatted name.
+    :return: The name of the member, spliced with the parent name, if
+        one was given.
+    """
+    if parent_name:
+        return f"{parent_name}.{name}"
+    return name

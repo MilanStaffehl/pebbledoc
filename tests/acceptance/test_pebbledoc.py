@@ -29,7 +29,7 @@ def patch_open(mocker: MockerFixture) -> Mock:
 @pytest.fixture
 def patch_config_discovery(mocker: MockerFixture) -> None:
     """Prevent config file discovery from running."""
-    mocker.patch("pebbledoc.cli._discover_config_file", return_value=None)
+    mocker.patch("pebbledoc.config._discover_config_file", return_value=None)
 
 
 @pytest.fixture
@@ -81,7 +81,7 @@ def test_pebbledoc_default_setup(
     namespace = utils.prepare_namespace(
         source_directory=str(Path(__file__).parent / "resources")
     )
-    exit_code = cli.handle_args(namespace)
+    exit_code = cli._handle_args(namespace)
 
     assert_write_call(patch_open, namespace.output, expected + "\n")
     assert exit_code == 0
@@ -99,7 +99,7 @@ def test_pebbledoc_member_discovery(
     namespace = utils.prepare_namespace(
         source_directory=str(Path(__file__).parent / "resources")
     )
-    exit_code = cli.handle_args(namespace)
+    exit_code = cli._handle_args(namespace)
 
     assert_write_call(patch_open, namespace.output, expected + "\n")
     assert exit_code == 0
@@ -118,7 +118,7 @@ def test_pebbledoc_different_name(
         source_directory=str(Path(__file__).parent / "resources"),
         output="DOCUMENTATION.md",
     )
-    exit_code = cli.handle_args(namespace)
+    exit_code = cli._handle_args(namespace)
 
     assert_write_call(patch_open, namespace.output, expected + "\n")
     assert exit_code == 0
@@ -141,7 +141,7 @@ def test_pebbledoc_admonition_style(
         source_directory=str(Path(__file__).parent / "resources"),
         admonition_style=admonition_style,
     )
-    exit_code = cli.handle_args(namespace)
+    exit_code = cli._handle_args(namespace)
 
     assert_write_call(patch_open, namespace.output, expected + "\n")
     assert exit_code == 0
@@ -160,7 +160,7 @@ def test_pebbledoc_custom_title(
         source_directory=str(Path(__file__).parent / "resources"),
         title="Custom documentation title",
     )
-    exit_code = cli.handle_args(namespace)
+    exit_code = cli._handle_args(namespace)
 
     assert_write_call(patch_open, namespace.output, expected + "\n")
     assert exit_code == 0
@@ -180,7 +180,7 @@ def test_pebbledoc_no_module_docstring(
         source_directory=str(Path(__file__).parent / "resources"),
         no_module_docstring=True,
     )
-    exit_code = cli.handle_args(namespace)
+    exit_code = cli._handle_args(namespace)
 
     assert_write_call(patch_open, namespace.output, expected + "\n")
     assert exit_code == 0
@@ -199,7 +199,7 @@ def test_pebbledoc_no_include_constants(
         source_directory=str(Path(__file__).parent / "resources"),
         no_include_constants=True,
     )
-    exit_code = cli.handle_args(namespace)
+    exit_code = cli._handle_args(namespace)
 
     assert_write_call(patch_open, namespace.output, expected + "\n")
     assert exit_code == 0
@@ -218,7 +218,7 @@ def test_pebbledoc_no_toc(
         source_directory=str(Path(__file__).parent / "resources"),
         no_toc=True,
     )
-    exit_code = cli.handle_args(namespace)
+    exit_code = cli._handle_args(namespace)
 
     assert_write_call(patch_open, namespace.output, expected + "\n")
     assert exit_code == 0
@@ -237,7 +237,7 @@ def test_pebbledoc_no_back_to_top(
         source_directory=str(Path(__file__).parent / "resources"),
         no_back_to_top=True,
     )
-    exit_code = cli.handle_args(namespace)
+    exit_code = cli._handle_args(namespace)
 
     assert_write_call(patch_open, namespace.output, expected + "\n")
     assert exit_code == 0
@@ -258,7 +258,7 @@ def test_pebbledoc_no_main_module_header(
         source_directory=str(Path(__file__).parent / "resources"),
         no_main_module_header=True,
     )
-    exit_code = cli.handle_args(namespace)
+    exit_code = cli._handle_args(namespace)
 
     assert_write_call(patch_open, namespace.output, expected + "\n")
     assert exit_code == 0
@@ -279,7 +279,7 @@ def test_pebbledoc_untyped_package(
         package="bootes_loader",
         source_directory=str(Path(__file__).parent / "resources"),
     )
-    exit_code = cli.handle_args(namespace)
+    exit_code = cli._handle_args(namespace)
 
     assert_write_call(patch_open, namespace.output, expected + "\n")
     assert exit_code == 0
@@ -297,7 +297,9 @@ def test_pebbledoc_config_file(
         b"include_toc = false\n"
     )
     m = mocker.mock_open(read_data=mock_pyproject)
-    mock_open = mocker.patch("pebbledoc.cli.open", m)
+    mock_open = mocker.patch("pebbledoc.config.open", m)
+    m2 = mocker.mock_open()
+    mock_write = mocker.patch("pebbledoc.cli.open", m2)
     # ensure the config file "exists"
     mocker.patch("pathlib.Path.exists", return_value=True)
     mocker.patch("pathlib.Path.is_file", return_value=True)
@@ -312,17 +314,14 @@ def test_pebbledoc_config_file(
         source_directory=str(Path(__file__).parent / "resources"),
         config_file="pebbledoc.toml",
     )
-    exit_code = cli.handle_args(namespace)
+    exit_code = cli._handle_args(namespace)
 
-    assert (
-        mock_open.call_count == 2
-    )  # once for reading config, once for output
-    assert mock_open.call_args_list[0].args == (
+    mock_open.assert_called_once_with(
         Path("pebbledoc.toml").resolve(),
         "rb",
     )
-    assert mock_open.call_args_list[1].args == (Path("API.md").resolve(), "w")
-    handle = mock_open()
+    mock_write.assert_called_once_with(Path("API.md").resolve(), "w")
+    handle = mock_write()
     handle.write.assert_called_once()
     assert handle.write.call_count == 1
 
@@ -353,7 +352,9 @@ def test_pebbledoc_config_file_with_output_renamed(
         b"include_toc = false\n"
     )
     m = mocker.mock_open(read_data=mock_pyproject)
-    mock_open = mocker.patch("pebbledoc.cli.open", m)
+    mock_open = mocker.patch("pebbledoc.config.open", m)
+    m2 = mocker.mock_open()
+    mock_write = mocker.patch("pebbledoc.cli.open", m2)
     # ensure the config file "exists"
     mocker.patch("pathlib.Path.exists", return_value=True)
     mocker.patch("pathlib.Path.is_file", return_value=True)
@@ -368,20 +369,17 @@ def test_pebbledoc_config_file_with_output_renamed(
         source_directory=str(Path(__file__).parent / "resources"),
         config_file="pebbledoc.toml",
     )
-    exit_code = cli.handle_args(namespace)
+    exit_code = cli._handle_args(namespace)
 
-    assert (
-        mock_open.call_count == 2
-    )  # once for reading config, once for output
-    assert mock_open.call_args_list[0].args == (
+    mock_open.assert_called_once_with(
         Path("pebbledoc.toml").resolve(),
         "rb",
     )
-    assert mock_open.call_args_list[1].args == (
+    mock_write.assert_called_once_with(
         Path("DOCUMENTATION.md").resolve(),
         "w",
     )
-    handle = mock_open()
+    handle = mock_write()
     handle.write.assert_called_once()
     assert handle.write.call_count == 1
 
@@ -411,7 +409,7 @@ def test_pebbledoc_invalid_output_file(
         source_directory=str(Path(__file__).parent / "resources"),
         output=str(Path(__file__).parent),  # dir, not a file
     )
-    exit_code = cli.handle_args(namespace)
+    exit_code = cli._handle_args(namespace)
 
     out = capsys.readouterr()
     assert (
@@ -425,7 +423,7 @@ def test_pebbledoc_invalid_output_file(
         source_directory=str(Path(__file__).parent / "resources"),
         output=str(output_path),
     )
-    exit_code = cli.handle_args(namespace)
+    exit_code = cli._handle_args(namespace)
 
     out = capsys.readouterr()
     expected_msg = (
@@ -445,7 +443,7 @@ def test_pebbledoc_invalid_source_directory(
     namespace = utils.prepare_namespace(
         source_directory=str(source_dir),
     )
-    exit_code = cli.handle_args(namespace)
+    exit_code = cli._handle_args(namespace)
 
     out = capsys.readouterr()
     expected_msg = (
@@ -463,7 +461,7 @@ def test_pebbledoc_import_error(
         package="makebelieve",
         source_directory=str(Path(__file__).parent / "resources"),
     )
-    exit_code = cli.handle_args(namespace)
+    exit_code = cli._handle_args(namespace)
 
     out = capsys.readouterr()
     expected_msg = (
@@ -487,7 +485,7 @@ def test_pebbledoc_unable_to_write_output(
         "pebbledoc.cli.open",
         side_effect=PermissionError("Not allowed to write"),
     )
-    exit_code = cli.handle_args(namespace)
+    exit_code = cli._handle_args(namespace)
 
     out = capsys.readouterr()
     output = Path("API.md").resolve()
@@ -508,7 +506,7 @@ def test_pebbledoc_invalid_config_file(
         source_directory=str(Path(__file__).parent / "resources"),
         config_file=str(config_file),
     )
-    exit_code = cli.handle_args(namespace)
+    exit_code = cli._handle_args(namespace)
 
     out = capsys.readouterr()
     expected_msg = (
@@ -525,7 +523,7 @@ def test_pebbledoc_invalid_config_file(
         source_directory=str(Path(__file__).parent / "resources"),
         config_file="myconfig.yaml",
     )
-    exit_code = cli.handle_args(namespace)
+    exit_code = cli._handle_args(namespace)
 
     out = capsys.readouterr()
     expected_msg = (
@@ -558,7 +556,7 @@ def test_pebbledoc_no_package_origin(
     namespace = utils.prepare_namespace(
         source_directory=str(Path(__file__).parent / "resources"),
     )
-    exit_code = cli.handle_args(namespace)
+    exit_code = cli._handle_args(namespace)
 
     out = capsys.readouterr()
     expected_msg = (

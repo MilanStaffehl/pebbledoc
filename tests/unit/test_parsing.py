@@ -339,6 +339,33 @@ def test_parse_docstring_block_quote_with_attribution() -> None:
     assert output == expected
 
 
+def test_parse_docstring_block_quote_nested() -> None:
+    """Test parsing a block quote."""
+    default_config = config.PebbledocConfig()
+    rst_str = (
+        "This is a preceding paragraph.\n\n"
+        "    This is a block quote.\n"
+        "    It should render as such.\n\n"
+        "        This is a quote within a\n"
+        "        quote - quirky!\n\n"
+        "    Still in the block quote.\n\n"
+        "This is a closing paragraph."
+    )
+    output = parsing.parse_docstring(rst_str, default_config)
+    expected = (
+        "This is a preceding paragraph.\n\n"
+        "> This is a block quote.\n"
+        "> It should render as such.\n"
+        ">\n"
+        "> > This is a quote within a\n"
+        "> > quote - quirky!\n"
+        ">\n"
+        "> Still in the block quote.\n\n"
+        "This is a closing paragraph.\n"
+    )
+    assert output == expected
+
+
 def test_parse_docstring_epigraph() -> None:
     """Test parsing an epigraph directive."""
     default_config = config.PebbledocConfig()
@@ -1286,7 +1313,427 @@ def test_parse_docstring_version_removed() -> None:
 
 
 # == NESTED BLOCKS =====================================================
-# TODO: mixing of block quotes, field lists, version notices, admonitions and lists
+def test_parse_docstring_mixed_block_quote_and_list() -> None:
+    """Test parsing a block quote with a list."""
+    default_config = config.PebbledocConfig()
+
+    # bullet list
+    rst_str = (
+        "This is a preceding paragraph.\n\n"
+        "    This is a quoted paragraph.\n\n"
+        "    - List item one\n"
+        "    - List item two\n"
+        "    - List item three\n\n"
+        "    This is still in the quote\n\n"
+        "This is a closing paragraph.\n"
+    )
+    output = parsing.parse_docstring(rst_str, default_config)
+    expected = (
+        "This is a preceding paragraph.\n\n"
+        "> This is a quoted paragraph.\n"
+        ">\n"
+        "> - List item one\n"
+        "> - List item two\n"
+        "> - List item three\n"
+        ">\n"
+        "> This is still in the quote\n\n"
+        "This is a closing paragraph.\n"
+    )
+    assert output == expected
+
+    # enumerated list
+    rst_str = (
+        "This is a preceding paragraph.\n\n"
+        "    This is a quoted paragraph.\n\n"
+        "    1. List item one\n"
+        "    2. List item two\n"
+        "    3. List item three\n\n"
+        "    This is still in the quote\n\n"
+        "This is a closing paragraph.\n"
+    )
+    output = parsing.parse_docstring(rst_str, default_config)
+    expected = (
+        "This is a preceding paragraph.\n\n"
+        "> This is a quoted paragraph.\n"
+        ">\n"
+        "> 1. List item one\n"
+        "> 2. List item two\n"
+        "> 3. List item three\n"
+        ">\n"
+        "> This is still in the quote\n\n"
+        "This is a closing paragraph.\n"
+    )
+    assert output == expected
+
+
+def test_parse_docstring_mixed_block_quote_and_field_list() -> None:
+    """Test parsing a block quote with a field list."""
+    default_config = config.PebbledocConfig()
+    rst_str = (
+        "This is a preceding paragraph.\n\n"
+        "    This is a quoted paragraph.\n\n"
+        "    :author: Author McAuthorface\n"
+        "    :date: 1995\n"
+        "    :publisher: Random House\n\n"
+        "This is a closing paragraph.\n"
+    )
+    output = parsing.parse_docstring(rst_str, default_config)
+    expected = (
+        "This is a preceding paragraph.\n\n"
+        "> This is a quoted paragraph.\n"
+        ">\n"
+        "> - **author:** Author McAuthorface\n"
+        "> - **date:** 1995\n"
+        "> - **publisher:** Random House\n\n"
+        "This is a closing paragraph.\n"
+    )
+    assert output == expected
+
+
+def test_parse_docstring_mixed_block_quote_and_version_notice() -> None:
+    """Test parsing a block quote with a version notice."""
+    default_config = config.PebbledocConfig()
+    rst_str = (
+        "This is a preceding paragraph.\n\n"
+        "    This is a quoted paragraph.\n\n"
+        "    .. version-added:: 1.0.0\n\n"
+        "        This feature was added in version 1.0.0\n\n"
+        "    This is still inside the quote.\n\n"
+        "This is a closing paragraph."
+    )
+    output = parsing.parse_docstring(rst_str, default_config)
+    expected = (
+        "This is a preceding paragraph.\n\n"
+        "> This is a quoted paragraph.\n"
+        ">\n"
+        "> > :heavy_plus_sign: Added in version 1.0.0: "
+        "This feature was added in version 1.0.0\n"
+        ">\n"
+        "> This is still inside the quote.\n\n"
+        "This is a closing paragraph.\n"
+    )
+    assert output == expected
+
+
+@pytest.mark.xfail(reason="Not yet supported, see issue #89.")
+def test_parse_docstring_mixed_version_notice_and_block_quote() -> None:
+    """Test parsing a version notice with a block quote."""
+    default_config = config.PebbledocConfig()
+    rst_str = (
+        "This is a preceding paragraph.\n\n"
+        ".. version-added:: 1.0.0\n\n"
+        "    This is a first paragraph in the version notice.\n\n"
+        "        This is a block quote inside the notice.\n\n"
+        "This is a closing paragraph."
+    )
+    output = parsing.parse_docstring(rst_str, default_config)
+    expected = (
+        "This is a preceding paragraph.\n\n"
+        "> :heavy_plus_sign: Added in version 1.0.0: This is a first "
+        "paragraph in the version notice.\n"
+        ">\n"
+        "> > This is a block quote inside the notice.\n\n"
+        "This is a closing paragraph.\n"
+    )
+    assert output == expected
+
+
+def test_parse_docstring_mixed_block_quote_and_admonition() -> None:
+    """Test parsing a block quote with an admonition."""
+    default_config = config.PebbledocConfig(admonition_style="github")
+    rst_str = (
+        "This is a preceding paragraph.\n\n"
+        "    This is a quoted paragraph.\n\n"
+        "    .. note::\n\n"
+        "        This is the admonition text.\n\n"
+        "    This is still inside the quote.\n\n"
+        "This is a closing paragraph."
+    )
+    output = parsing.parse_docstring(rst_str, default_config)
+    expected = (
+        "This is a preceding paragraph.\n\n"
+        "> This is a quoted paragraph.\n"
+        ">\n"
+        "> > [!NOTE]\n"
+        "> >\n"
+        "> > This is the admonition text.\n"
+        ">\n"
+        "> This is still inside the quote.\n\n"
+        "This is a closing paragraph.\n"
+    )
+    assert output == expected
+
+
+def test_parse_docstring_mixed_admonition_and_block_quote() -> None:
+    """Test parsing an admonition with a block quote."""
+    default_config = config.PebbledocConfig(admonition_style="github")
+    rst_str = (
+        "This is a preceding paragraph.\n\n"
+        ".. note::\n\n"
+        "    This is a first paragraph in the admonition.\n\n"
+        "        This is a block quote inside the admonition.\n\n"
+        "    This is still in the admonition.\n\n"
+        "This is a closing paragraph."
+    )
+    output = parsing.parse_docstring(rst_str, default_config)
+    expected = (
+        "This is a preceding paragraph.\n\n"
+        "> [!NOTE]\n"
+        ">\n"
+        "> This is a first paragraph in the admonition.\n"
+        ">\n"
+        "> > This is a block quote inside the admonition.\n"
+        ">\n"
+        "> This is still in the admonition.\n\n"
+        "This is a closing paragraph.\n"
+    )
+    assert output == expected
+
+
+@pytest.mark.xfail(reason="Not yet supported, see issue #89.")
+def test_parse_docstring_mixed_version_notice_and_field_list() -> None:
+    """Test parsing a version notice with a field list."""
+    default_config = config.PebbledocConfig()
+    rst_str = (
+        "This is a preceding paragraph.\n\n"
+        ".. version-added:: 1.0.0\n\n"
+        "    This is a first paragraph in the version notice.\n\n"
+        "    :author: Author McAuthorface\n"
+        "    :date: 2026\n"
+        "    :email: author.mcauthorface@example.com\n\n"
+        "This is a closing paragraph."
+    )
+    output = parsing.parse_docstring(rst_str, default_config)
+    expected = (
+        "This is a preceding paragraph.\n\n"
+        "> :heavy_plus_sign: Added in version 1.0.0: This is a first "
+        "paragraph in the version notice.\n"
+        ">\n"
+        "> - **author:** Author McAuthorface\n"
+        "> - **date:** 2026\n"
+        "> - **email:** author.mcauthorface@example.com\n\n"
+        "This is a closing paragraph.\n"
+    )
+    assert output == expected
+
+
+@pytest.mark.xfail(reason="Not yet supported, see issue #89.")
+def test_parse_docstring_mixed_version_notice_and_list() -> None:
+    """Test parsing a version notice with a list."""
+    default_config = config.PebbledocConfig()
+
+    # bullet list
+    rst_str = (
+        "This is a preceding paragraph.\n\n"
+        ".. version-added:: 1.0.0\n\n"
+        "    This is a first paragraph in the version notice.\n\n"
+        "    - List item one\n"
+        "    - List item two\n"
+        "    - List item three\n\n"
+        "This is a closing paragraph."
+    )
+    output = parsing.parse_docstring(rst_str, default_config)
+    expected = (
+        "This is a preceding paragraph.\n\n"
+        "> :heavy_plus_sign: Added in version 1.0.0: This is a first "
+        "paragraph in the version notice.\n"
+        ">\n"
+        "> - List item one\n"
+        "> - List item two\n"
+        "> - List item three\n\n"
+        "This is a closing paragraph.\n"
+    )
+    assert output == expected
+
+    # enumerated list
+    rst_str = (
+        "This is a preceding paragraph.\n\n"
+        ".. version-added:: 1.0.0\n\n"
+        "    This is a first paragraph in the version notice.\n\n"
+        "    1. List item one\n"
+        "    2. List item two\n"
+        "    3. List item three\n\n"
+        "This is a closing paragraph."
+    )
+    output = parsing.parse_docstring(rst_str, default_config)
+    expected = (
+        "This is a preceding paragraph.\n\n"
+        "> :heavy_plus_sign: Added in version 1.0.0: This is a first "
+        "paragraph in the version notice.\n"
+        ">\n"
+        "> 1. List item one\n"
+        "> 2. List item two\n"
+        "> 3. List item three\n\n"
+        "This is a closing paragraph.\n"
+    )
+    assert output == expected
+
+
+@pytest.mark.xfail(reason="Not yet supported, see issue #89.")
+def test_parse_docstring_mixed_version_notice_and_admonition() -> None:
+    """Test parsing a version notice with an admonition."""
+    default_config = config.PebbledocConfig(admonition_style="github")
+    rst_str = (
+        "This is a preceding paragraph.\n\n"
+        ".. version-added:: 1.0.0\n\n"
+        "    This is a first paragraph in the version notice.\n\n"
+        "    .. note::\n\n"
+        "        This is an admonition.\n\n"
+        "    This is still inside the version notice\n\n"
+        "This is a closing paragraph."
+    )
+    output = parsing.parse_docstring(rst_str, default_config)
+    expected = (
+        "This is a preceding paragraph.\n\n"
+        "> :heavy_plus_sign: Added in version 1.0.0: This is a first "
+        "paragraph in the version notice.\n"
+        ">\n"
+        "> > [!NOTE]\n"
+        "> >\n"
+        "> > This is an admonition.\n"
+        ">\n"
+        "> This is still inside the version notice.\n\n"
+        "This is a closing paragraph.\n"
+    )
+    assert output == expected
+
+
+@pytest.mark.xfail(reason="Not yet supported, see issue #89.")
+def test_parse_docstring_mixed_admonition_and_version_notice() -> None:
+    """Test parsing an admonition with a version notice."""
+    default_config = config.PebbledocConfig(admonition_style="github")
+    rst_str = (
+        "This is a preceding paragraph.\n\n"
+        ".. note::\n\n"
+        "    This is a first paragraph in the admonition.\n\n"
+        "    .. version-added:: 1.0.0\n\n"
+        "        This is a version notice.\n\n"
+        "    This is still inside the admonition.\n\n"
+        "This is a closing paragraph."
+    )
+    output = parsing.parse_docstring(rst_str, default_config)
+    expected = (
+        "This is a preceding paragraph.\n\n"
+        "> [!NOTE]\n"
+        ">\n"
+        "> This is a first paragraph in the admonition.\n"
+        "> > :heavy_plus_sign: Added in version 1.0.0:\n"
+        "> >\n"
+        "> > This is a version notice.\n"
+        ">\n"
+        "> This is still inside the admonition.\n\n"
+        "This is a closing paragraph.\n"
+    )
+    assert output == expected
+
+
+def test_parse_docstring_mixed_admonition_and_field_list() -> None:
+    """Test parsing an admonition with a field list."""
+    default_config = config.PebbledocConfig(admonition_style="github")
+    rst_str = (
+        "This is a preceding paragraph.\n\n"
+        ".. note::\n\n"
+        "    This is a first paragraph in the admonition.\n\n"
+        "    :author: Author McAuthorface\n"
+        "    :date: 2026\n"
+        "    :publisher: Publisher\n\n"
+        "This is a closing paragraph."
+    )
+    output = parsing.parse_docstring(rst_str, default_config)
+    expected = (
+        "This is a preceding paragraph.\n\n"
+        "> [!NOTE]\n"
+        ">\n"
+        "> This is a first paragraph in the admonition.\n"
+        ">\n"
+        "> - **author:** Author McAuthorface\n"
+        "> - **date:** 2026\n"
+        "> - **publisher:** Publisher\n\n"
+        "This is a closing paragraph.\n"
+    )
+    assert output == expected
+
+
+def test_parse_docstring_mixed_admonition_and_list() -> None:
+    """Test parsing an admonition with a list."""
+    default_config = config.PebbledocConfig(admonition_style="github")
+
+    # bullet list
+    rst_str = (
+        "This is a preceding paragraph.\n\n"
+        ".. note::\n\n"
+        "    This is a first paragraph in the version notice.\n\n"
+        "    - List item one\n"
+        "    - List item two\n"
+        "    - List item three\n\n"
+        "This is a closing paragraph."
+    )
+    output = parsing.parse_docstring(rst_str, default_config)
+    expected = (
+        "This is a preceding paragraph.\n\n"
+        "> [!NOTE]\n"
+        ">\n"
+        "> This is a first paragraph in the version notice.\n"
+        ">\n"
+        "> - List item one\n"
+        "> - List item two\n"
+        "> - List item three\n\n"
+        "This is a closing paragraph.\n"
+    )
+    assert output == expected
+
+    # enumerated list
+    rst_str = (
+        "This is a preceding paragraph.\n\n"
+        ".. note::\n\n"
+        "    This is a first paragraph in the version notice.\n\n"
+        "    1. List item one\n"
+        "    2. List item two\n"
+        "    3. List item three\n\n"
+        "This is a closing paragraph."
+    )
+    output = parsing.parse_docstring(rst_str, default_config)
+    expected = (
+        "This is a preceding paragraph.\n\n"
+        "> [!NOTE]\n"
+        ">\n"
+        "> This is a first paragraph in the version notice.\n"
+        ">\n"
+        "> 1. List item one\n"
+        "> 2. List item two\n"
+        "> 3. List item three\n\n"
+        "This is a closing paragraph.\n"
+    )
+    assert output == expected
+
+
+def test_parse_docstring_mixed_admonition_and_admonition() -> None:
+    """Test parsing nested admonitions."""
+    default_config = config.PebbledocConfig(admonition_style="github")
+    rst_str = (
+        "This is a preceding paragraph.\n\n"
+        ".. note::\n\n"
+        "    This is a first paragraph in the admonition.\n\n"
+        "    .. important::\n\n"
+        "         This is text in the nested admonition.\n\n"
+        "    This is still in the first admonition.\n\n"
+        "This is a closing paragraph."
+    )
+    output = parsing.parse_docstring(rst_str, default_config)
+    expected = (
+        "This is a preceding paragraph.\n\n"
+        "> [!NOTE]\n"
+        ">\n"
+        "> This is a first paragraph in the admonition.\n"
+        ">\n"
+        "> > [!IMPORTANT]\n"
+        "> >\n"
+        "> > This is text in the nested admonition.\n"
+        ">\n"
+        "> This is still in the first admonition.\n\n"
+        "This is a closing paragraph.\n"
+    )
+    assert output == expected
 
 
 # == FULL DOCSTRING ====================================================
