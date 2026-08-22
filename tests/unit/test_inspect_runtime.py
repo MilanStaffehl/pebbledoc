@@ -941,3 +941,37 @@ def test_member_module_exclude(mock_module: ModuleType) -> None:
     check_class_mock_dataclass(output.children[6])
     check_function_function_with_custom_type(output.children[7])
     check_class_abstract_base_class(output.children[8])
+
+
+def test_member_module_exclude_full_name(mock_module: ModuleType) -> None:
+    """Test the function when members are excluded by full name."""
+    exclude = [
+        "mock_module.mock_function",
+        "mock_module.MockClass.property_readonly",
+        "mock_module.MockClass.static_method",
+        "mock_module.AnotherParent",
+    ]
+    test_config = config.PebbledocConfig(exclude=exclude)
+    output = inspect_runtime._member_module(
+        "mock_module", mock_module, test_config, "mock_module", ""
+    )
+    assert output.name == "mock_module"
+    assert output.parent == ""
+    assert output.kind == "module"
+    assert output.signature == ""
+    assert output.raw_docstring == "Mock module docstring."
+    assert output.header_level == 2
+    assert len(output.children) == 9  # 2 were removed at this level
+
+    # check children
+    check_constant_mock_constant(output.children[0])
+    check_constant_undocumented(output.children[1])
+    # missing here: mock_function, was excluded
+    check_class_mock_class_exclude(output.children[2])
+    check_class_child_class(output.children[3])
+    check_class_grandchild_class(output.children[4])
+    # missing here: the class "AnotherParent", was excluded
+    check_class_multiple_parents(output.children[5])
+    check_class_mock_dataclass(output.children[6])
+    check_function_function_with_custom_type(output.children[7])
+    check_class_abstract_base_class(output.children[8])

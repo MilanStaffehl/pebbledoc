@@ -119,9 +119,7 @@ def _valid_reference_targets(member: Member) -> set[str]:
     :return: A set of valid target names, as they would be given by a
         valid Sphinx-style reference role.
     """
-    full_name = util.full_qualified_name(member.name, member.parent)
-    parts = full_name.split(".")
-    valid_targets = set([".".join(parts[i:]) for i in range(len(parts))])
+    valid_targets = util.all_qualified_names(member.name, member.parent)
     if member.children:
         for child in member.children:
             valid_targets = valid_targets | _valid_reference_targets(child)

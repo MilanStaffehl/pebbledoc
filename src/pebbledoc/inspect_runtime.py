@@ -19,6 +19,7 @@ from pathlib import Path
 from types import ModuleType
 from typing import Any
 
+from . import util
 from .config import PebbledocConfig
 from .util import full_qualified_name
 
@@ -405,7 +406,8 @@ def _member_class(
     for child_name in class_members:
         obj = getattr(klass, child_name)
         child_kind = klass.__dict__[child_name]
-        if child_name in config.exclude:
+        all_names = util.all_qualified_names(child_name, new_parent)
+        if any(name in config.exclude for name in all_names):
             continue  # member was explicitly excluded
         if inspect.isroutine(obj):
             if isinstance(child_kind, staticmethod):
@@ -479,7 +481,8 @@ def _member_module(
     new_parent = full_qualified_name(name, parent)
     for member_name in public_members:
         member = getattr(module, member_name)
-        if member_name in config.exclude:
+        all_names = util.all_qualified_names(member_name, new_parent)
+        if any(n in config.exclude for n in all_names):
             continue  # member was explicitly excluded
         if inspect.isfunction(member):
             children.append(_member_function(member_name, member, new_parent))
