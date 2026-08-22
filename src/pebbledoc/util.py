@@ -42,3 +42,22 @@ def full_qualified_name(name: str, parent_name: str) -> str:
     if parent_name:
         return f"{parent_name}.{name}"
     return name
+
+
+def all_qualified_names(name: str, parent_name: str) -> set[str]:
+    """
+    Find all qualified names of the member.
+
+    Given a member name and the full qualified name of its parent, this
+    function finds the full qualified name of the member and all shortened
+    versions of it (i.e. with prefixes removed).
+
+    :param name: Name of the member.
+    :param parent_name: Full qualified name of the parent member.
+    :return: A list of all names that can refer to the member, from the
+        fully qualified name to the name alone, with prefixes successively
+        removed.
+    """
+    full_name = full_qualified_name(name, parent_name)
+    parts = full_name.split(".")
+    return set([".".join(parts[i:]) for i in range(len(parts))])

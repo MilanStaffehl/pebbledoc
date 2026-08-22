@@ -5,7 +5,7 @@ Config object to hold various input options.
 import tomllib
 import warnings
 from argparse import Namespace
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Final
 
@@ -30,6 +30,7 @@ class PebbledocConfig:
     package_name: str = ""
     source_directory: str | None = None
     output: str = "API.md"
+    exclude: list[str] = field(default_factory=list)
     admonition_style: AdmonitionStyle = "mix"
     document_title: str | None = None
 
@@ -105,6 +106,8 @@ def _update_for_cli_args(
         config.source_directory = args.source_directory
     if args.output is not None:
         config.output = args.output
+    if args.exclude is not None:
+        config.exclude = args.exclude
     if args.admonition_style is not None:
         config.admonition_style = args.admonition_style
     if args.title is not None:

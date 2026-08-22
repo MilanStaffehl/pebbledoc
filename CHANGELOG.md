@@ -7,6 +7,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 while following the version scheme described in the [PyPA version specifiers](https://packaging.python.org/en/latest/specifications/version-specifiers/#version-specifiers)
 document, which is based on PEP440.
 
+## Unreleased
+
+### Added
+
+- Option to exclude members from the documentation ([#97](https://github.com/MilanStaffehl/pebbledoc/pull/97))
+
 ## [0.1.0] - 2026-08-21
 
 ### Added
