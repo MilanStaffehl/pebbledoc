@@ -152,6 +152,8 @@ options:
                         current environment
   -o, --output          name and filepath of the output file
   -c, --config-file     file containing pebbledoc configuration instructions, optional
+  -x, --exclude member [member ...]
+                        names of members to exclude from the documentation, separated by whitespace
   --admonition-style {classic,mix,github,map}
                         rendering style for admonitions:
                         - classic: render all admonitions as block quotes with headers in bold type
@@ -205,6 +207,7 @@ The example below shows a full configuration file, showing all available options
 package_name = "my_package"
 source_directory = "~/pylibs/my_package"
 output = "DOCUMENTATION.md"
+exclude = ["my_function", "MyClass"]
 admonition_style = "mix"
 document_title = "My Package - documentation"
 document_constants = true
@@ -223,6 +226,7 @@ The following table shows how the configuration options map to the command line 
 | `package_name`        | `--package`               | Also used as the document title if `document_title` isn't set |
 | `source_directory`    | `--source-directory`      | Must be given if package is not installed                     |
 | `output`              | `--output`                | Defaults to `API.md` in the current directory                 |
+| `exclude`             | `--exclude`               | Can also be full importable name (e.g. `my_package.MyClass`)  |
 | `admonition_style`    | `--admonition-style`      | See [Admonitions](#admonitions) for details on each style     |
 | `document_title`      | `--title`                 | Overrides the default title derived from `package_name`       |
 | `document_constants`  | `--no-include-constants`  | Config default: `true`                                        |
