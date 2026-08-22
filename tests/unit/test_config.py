@@ -18,6 +18,7 @@ def assert_config(
     package: str = "test_package",
     source_directory: str | None = None,
     output: str = "API.md",
+    exclude: list[str] | None = None,
     admonition_style: str = "mix",
     document_title: str | None = None,
     document_constants: bool = True,
@@ -26,9 +27,12 @@ def assert_config(
     include_back_to_top: bool = True,
 ) -> None:
     """Check that the given config has the expected values."""
+    if exclude is None:
+        exclude = []
+    assert cfg.package_name == package
     assert cfg.source_directory == source_directory
     assert cfg.output == output
-    assert cfg.package_name == package
+    assert cfg.exclude == exclude
     assert cfg.admonition_style == admonition_style
     assert cfg.document_title == document_title
     assert cfg.document_constants is document_constants
@@ -51,6 +55,7 @@ def test_build_config_cli_args() -> None:
         package="test_package",
         source_directory=mock_source_dir,
         output="~/Documents/docs/DOCUMENTATION.md",
+        exclude=["my_func, MyClass"],
         admonition_style="github",
         title="My custom title",
         no_include_constants=True,
@@ -61,6 +66,7 @@ def test_build_config_cli_args() -> None:
         output,
         source_directory=mock_source_dir,
         output="~/Documents/docs/DOCUMENTATION.md",
+        exclude=["my_func, MyClass"],
         admonition_style="github",
         document_title="My custom title",
         document_constants=False,
@@ -74,6 +80,7 @@ def test_build_config_pyrpoject(mocker: MockerFixture) -> None:
         b"[tool.pebbledoc]\n"
         b'source_directory = "~/pylibs/my_package"\n'
         b'package_name = "test_package"\n'
+        b'exclude = ["my_func, MyClass"]\n'
         b'admonition_style = "classic"\n'
         b"include_back_to_top = false\n"
         b"include_toc = false\n"
@@ -92,6 +99,7 @@ def test_build_config_pyrpoject(mocker: MockerFixture) -> None:
         output,
         package="test_package",
         source_directory="~/pylibs/my_package",
+        exclude=["my_func, MyClass"],
         admonition_style="classic",
         include_back_to_top=False,
         include_toc=False,
@@ -105,6 +113,7 @@ def test_build_config_pebbledoc_config(mocker: MockerFixture) -> None:
         b"[pebbledoc]\n"
         b'package_name = "test_package"\n'
         b'source_directory = "~/pylibs/my_package"\n'
+        b'exclude = ["my_func, MyClass"]\n'
         b'admonition_style = "classic"\n'
         b"include_back_to_top = false\n"
         b"include_toc = false\n"
@@ -123,6 +132,7 @@ def test_build_config_pebbledoc_config(mocker: MockerFixture) -> None:
         output,
         package="test_package",
         source_directory="~/pylibs/my_package",
+        exclude=["my_func, MyClass"],
         admonition_style="classic",
         include_back_to_top=False,
         include_toc=False,
@@ -137,6 +147,7 @@ def test_build_config_pyrpoject_cli_override(mocker: MockerFixture) -> None:
         b'package_name = "test_package"\n'
         b'source_directory = "~/pylibs/my_package"\n'
         b'output = "MY_DOCS.md"\n'
+        b'exclude = ["my_func, MyClass"]\n'
         b'admonition_style = "classic"\n'
         b"include_back_to_top = false\n"
         b"include_toc = false\n"
@@ -151,6 +162,7 @@ def test_build_config_pyrpoject_cli_override(mocker: MockerFixture) -> None:
         package="test_package",
         output="DOCUMENTATION.md",
         config_file="pyproject.toml",
+        exclude=["MyClass"],  # only one of the two in the config file
         title="My custom title",
         admonition_style="map",
         no_module_docstring=True,
@@ -161,6 +173,7 @@ def test_build_config_pyrpoject_cli_override(mocker: MockerFixture) -> None:
         package="test_package",
         source_directory="~/pylibs/my_package",
         output="DOCUMENTATION.md",
+        exclude=["MyClass"],  # only the one from the CLI
         admonition_style="map",
         document_title="My custom title",
         include_back_to_top=False,
@@ -177,6 +190,7 @@ def test_build_config_pebbledoc_cli_override(mocker: MockerFixture) -> None:
         b'package_name = "test_package"\n'
         b'source_directory = "~/pylibs/my_package"\n'
         b'output = "MY_DOCS.md"\n'
+        b'exclude = ["my_func, MyClass"]\n'
         b'admonition_style = "classic"\n'
         b"include_back_to_top = false\n"
         b"include_toc = false\n"
@@ -191,6 +205,7 @@ def test_build_config_pebbledoc_cli_override(mocker: MockerFixture) -> None:
         package="test_package",
         source_directory="~/external/projects/my_package",
         config_file="pebbledoc.toml",
+        exclude=["my_decorator"],
         title="My custom title",
         admonition_style="map",
         no_module_docstring=True,
@@ -201,6 +216,7 @@ def test_build_config_pebbledoc_cli_override(mocker: MockerFixture) -> None:
         package="test_package",
         source_directory="~/external/projects/my_package",
         output="MY_DOCS.md",
+        exclude=["my_decorator"],
         admonition_style="map",
         document_title="My custom title",
         include_back_to_top=False,

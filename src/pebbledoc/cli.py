@@ -66,6 +66,17 @@ def _build_parser() -> argparse.ArgumentParser:
         default=None,
     )
     parser.add_argument(
+        "-x",
+        "--exclude",
+        help=(
+            "names of members to exclude from the documentation, separated "
+            "by whitespace"
+        ),
+        metavar="member",
+        nargs="+",
+        default=None,
+    )
+    parser.add_argument(
         "--admonition-style",
         help=(
             "rendering style for admonitions:\n"

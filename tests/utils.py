@@ -9,6 +9,7 @@ def prepare_namespace(
     source_directory: str | None = None,
     output: str | None = None,
     config_file: str | None = None,
+    exclude: list[str] | None = None,
     admonition_style: str | None = None,
     title: str | None = None,
     no_module_docstring: bool = False,

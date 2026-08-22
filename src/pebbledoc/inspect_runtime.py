@@ -369,7 +369,9 @@ def _member_classvar(name: str, classvar: object, parent: str) -> Member:
     return node
 
 
-def _member_class(name: str, klass: type, parent: str) -> Member:
+def _member_class(
+    name: str, klass: type, parent: str, config: PebbledocConfig
+) -> Member:
     """
     Create a :class:`Member` node for a class.
 
@@ -377,6 +379,8 @@ def _member_class(name: str, klass: type, parent: str) -> Member:
 
     :param name: Name of the class.
     :param klass: The class object itself.
+    :param parent: The name of the parent module or class.
+    :param config: The PebbledocConfig, needed for its exclusion list.
     :return: A :class:`Member` node for the class, filled with all
         relevant data.
     """
@@ -401,6 +405,8 @@ def _member_class(name: str, klass: type, parent: str) -> Member:
     for child_name in class_members:
         obj = getattr(klass, child_name)
         child_kind = klass.__dict__[child_name]
+        if child_name in config.exclude:
+            continue  # member was explicitly excluded
         if inspect.isroutine(obj):
             if isinstance(child_kind, staticmethod):
                 decorator = "staticmethod"
@@ -416,7 +422,7 @@ def _member_class(name: str, klass: type, parent: str) -> Member:
         elif isinstance(child_kind, property):
             children.append(_member_property(child_name, obj, new_parent))
         elif inspect.isclass(obj):
-            children.append(_member_class(child_name, obj, new_parent))
+            children.append(_member_class(child_name, obj, new_parent, config))
         elif child_name in fields_set:
             continue  # we do not document fields with defaults
         else:
@@ -473,10 +479,14 @@ def _member_module(
     new_parent = full_qualified_name(name, parent)
     for member_name in public_members:
         member = getattr(module, member_name)
+        if member_name in config.exclude:
+            continue  # member was explicitly excluded
         if inspect.isfunction(member):
             children.append(_member_function(member_name, member, new_parent))
         elif inspect.isclass(member):
-            children.append(_member_class(member_name, member, new_parent))
+            children.append(
+                _member_class(member_name, member, new_parent, config)
+            )
         elif inspect.ismodule(member):
             sub_modules.append(
                 _member_module(
