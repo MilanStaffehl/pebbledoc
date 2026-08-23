@@ -140,7 +140,7 @@ def _build_parser() -> argparse.ArgumentParser:
     )
     options.add_argument(
         "--no-full-toc-name",
-        help="use only short name in table of contents",
+        help="use only shortened member names in table of contents",
         action="store_true",
     )
 

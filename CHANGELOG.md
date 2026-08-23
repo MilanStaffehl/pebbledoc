@@ -14,6 +14,7 @@ document, which is based on PEP440.
 - Option to exclude members from the documentation ([#97](https://github.com/MilanStaffehl/pebbledoc/pull/97))
 - Option to disable collapsible info field lists ([#99](https://github.com/MilanStaffehl/pebbledoc/pull/99))
 - Option to not render Sphinx-style references as links ([#100](https://github.com/MilanStaffehl/pebbledoc/pull/100))
+- Option to create a TOC with shortened member names ([#101](https://github.com/MilanStaffehl/pebbledoc/pull/101))
 
 ### Changed
 

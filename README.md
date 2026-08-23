@@ -183,6 +183,7 @@ formatting:
   --no-collapsible-params
                         render parameter info field lists as static lists instead of collapsible sections
   --no-references       do not turn Sphinx-style references into hyperlinks
+  --no-full-toc-name    use only shortened member names in table of contents
 ```
 
 For a more in-depth description of the configuration options, see the section on [configuration options](#options) below.
@@ -227,6 +228,7 @@ include_back_to_top = true
 main_module_header = true
 collapsible_params = true
 reference_links = true
+full_toc_name = true
 ```
 
 ### Options
@@ -248,6 +250,7 @@ The following table shows how the configuration options map to the command line 
 | `main_module_header`  | `--no-main-module-header` | Config default: `true`                                        |
 | `collapsible_params`  | `--no-collapsible-params` | Config default: `true`                                        |
 | `reference_links`     | `--no-references`         | Config default: `true`                                        |
+| `full_toc_name`       | `--no-full-toc-name`      | Config default: `true`                                        |
 
 ### Admonitions
 
