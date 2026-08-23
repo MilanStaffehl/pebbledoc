@@ -184,6 +184,8 @@ formatting:
                         render parameter info field lists as static lists instead of collapsible sections
   --no-references       do not turn Sphinx-style references into hyperlinks
   --no-full-toc-name    use only shortened member names in table of contents
+  --no-preserve-linewraps
+                        remove line stylistic wraps (singular line breaks) in texts
 ```
 
 For a more in-depth description of the configuration options, see the section on [configuration options](#options) below.
@@ -229,6 +231,7 @@ main_module_header = true
 collapsible_params = true
 reference_links = true
 full_toc_name = true
+keep_linewraps = true
 ```
 
 ### Options
@@ -251,6 +254,7 @@ The following table shows how the configuration options map to the command line 
 | `collapsible_params`  | `--no-collapsible-params` | Config default: `true`                                        |
 | `reference_links`     | `--no-references`         | Config default: `true`                                        |
 | `full_toc_name`       | `--no-full-toc-name`      | Config default: `true`                                        |
+| `keep_linewraps`      | `--no-preserve-linewraps` | Config default: `true`                                        |
 
 ### Admonitions
 
