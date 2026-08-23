@@ -143,6 +143,11 @@ def _build_parser() -> argparse.ArgumentParser:
         help="use only shortened member names in table of contents",
         action="store_true",
     )
+    options.add_argument(
+        "--no-preserve-linewraps",
+        help="remove line wraps in texts",
+        action="store_true",
+    )
 
     return parser
 

@@ -80,6 +80,33 @@ def test_parse_docstring_paragraph_with_line_break() -> None:
     assert output == expected
 
 
+def test_parse_docstring_paragraph_remove_line_break() -> None:
+    """Test the option to remove line wrapping line breaks."""
+    default_config = config.PebbledocConfig(keep_linewraps=False)
+    rst_str = "This is a simple paragraph.\nIt is wrapped at the line end."
+    output = parsing.parse_docstring(rst_str, default_config)
+    expected = "This is a simple paragraph. It is wrapped at the line end.\n"
+    assert output == expected
+
+
+def test_parse_docstring_paragraph_double_line_break() -> None:
+    """Test parsing a double paragraph."""
+    default_config = config.PebbledocConfig()
+    rst_str = "This is a simple paragraph.\n\nThis is another paragraph."
+    output = parsing.parse_docstring(rst_str, default_config)
+    expected = "This is a simple paragraph.\n\nThis is another paragraph.\n"
+    assert output == expected
+
+
+def test_parse_docstring_paragraph_keep_double_line_break() -> None:
+    """Test that ``keep_linewraps = False`` preserves double line breaks."""
+    default_config = config.PebbledocConfig(keep_linewraps=False)
+    rst_str = "This is a simple paragraph.\n\nThis is another paragraph."
+    output = parsing.parse_docstring(rst_str, default_config)
+    expected = "This is a simple paragraph.\n\nThis is another paragraph.\n"
+    assert output == expected
+
+
 def test_parse_docstring_emphasize() -> None:
     """Test parsing a paragraph with emphasized text."""
     default_config = config.PebbledocConfig()
@@ -361,6 +388,28 @@ def test_parse_docstring_block_quote_nested() -> None:
         "> > quote - quirky!\n"
         ">\n"
         "> Still in the block quote.\n\n"
+        "This is a closing paragraph.\n"
+    )
+    assert output == expected
+
+
+def test_parse_docstring_block_quote_remove_linewraps() -> None:
+    """Test parsing a block quote when removing line wraps."""
+    default_config = config.PebbledocConfig(keep_linewraps=False)
+    rst_str = (
+        "This is a preceding paragraph.\n\n"
+        "    This is a block quote.\n"
+        "    It should render as such.\n\n"
+        "    This is a second paragraph in\n"
+        "    the block quote.\n\n"
+        "This is a closing paragraph."
+    )
+    output = parsing.parse_docstring(rst_str, default_config)
+    expected = (
+        "This is a preceding paragraph.\n\n"
+        "> This is a block quote. It should render as such.\n"
+        ">\n"
+        "> This is a second paragraph in the block quote.\n\n"
         "This is a closing paragraph.\n"
     )
     assert output == expected
