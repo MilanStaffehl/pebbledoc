@@ -40,6 +40,7 @@ class PebbledocConfig:
     include_back_to_top: bool = True
     main_module_header: bool = True
     collapsible_params: bool = True
+    reference_links: bool = True
 
 
 def build_config(args: Namespace) -> PebbledocConfig:
@@ -122,6 +123,7 @@ def _update_for_cli_args(
         "no_back_to_top": "include_back_to_top",
         "no_main_module_header": "main_module_header",
         "no_collapsible_params": "collapsible_params",
+        "no_references": "reference_links",
     }
     for arg_name, config_name in options.items():
         if getattr(args, arg_name):

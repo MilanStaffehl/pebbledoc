@@ -124,6 +124,9 @@ def test_pebbledoc_different_name(
     assert exit_code == 0
 
 
+# == CONFIG OPTIONS & FEATURES =========================================
+
+
 def test_pebbledoc_exclude_members(
     patch_open: Mock, patch_config_discovery: None
 ) -> None:
@@ -302,6 +305,28 @@ def test_pebbledoc_no_collapsible_params(
 
     assert_write_call(patch_open, namespace.output, expected + "\n")
     assert exit_code == 0
+
+
+def test_pebbledoc_no_references(
+    patch_open: Mock, patch_config_discovery: None
+) -> None:
+    """Test pebbledoc with reference links disabled."""
+    input_file = Path(__file__).parent / "expected" / "no_references.md"
+    with open(input_file, "r") as f:
+        expected = f.read()
+
+    # create a run config and execute the code
+    namespace = utils.prepare_namespace(
+        source_directory=str(Path(__file__).parent / "resources"),
+        no_references=True,
+    )
+    exit_code = cli._handle_args(namespace)
+
+    assert_write_call(patch_open, namespace.output, expected + "\n")
+    assert exit_code == 0
+
+
+# == SPECIAL TESTS =====================================================
 
 
 def test_pebbledoc_untyped_package(

@@ -18,6 +18,7 @@ def prepare_namespace(
     no_back_to_top: bool = False,
     no_main_module_header: bool = False,
     no_collapsible_params: bool = False,
+    no_references: bool = False,
 ) -> argparse.Namespace:
     """
     Create a namespace with the attributes that pebbledoc expects.

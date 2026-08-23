@@ -648,13 +648,14 @@ class SphinxRstVisitor(nodes.SparseNodeVisitor):
         # Perform checks that still need the old target format:
         includes_private = any([x.startswith("_") for x in target.split(".")])
         is_valid_target = self._is_valid_target(target)
+        render_refs = self.config.reference_links
         # Turn into a valid GitHub refernce target: We interpret these
         # roles as references to headers containing only the member name
         # itself, not the full reference, so we normalize accordingly:
         target = util.name_to_ref(target)
         display_name = node.astext()
-        # render only valid targets
-        if target and is_valid_target and not includes_private:
+        # render only valid targets, and only if instructed to
+        if target and is_valid_target and not includes_private and render_refs:
             self.body.append(f"[`{display_name}`](#{target})")
         else:
             self.body.append(f"`{display_name}`")

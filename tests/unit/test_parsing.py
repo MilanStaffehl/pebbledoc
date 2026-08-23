@@ -1196,6 +1196,20 @@ def test_parse_docstring_sphinx_role_simple(role: str) -> None:
 
 
 @pytest.mark.parametrize("role", _SPHINX_ROLES)
+def test_parse_docstring_sphinx_role_custom_display_name(role: str) -> None:
+    """Test parsing a sphinx role with a custom display name."""
+    default_config = config.PebbledocConfig()
+    rst_str = (
+        f"This text contains a Sphinx ref (:{role}:`click me! <target_name>`)."
+    )
+    output = parsing.parse_docstring(rst_str, default_config)
+    expected = (
+        "This text contains a Sphinx ref ([`click me!`](#target_name)).\n"
+    )
+    assert output == expected
+
+
+@pytest.mark.parametrize("role", _SPHINX_ROLES)
 def test_parse_docstring_sphinx_role_path(role: str) -> None:
     """Test parsing a sphinx role with a full target path."""
     default_config = config.PebbledocConfig()
@@ -1315,6 +1329,29 @@ def test_parse_docstring_sphinx_role_invalid_targets(role: str) -> None:
     valid_targets = {"parent.mock_member", "mock_member"}
     output = parsing.parse_docstring(rst_str, default_config, valid_targets)
     expected = "This is not a valid target: `target_name`.\n"
+    assert output == expected
+
+
+@pytest.mark.parametrize("role", _SPHINX_ROLES)
+def test_parse_docstring_sphinx_role_no_references(role: str) -> None:
+    """Test parsing a sphinx roles when reference links are disabled."""
+    default_config = config.PebbledocConfig(reference_links=False)
+    rst_str = f"This text contains a Sphinx ref (:{role}:`target_name`)."
+    output = parsing.parse_docstring(rst_str, default_config)
+    expected = "This text contains a Sphinx ref (`target_name`).\n"
+    assert output == expected
+
+
+@pytest.mark.parametrize("role", _SPHINX_ROLES)
+def test_parse_docstring_sphinx_role_no_reference_shorthand(role: str) -> None:
+    """Test that ref names are shortened, even when links are disabled."""
+    default_config = config.PebbledocConfig(reference_links=False)
+    rst_str = (
+        f"This text contains a Sphinx ref "
+        f"(:{role}:`~my_module.submodule.target_name`)."
+    )
+    output = parsing.parse_docstring(rst_str, default_config)
+    expected = "This text contains a Sphinx ref (`target_name`).\n"
     assert output == expected
 
 

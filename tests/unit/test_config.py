@@ -25,7 +25,9 @@ def assert_config(
     module_docstring: bool = True,
     include_toc: bool = True,
     include_back_to_top: bool = True,
+    main_module_header: bool = True,
     collapsible_params: bool = True,
+    reference_links: bool = True,
 ) -> None:
     """Check that the given config has the expected values."""
     if exclude is None:
@@ -40,7 +42,9 @@ def assert_config(
     assert cfg.module_docstring is module_docstring
     assert cfg.include_toc is include_toc
     assert cfg.include_back_to_top is include_back_to_top
+    assert cfg.main_module_header is main_module_header
     assert cfg.collapsible_params is collapsible_params
+    assert cfg.reference_links is reference_links
 
 
 def test_build_config_default() -> None:
@@ -48,6 +52,42 @@ def test_build_config_default() -> None:
     namespace = utils.prepare_namespace(package="test_package")
     output = cli.build_config(namespace)
     assert_config(output)  # default values should be set
+
+
+def test_build_config_max_diff() -> None:
+    """Test building a config with every argument is changed from default."""
+    namespace = utils.prepare_namespace(
+        package="test_package",
+        source_directory="~/pylibs/my_package",
+        output="~/Documents/docs/DOCUMENTATION.md",
+        exclude=["my_func, MyClass"],
+        admonition_style="github",
+        title="My custom title",
+        no_module_docstring=True,
+        no_include_constants=True,
+        no_toc=True,
+        no_back_to_top=True,
+        no_main_module_header=True,
+        no_collapsible_params=True,
+        no_references=True,
+    )
+    output = cli.build_config(namespace)
+    assert_config(
+        output,
+        package="test_package",
+        source_directory="~/pylibs/my_package",
+        output="~/Documents/docs/DOCUMENTATION.md",
+        exclude=["my_func, MyClass"],
+        admonition_style="github",
+        document_title="My custom title",
+        module_docstring=False,
+        document_constants=False,
+        include_toc=False,
+        include_back_to_top=False,
+        main_module_header=False,
+        collapsible_params=False,
+        reference_links=False,
+    )
 
 
 def test_build_config_cli_args() -> None:
