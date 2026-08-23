@@ -79,14 +79,20 @@ Output documentation (`API.md`):
 >
 > Greet the world - or whoever you would like!
 >
-> **Parameters:**
+> <details open>
+> <summary><b>Parameters:</b></summary>
 >
 > - `name`: The name of the person greeting.
 > - `place`: The place to greet. If None, greet *the whole world*!
 >
-> **Returns:**
+> </details>
+>
+> <details open>
+> <summary><b>Returns:</b></summary>
 >
 > None, function prints greeting to `stdout`.
+>
+> </details>
 
 </details>
 
