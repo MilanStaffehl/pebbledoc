@@ -1,5 +1,20 @@
 # stellarium_lite documentation
 
+#### Table of contents
+- [`stellarium_lite`](#stellarium_lite)
+  - [`stellarium_lite.DEFAULT_CATALOG_NAME`](#stellarium_litedefault_catalog_name)
+  - [`stellarium_lite.load_catalog`](#stellarium_liteload_catalog)
+  - [`stellarium_lite.CelestialObject`](#stellarium_litecelestialobject)
+  - [`stellarium_lite.Star`](#stellarium_litestar)
+- [`stellarium_lite.observation`](#stellarium_liteobservation)
+  - [`stellarium_lite.observation.MAX_MAGNITUDE`](#stellarium_liteobservationmax_magnitude)
+  - [`stellarium_lite.observation.plan_session`](#stellarium_liteobservationplan_session)
+  - [`stellarium_lite.observation.ObservableMixin`](#stellarium_liteobservationobservablemixin)
+  - [`stellarium_lite.observation.VariableStar`](#stellarium_liteobservationvariablestar)
+  - [`stellarium_lite.observation.HybridObject`](#stellarium_liteobservationhybridobject)
+  - [`stellarium_lite.observation.Observation`](#stellarium_liteobservationobservation)
+
+
 ## `stellarium_lite`
 
 <sup>[Back to top](#stellarium_lite-documentation)</sup>
@@ -64,19 +79,13 @@ M42,Orion Nebula,83.82,-5.39
 
 > :heavy_plus_sign: Added in version 0.2.0
 
-<details open>
-<summary><b>Parameters:</b></summary>
+**Parameters:**
 
 - `name`: The catalog identifier, e.g. `"Messier"`.
 
-</details>
-
-<details open>
-<summary><b>Returns:</b></summary>
+**Returns:**
 
 A `dict` mapping object names to raw records.
-
-</details>
 
 <a name="celestialobject"></a>
 ### `stellarium_lite.CelestialObject`
@@ -153,19 +162,13 @@ Uses the object's right ascension (in h \ <sup>m</sup> \ <sup>s</sup>
 notation) and declination (in degrees, with <sub>J2000</sub> epoch
 implied) to build a one-line summary.
 
-<details open>
-<summary><b>Parameters:</b></summary>
+**Parameters:**
 
 - `verbose`: If `True`, include catalog metadata as well.
 
-</details>
-
-<details open>
-<summary><b>Returns:</b></summary>
+**Returns:**
 
 A description such as `"M31 (unknown)"`.
-
-</details>
 
 <a name="celestialobjectfrom_dict"></a>
 <a name="from_dict"></a>
@@ -180,19 +183,13 @@ CelestialObject.from_dict(cls, record: dict) -> CelestialObject
 
 Build a [`CelestialObject`](#celestialobject) from a raw catalog record.
 
-<details open>
-<summary><b>Parameters:</b></summary>
+**Parameters:**
 
 - `record`: A mapping with at least `name`, `ra`, `dec` keys.
 
-</details>
-
-<details open>
-<summary><b>Returns:</b></summary>
+**Returns:**
 
 A new instance of `cls`.
-
-</details>
 
 <a name="celestialobjectangular_separation"></a>
 <a name="angular_separation"></a>
@@ -214,20 +211,14 @@ Uses the standard great-circle formula
 + \cos(\delta_1)\cos(\delta_2)\cos(\alpha_1 - \alpha_2)
 ```
 
-<details open>
-<summary><b>Parameters:</b></summary>
+**Parameters:**
 
 - `a`: The first object.
 - `b`: The second object.
 
-</details>
-
-<details open>
-<summary><b>Returns:</b></summary>
+**Returns:**
 
 Separation `d` in degrees.
-
-</details>
 
 <a name="star"></a>
 ### `stellarium_lite.Star`
@@ -288,20 +279,14 @@ plan, e.g. a plan continued from item 3:
 
 See [NASA](https://www.nasa.gov/) for some real-world astronomy.
 
-<details open>
-<summary><b>Parameters:</b></summary>
+**Parameters:**
 
 - `objects`: Candidate [`CelestialObject`](#celestialobject) instances.
 - `start_at`: Priority tier to begin scheduling from.
 
-</details>
-
-<details open>
-<summary><b>Returns:</b></summary>
+**Returns:**
 
 A list of objects in observation order.
-
-</details>
 
 <a name="observationobservablemixin"></a>
 <a name="observablemixin"></a>
@@ -336,12 +321,9 @@ ObservableMixin.observe(self) -> Observation
 
 Perform an observation and return the resulting record.
 
-<details open>
-<summary><b>Returns:</b></summary>
+**Returns:**
 
 A new [`Observation`](#observation).
-
-</details>
 
 <a name="observationvariablestar"></a>
 <a name="variablestar"></a>
@@ -370,12 +352,9 @@ history = [3.2, 3.6, 3.1]
 amplitude = max(history) - min(history)
 ```
 
-<details open>
-<summary><b>Parameters:</b></summary>
+**Parameters:**
 
 - `period_days`: Approximate variability period, in days.
-
-</details>
 
 <a name="observationhybridobject"></a>
 <a name="hybridobject"></a>
@@ -408,12 +387,9 @@ HybridObject.observe(self) -> Observation
 
 Perform an observation of this hybrid object.
 
-<details open>
-<summary><b>Returns:</b></summary>
+**Returns:**
 
 A new [`Observation`](#observation) record.
-
-</details>
 
 <a name="observationobservation"></a>
 <a name="observation"></a>
@@ -428,14 +404,11 @@ Observation(object)
 
 A single recorded observation.
 
-<details open>
-<summary><b>Parameters:</b></summary>
+**Parameters:**
 
 - `object_name`: Name of the object observed, e.g. `"M31"`.
 - `magnitude`: Estimated visual magnitude at time of observation.
 - `tags`: Free-form labels attached to this observation.
-
-</details>
 
 <a name="observationobservationschema_version"></a>
 <a name="observationschema_version"></a>

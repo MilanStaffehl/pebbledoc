@@ -709,7 +709,6 @@ def test_parse_docstring_admonition_plain(
 # == FIELD LISTS =======================================================
 def test_parse_docstring_param_field_list() -> None:
     """Test parsing a parameter field list."""
-    cfg = config.PebbledocConfig()
     rst_str = (
         "This is the last paragraph of the docstring.\n\n"
         ":param a: This is a description of parameter ``a``.\n"
@@ -719,6 +718,32 @@ def test_parse_docstring_param_field_list() -> None:
         ":raise ValueError: When the math ain't mathin.\n"
         ":returns: A series of return values."
     )
+
+    # default config
+    cfg = config.PebbledocConfig()
+    output = parsing.parse_docstring(rst_str, cfg)
+    expected = (
+        "This is the last paragraph of the docstring.\n\n"
+        "<details open>\n"
+        "<summary><b>Parameters:</b></summary>\n\n"
+        "- `a`: This is a description of parameter `a`.\n"
+        "- `b`: This is a description of parameter `b` which is a bit "
+        "longer and more *extravagant*!\n\n"
+        "</details>\n\n"
+        "<details open>\n"
+        "<summary><b>Raises:</b></summary>\n\n"
+        "- `KeyError`: When a key is not found in a `dict`.\n"
+        "- `ValueError`: When the math ain't mathin.\n\n"
+        "</details>\n\n"
+        "<details open>\n"
+        "<summary><b>Returns:</b></summary>\n\n"
+        "A series of return values.\n\n"
+        "</details>\n"
+    )
+    assert output == expected
+
+    # no collapsible params
+    cfg = config.PebbledocConfig(collapsible_params=False)
     output = parsing.parse_docstring(rst_str, cfg)
     expected = (
         "This is the last paragraph of the docstring.\n\n"
@@ -736,7 +761,6 @@ def test_parse_docstring_param_field_list() -> None:
 
 def test_parse_docstring_param_field_list_inline_markup() -> None:
     """Test parsing a parameter field list with complicated inline markup."""
-    cfg = config.PebbledocConfig()
     rst_str = (
         "This is the last paragraph of the docstring.\n\n"
         ":param a: This is a description of parameter ``a``.\n"
@@ -747,6 +771,29 @@ def test_parse_docstring_param_field_list_inline_markup() -> None:
         "    - Bullet list item two.\n\n"
         ":returns: A series of return values."
     )
+
+    # default config
+    cfg = config.PebbledocConfig()
+    output = parsing.parse_docstring(rst_str, cfg)
+    expected = (
+        "This is the last paragraph of the docstring.\n\n"
+        "<details open>\n"
+        "<summary><b>Parameters:</b></summary>\n\n"
+        "- `a`: This is a description of parameter `a`.\n"
+        "- `b`: This is a description of parameter `b` which is a bit "
+        "longer and more *extravagant*! It also contains a list:\n"
+        "  - Bullet list item one.\n"
+        "  - Bullet list item two.\n\n"
+        "</details>\n\n"
+        "<details open>\n"
+        "<summary><b>Returns:</b></summary>\n\n"
+        "A series of return values.\n\n"
+        "</details>\n"
+    )
+    assert output == expected
+
+    # no collapsible params
+    cfg = config.PebbledocConfig(collapsible_params=False)
     output = parsing.parse_docstring(rst_str, cfg)
     expected = (
         "This is the last paragraph of the docstring.\n\n"
@@ -763,12 +810,30 @@ def test_parse_docstring_param_field_list_inline_markup() -> None:
 
 def test_parse_docstring_param_field_list_return() -> None:
     """Test that the alternative keyword ``return`` is also accepted."""
-    cfg = config.PebbledocConfig()
     rst_str = (
         "This is the last paragraph of the docstring.\n\n"
         ":param a: This is a description of parameter ``a``.\n"
         ":return: A series of return values."
     )
+
+    # default config
+    cfg = config.PebbledocConfig()
+    output = parsing.parse_docstring(rst_str, cfg)
+    expected = (
+        "This is the last paragraph of the docstring.\n\n"
+        "<details open>\n"
+        "<summary><b>Parameters:</b></summary>\n\n"
+        "- `a`: This is a description of parameter `a`.\n\n"
+        "</details>\n\n"
+        "<details open>\n"
+        "<summary><b>Returns:</b></summary>\n\n"
+        "A series of return values.\n\n"
+        "</details>\n"
+    )
+    assert output == expected
+
+    # no collapsible params
+    cfg = config.PebbledocConfig(collapsible_params=False)
     output = parsing.parse_docstring(rst_str, cfg)
     expected = (
         "This is the last paragraph of the docstring.\n\n"
@@ -805,6 +870,11 @@ def test_parse_docstring_regular_field_list() -> None:
     )
     assert output == expected
 
+    # check the "no collapsible params" option has no effect here
+    cfg = config.PebbledocConfig(collapsible_params=False)
+    output = parsing.parse_docstring(rst_str, cfg)
+    assert output == expected
+
 
 def test_parse_docstring_no_mixed_field_lists() -> None:
     """Assert mixing normal fields with parameter fields is prohibited."""
@@ -822,15 +892,34 @@ def test_parse_docstring_no_mixed_field_lists() -> None:
 
 def test_parse_docstring_param_field_list_multiple_returns() -> None:
     """Test behavior when :returns: is given more than once."""
-    cfg = config.PebbledocConfig()
     rst_str = (
         "This is the last paragraph of the docstring.\n\n"
         ":param a: This is a description of parameter ``a``.\n"
         ":return: A series of return values.\n"
         ":returns: Another note is that the values are important."
     )
+
+    # default config
+    cfg = config.PebbledocConfig()
     output = parsing.parse_docstring(rst_str, cfg)
     # current behavior: simply concatenate
+    expected = (
+        "This is the last paragraph of the docstring.\n\n"
+        "<details open>\n"
+        "<summary><b>Parameters:</b></summary>\n\n"
+        "- `a`: This is a description of parameter `a`.\n\n"
+        "</details>\n\n"
+        "<details open>\n"
+        "<summary><b>Returns:</b></summary>\n\n"
+        "A series of return values.\n"
+        "Another note is that the values are important.\n\n"
+        "</details>\n"
+    )
+    assert output == expected
+
+    # no collapsible params
+    cfg = config.PebbledocConfig(collapsible_params=False)
+    output = parsing.parse_docstring(rst_str, cfg)
     expected = (
         "This is the last paragraph of the docstring.\n\n"
         "**Parameters:**\n\n"
@@ -843,7 +932,6 @@ def test_parse_docstring_param_field_list_multiple_returns() -> None:
 
 def test_parse_docstring_param_field_list_type_annotations() -> None:
     """Test parsing a parameter field list with type docs."""
-    cfg = config.PebbledocConfig()
     rst_str = (
         "This is the last paragraph of the docstring.\n\n"
         ":param a: This is a description of parameter ``a``.\n"
@@ -856,6 +944,32 @@ def test_parse_docstring_param_field_list_type_annotations() -> None:
         ":returns: A series of return values.\n"
         ":rtype: list[float]"
     )
+
+    # default config
+    cfg = config.PebbledocConfig()
+    output = parsing.parse_docstring(rst_str, cfg)
+    expected = (
+        "This is the last paragraph of the docstring.\n\n"
+        "<details open>\n"
+        "<summary><b>Parameters:</b></summary>\n\n"
+        "- `a` (`int`): This is a description of parameter `a`.\n"
+        "- `b` (`dict[str, float]`): This is a description of parameter "
+        "`b` which is a bit longer and more *extravagant*!\n\n"
+        "</details>\n\n"
+        "<details open>\n"
+        "<summary><b>Raises:</b></summary>\n\n"
+        "- `KeyError`: When a key is not found in a `dict`.\n"
+        "- `ValueError`: When the math ain't mathin.\n\n"
+        "</details>\n\n"
+        "<details open>\n"
+        "<summary><b>Returns:</b></summary>\n\n"
+        "`list[float]`: A series of return values.\n\n"
+        "</details>\n"
+    )
+    assert output == expected
+
+    # no collapsible params
+    cfg = config.PebbledocConfig(collapsible_params=False)
     output = parsing.parse_docstring(rst_str, cfg)
     expected = (
         "This is the last paragraph of the docstring.\n\n"
@@ -873,7 +987,6 @@ def test_parse_docstring_param_field_list_type_annotations() -> None:
 
 def test_parse_docstring_param_field_list_only_type_annotations() -> None:
     """Test parameter field list where some params have only a type hint."""
-    cfg = config.PebbledocConfig()
     rst_str = (
         "This is the last paragraph of the docstring.\n\n"
         ":param a: This is a description of parameter ``a``.\n"
@@ -881,6 +994,25 @@ def test_parse_docstring_param_field_list_only_type_annotations() -> None:
         ":type b: dict[str, float]\n"
         ":rtype: list[float]"
     )
+
+    # default config
+    cfg = config.PebbledocConfig()
+    output = parsing.parse_docstring(rst_str, cfg)
+    expected = (
+        "This is the last paragraph of the docstring.\n\n"
+        "<details open>\n"
+        "<summary><b>Parameters:</b></summary>\n\n"
+        "- `a` (`int`): This is a description of parameter `a`.\n"
+        "- `b` (`dict[str, float]`)\n\n"
+        "</details>\n\n"
+        "<details open>\n"
+        "<summary><b>Returns:</b></summary>\n\n`list[float]`\n\n"
+        "</details>\n"
+    )
+    assert output == expected
+
+    # no collapsible params
+    cfg = config.PebbledocConfig(collapsible_params=False)
     output = parsing.parse_docstring(rst_str, cfg)
     expected = (
         "This is the last paragraph of the docstring.\n\n"

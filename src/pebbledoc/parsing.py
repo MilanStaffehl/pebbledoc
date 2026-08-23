@@ -359,27 +359,38 @@ class SphinxRstVisitor(nodes.SparseNodeVisitor):
             the description and type description of the returned value.
         :return: None, formatted list is added to text body.
         """
+        # determine in what structure to wrap the list
+        if self.config.collapsible_params:
+            pre = "<details open>\n<summary><b>"
+            post = "</b></summary>"
+            closing = "\n</details>\n\n"
+        else:
+            pre = "**"
+            post = "**"
+            closing = "\n"
+        # construct the list
         if parameters:
-            self.body.append("**Parameters:**\n\n")
+            self.body.append(f"{pre}Parameters:{post}\n\n")
             for param_name, param_data in parameters.items():
                 param_type = param_data["type_hint"]
                 type_hint = f" (`{param_type}`)" if param_type else ""
                 param_descr = param_data["body_text"]
                 descr = f": {param_descr}" if param_descr else "\n"
                 self.body.append(f"- `{param_name}`{type_hint}{descr}")
-            self.body.append("\n")
+            self.body.append(closing)
         if raises:
-            self.body.append("**Raises:**\n\n")
+            self.body.append(f"{pre}Raises:{post}\n\n")
             self.body.append("".join(raises))
-            self.body.append("\n")
+            self.body.append(closing)
         if returns["type_hint"] or returns["body_text"]:
-            self.body.append("**Returns:**\n\n")
+            self.body.append(f"{pre}Returns:{post}\n\n")
             return_type = returns["type_hint"]
             type_hint = f"`{return_type}`" if return_type else ""
             return_descr = returns["body_text"]
             descr = return_descr if return_descr else "\n"
             colon = ": " if type_hint and return_descr else ""
-            self.body.append(f"{type_hint}{colon}{descr}\n")
+            self.body.append(f"{type_hint}{colon}{descr}")
+            self.body.append(closing)
 
     # Below follow the node visitation methods that are required to match
     # the minimum specs of pebbledoc, i.e. the most common rst features

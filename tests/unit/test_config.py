@@ -25,6 +25,7 @@ def assert_config(
     module_docstring: bool = True,
     include_toc: bool = True,
     include_back_to_top: bool = True,
+    collapsible_params: bool = True,
 ) -> None:
     """Check that the given config has the expected values."""
     if exclude is None:
@@ -39,6 +40,7 @@ def assert_config(
     assert cfg.module_docstring is module_docstring
     assert cfg.include_toc is include_toc
     assert cfg.include_back_to_top is include_back_to_top
+    assert cfg.collapsible_params is collapsible_params
 
 
 def test_build_config_default() -> None:
@@ -151,6 +153,7 @@ def test_build_config_pyrpoject_cli_override(mocker: MockerFixture) -> None:
         b'admonition_style = "classic"\n'
         b"include_back_to_top = false\n"
         b"include_toc = false\n"
+        b"collapsible_params = true\n"
     )
     m = mocker.mock_open(read_data=mock_pyproject)
     mock_open = mocker.patch("pebbledoc.config.open", m)
@@ -166,6 +169,7 @@ def test_build_config_pyrpoject_cli_override(mocker: MockerFixture) -> None:
         title="My custom title",
         admonition_style="map",
         no_module_docstring=True,
+        no_collapsible_params=True,
     )
     output = cli.build_config(namespace)
     assert_config(
@@ -179,6 +183,7 @@ def test_build_config_pyrpoject_cli_override(mocker: MockerFixture) -> None:
         include_back_to_top=False,
         include_toc=False,
         module_docstring=False,
+        collapsible_params=False,
     )
     mock_open.assert_called_once_with(Path("pyproject.toml").resolve(), "rb")
 
@@ -209,6 +214,7 @@ def test_build_config_pebbledoc_cli_override(mocker: MockerFixture) -> None:
         title="My custom title",
         admonition_style="map",
         no_module_docstring=True,
+        no_collapsible_params=True,
     )
     output = cli.build_config(namespace)
     assert_config(
@@ -222,6 +228,7 @@ def test_build_config_pebbledoc_cli_override(mocker: MockerFixture) -> None:
         include_back_to_top=False,
         include_toc=False,
         module_docstring=False,
+        collapsible_params=False,
     )
     mock_open.assert_called_once_with(Path("pebbledoc.toml").resolve(), "rb")
 

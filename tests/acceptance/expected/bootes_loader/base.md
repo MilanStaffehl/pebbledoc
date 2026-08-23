@@ -71,15 +71,21 @@ The function **must** return the full raw file content of the
 given snapshot. Fields are filtered only later in the
 `extract_fields` method.
 
-**Parameters:**
+<details open>
+<summary><b>Parameters:</b></summary>
 
 - `path` (`str | os.PathLike`): Path to the directory of the catalog file.
 - `structure` (`str | None`): Structure of the catalog file.
 - `snapshot` (`int`): The number of the snapshot.
 
-**Returns:**
+</details>
+
+<details open>
+<summary><b>Returns:</b></summary>
 
 `Any`: The full raw file content of the catalog for the given snapshot.
+
+</details>
 
 <a name="load_catalog"></a>
 ### `bootes_loader.load_catalog`
@@ -92,7 +98,8 @@ load_catalog(catalog_name, catalog_type, path, snapshot, fields)
 
 Load data from anyone of the supported halo catalogs.
 
-**Parameters:**
+<details open>
+<summary><b>Parameters:</b></summary>
 
 - `catalog_name` (`str`): The name of the catalog. Must be one of the supported catalogs. See [`SUPPORTED_CATALOGS`](#supported_catalogs) for options.
 - `catalog_type` (`Literal['snapshot', 'merger tree']`): The type of catalog, i.e. the file structure of the catalog files.
@@ -100,10 +107,18 @@ Load data from anyone of the supported halo catalogs.
 - `snapshot` (`int`): The snapshot to load.
 - `fields` (`list[str]`): A list of fields to load from the catalog. See the documentation for the respective catalog to find supported fields.
 
-**Raises:**
+</details>
+
+<details open>
+<summary><b>Raises:</b></summary>
 
 - `KeyError`: When a field was requested that is not supported by the chosen catalog.
 
-**Returns:**
+</details>
+
+<details open>
+<summary><b>Returns:</b></summary>
 
 `dict[str, NDArray[Any]]`: A mapping of field names to the respective values as arrays.
+
+</details>

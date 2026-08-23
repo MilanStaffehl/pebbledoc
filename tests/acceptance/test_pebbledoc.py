@@ -124,6 +124,25 @@ def test_pebbledoc_different_name(
     assert exit_code == 0
 
 
+def test_pebbledoc_exclude_members(
+    patch_open: Mock, patch_config_discovery: None
+) -> None:
+    """Test pebbledoc with excluded members."""
+    input_file = Path(__file__).parent / "expected" / "excluded_members.md"
+    with open(input_file, "r") as f:
+        expected = f.read()
+
+    # create a run config and execute the code
+    namespace = utils.prepare_namespace(
+        source_directory=str(Path(__file__).parent / "resources"),
+        exclude=["Observation", "describe", "observe"],
+    )
+    exit_code = cli._handle_args(namespace)
+
+    assert_write_call(patch_open, namespace.output, expected + "\n")
+    assert exit_code == 0
+
+
 @pytest.mark.parametrize(
     "admonition_style", ["github", "classic", "mix", "map"]
 )
@@ -264,6 +283,27 @@ def test_pebbledoc_no_main_module_header(
     assert exit_code == 0
 
 
+def test_pebbledoc_no_collapsible_params(
+    patch_open: Mock, patch_config_discovery: None
+) -> None:
+    """Test pebbledoc with collapsible param lists disabled."""
+    input_file = (
+        Path(__file__).parent / "expected" / "no_collapsible_params.md"
+    )
+    with open(input_file, "r") as f:
+        expected = f.read()
+
+    # create a run config and execute the code
+    namespace = utils.prepare_namespace(
+        source_directory=str(Path(__file__).parent / "resources"),
+        no_collapsible_params=True,
+    )
+    exit_code = cli._handle_args(namespace)
+
+    assert_write_call(patch_open, namespace.output, expected + "\n")
+    assert exit_code == 0
+
+
 def test_pebbledoc_untyped_package(
     patch_open: Mock, patch_config_discovery: None
 ) -> None:
@@ -394,25 +434,6 @@ def test_pebbledoc_config_file_with_output_renamed(
             f"{''.join(diff)}"
         )
         pytest.fail(msg)
-    assert exit_code == 0
-
-
-def test_pebbledoc_exclude_members(
-    patch_open: Mock, patch_config_discovery: None
-) -> None:
-    """Test pebbledoc with excluded members."""
-    input_file = Path(__file__).parent / "expected" / "excluded_members.md"
-    with open(input_file, "r") as f:
-        expected = f.read()
-
-    # create a run config and execute the code
-    namespace = utils.prepare_namespace(
-        source_directory=str(Path(__file__).parent / "resources"),
-        exclude=["Observation", "describe", "observe"],
-    )
-    exit_code = cli._handle_args(namespace)
-
-    assert_write_call(patch_open, namespace.output, expected + "\n")
     assert exit_code == 0
 
 
