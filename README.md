@@ -182,6 +182,7 @@ formatting:
                         omit the h2 header for the main module
   --no-collapsible-params
                         render parameter info field lists as static lists instead of collapsible sections
+  --no-references       do not turn Sphinx-style references into hyperlinks
 ```
 
 For a more in-depth description of the configuration options, see the section on [configuration options](#options) below.
@@ -225,6 +226,7 @@ include_toc = true
 include_back_to_top = true
 main_module_header = true
 collapsible_params = true
+reference_links = true
 ```
 
 ### Options
@@ -245,6 +247,7 @@ The following table shows how the configuration options map to the command line 
 | `include_back_to_top` | `--no-back-to-top`        | Config default: `true`                                        |
 | `main_module_header`  | `--no-main-module-header` | Config default: `true`                                        |
 | `collapsible_params`  | `--no-collapsible-params` | Config default: `true`                                        |
+| `reference_links`     | `--no-references`         | Cobfig default: `true`                                        |
 
 ### Admonitions
 
@@ -278,7 +281,7 @@ For a full list of all supported, planned, and unsupported RST features, see the
 
 In addition to most standard RST syntax features, `pebbledoc` also supports a subset of features from [Sphinx](https://www.sphinx-doc.org/en/master/):
 
-- [Sphinx-style cross-references](https://www.sphinx-doc.org/en/master/usage/domains/python.html#cross-referencing-python-objects) such as ``:meth:`my_module.SomeClass.my_method` ``. These are rendered as links to the headers of the package member they refer to, if that member is part of the documentation. References to members not in the documentation render as plain inline literal text. Prefixes `~` (shortened name) and `!` (no hyperlink) are also supported.
+- [Sphinx-style cross-references](https://www.sphinx-doc.org/en/master/usage/domains/python.html#cross-referencing-python-objects) such as ``:meth:`my_module.SomeClass.my_method` ``. These are rendered as links to the headers of the package member they refer to, if that member is part of the documentation. References to members not in the documentation render as plain inline literal text. Prefixes `~` (shortened name) and `!` (no hyperlink) are also supported. They can be fully disabled using the `--no-references` option.
 - [Sphinx-style version notices](https://www.sphinx-doc.org/en/master/usage/restructuredtext/directives.html#describing-changes-between-versions) such as `.. version-added:: 1.3.0`. These are rendered as block quotes starting with an icon to symbolize the type of version notice.
 
 > [!IMPORTANT]
