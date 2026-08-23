@@ -326,6 +326,49 @@ def test_pebbledoc_no_references(
     assert exit_code == 0
 
 
+def test_pebbledoc_no_full_toc_name(
+    patch_open: Mock, patch_config_discovery: None
+) -> None:
+    """Test pebbledoc with shortened names in TOC."""
+    input_file = Path(__file__).parent / "expected" / "no_full_toc_name.md"
+    with open(input_file, "r") as f:
+        expected = f.read()
+
+    # create a run config and execute the code
+    namespace = utils.prepare_namespace(
+        source_directory=str(Path(__file__).parent / "resources"),
+        no_full_toc_name=True,
+    )
+    exit_code = cli._handle_args(namespace)
+
+    assert_write_call(patch_open, namespace.output, expected + "\n")
+    assert exit_code == 0
+
+
+def test_pebbledoc_no_full_toc_name_no_main_module_header(
+    patch_open: Mock, patch_config_discovery: None
+) -> None:
+    """Test pebbledoc with shortened names in TOC and no main module header."""
+    input_file = (
+        Path(__file__).parent
+        / "expected"
+        / "no_full_toc_name_no_main_module_header.md"
+    )
+    with open(input_file, "r") as f:
+        expected = f.read()
+
+    # create a run config and execute the code
+    namespace = utils.prepare_namespace(
+        source_directory=str(Path(__file__).parent / "resources"),
+        no_full_toc_name=True,
+        no_main_module_header=True,
+    )
+    exit_code = cli._handle_args(namespace)
+
+    assert_write_call(patch_open, namespace.output, expected + "\n")
+    assert exit_code == 0
+
+
 # == SPECIAL TESTS =====================================================
 
 
