@@ -12,6 +12,11 @@ document, which is based on PEP440.
 ### Added
 
 - Option to exclude members from the documentation ([#97](https://github.com/MilanStaffehl/pebbledoc/pull/97))
+- Option to disable collapsible info field lists ([#99](https://github.com/MilanStaffehl/pebbledoc/pull/99))
+
+### Changed
+
+- Info field lists for parameters, return values, etc. now render as collapsible sections ([#99](https://github.com/MilanStaffehl/pebbledoc/pull/99))
 
 ## [0.1.0] - 2026-08-21
 

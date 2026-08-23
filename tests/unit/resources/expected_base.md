@@ -60,7 +60,8 @@ Related considerations:
 
 > :x: Removed in version 2.1.0: Support for tensors was moved to [`tensors`](#tensors).
 
-**Parameters:**
+<details open>
+<summary><b>Parameters:</b></summary>
 
 - `data`: A **required** list of `float` lists representing the input matrix. See `_validate_matrix` for shape constraints.
 - `threshold`: Convergence threshold as a `float`. Lower values increase precision at the cost of more iterations:
@@ -69,11 +70,19 @@ Related considerations:
   - `0.01` -- slow, high precision
 - `normalize`: Whether to normalize rows before refinement.
 
-**Raises:**
+</details>
+
+<details open>
+<summary><b>Raises:</b></summary>
 
 - `ValueError`: If `data` is empty or not rectangular.
 - `TypeError`: If elements of `data` are not numeric.
 
-**Returns:**
+</details>
+
+<details open>
+<summary><b>Returns:</b></summary>
 
 The refined matrix as a nested `list`, with the same shape as the input. See [`MatrixProcessor.output_format`](#matrixprocessoroutput_format) for alternate return types.
+
+</details>

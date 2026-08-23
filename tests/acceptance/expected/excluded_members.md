@@ -78,13 +78,19 @@ M42,Orion Nebula,83.82,-5.39
 
 > :heavy_plus_sign: Added in version 0.2.0
 
-**Parameters:**
+<details open>
+<summary><b>Parameters:</b></summary>
 
 - `name`: The catalog identifier, e.g. `"Messier"`.
 
-**Returns:**
+</details>
+
+<details open>
+<summary><b>Returns:</b></summary>
 
 A `dict` mapping object names to raw records.
+
+</details>
 
 <a name="celestialobject"></a>
 ### `stellarium_lite.CelestialObject`
@@ -158,13 +164,19 @@ CelestialObject.from_dict(cls, record: dict) -> CelestialObject
 
 Build a [`CelestialObject`](#celestialobject) from a raw catalog record.
 
-**Parameters:**
+<details open>
+<summary><b>Parameters:</b></summary>
 
 - `record`: A mapping with at least `name`, `ra`, `dec` keys.
 
-**Returns:**
+</details>
+
+<details open>
+<summary><b>Returns:</b></summary>
 
 A new instance of `cls`.
+
+</details>
 
 <a name="celestialobjectangular_separation"></a>
 <a name="angular_separation"></a>
@@ -186,14 +198,20 @@ Uses the standard great-circle formula
 + \cos(\delta_1)\cos(\delta_2)\cos(\alpha_1 - \alpha_2)
 ```
 
-**Parameters:**
+<details open>
+<summary><b>Parameters:</b></summary>
 
 - `a`: The first object.
 - `b`: The second object.
 
-**Returns:**
+</details>
+
+<details open>
+<summary><b>Returns:</b></summary>
 
 Separation `d` in degrees.
+
+</details>
 
 <a name="star"></a>
 ### `stellarium_lite.Star`
@@ -254,14 +272,20 @@ plan, e.g. a plan continued from item 3:
 
 See [NASA](https://www.nasa.gov/) for some real-world astronomy.
 
-**Parameters:**
+<details open>
+<summary><b>Parameters:</b></summary>
 
 - `objects`: Candidate [`CelestialObject`](#celestialobject) instances.
 - `start_at`: Priority tier to begin scheduling from.
 
-**Returns:**
+</details>
+
+<details open>
+<summary><b>Returns:</b></summary>
 
 A list of objects in observation order.
+
+</details>
 
 <a name="observationobservablemixin"></a>
 <a name="observablemixin"></a>
@@ -309,9 +333,12 @@ history = [3.2, 3.6, 3.1]
 amplitude = max(history) - min(history)
 ```
 
-**Parameters:**
+<details open>
+<summary><b>Parameters:</b></summary>
 
 - `period_days`: Approximate variability period, in days.
+
+</details>
 
 <a name="observationhybridobject"></a>
 <a name="hybridobject"></a>

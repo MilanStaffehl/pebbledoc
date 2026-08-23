@@ -79,14 +79,20 @@ Output documentation (`API.md`):
 >
 > Greet the world - or whoever you would like!
 >
-> **Parameters:**
+> <details open>
+> <summary><b>Parameters:</b></summary>
 >
 > - `name`: The name of the person greeting.
 > - `place`: The place to greet. If None, greet *the whole world*!
 >
-> **Returns:**
+> </details>
+>
+> <details open>
+> <summary><b>Returns:</b></summary>
 >
 > None, function prints greeting to `stdout`.
+>
+> </details>
 
 </details>
 
@@ -133,9 +139,10 @@ pebbledoc --package my_package
 This creates a file `API.md` in the current working directory. From there, you can choose to configure `pebbledoc` to your liking using the options. Below is the full listing of command line options; you can display the same text by typing `pebbledoc --help`.
 
 ```
-usage: pebbledoc [-h] [--version] -p  [-s ] [-o ] [-c ] [--admonition-style {classic,mix,github,map}] [--title ]
-                 [--no-module-docstring] [--no-include-constants] [--no-toc] [--no-back-to-top]
-                 [--no-main-module-header]
+usage: pebbledoc [-h] [--version] -p  [-s ] [-o ] [-c ] [-x member [member ...]]
+                 [--admonition-style {classic,mix,github,map}] [--title ] [--no-module-docstring]
+                 [--no-include-constants] [--no-toc] [--no-back-to-top] [--no-main-module-header]
+                 [--no-collapsible-params]
 
 pebbledoc is a lightweight documentation tool - automatically generate a single-file API documentation for your
 Python project!
@@ -173,6 +180,8 @@ formatting:
   --no-back-to-top      omit the 'back to top' links at the beginning of each section
   --no-main-module-header
                         omit the h2 header for the main module
+  --no-collapsible-params
+                        render parameter info field lists as static lists instead of collapsible sections
 ```
 
 For a more in-depth description of the configuration options, see the section on [configuration options](#options) below.
@@ -215,6 +224,7 @@ module_docstring = true
 include_toc = true
 include_back_to_top = true
 main_module_header = true
+collapsible_params = true
 ```
 
 ### Options
@@ -234,6 +244,7 @@ The following table shows how the configuration options map to the command line 
 | `include_toc`         | `--no-toc`                | Config default: `true`                                        |
 | `include_back_to_top` | `--no-back-to-top`        | Config default: `true`                                        |
 | `main_module_header`  | `--no-main-module-header` | Config default: `true`                                        |
+| `collapsible_params`  | `--no-collapsible-params` | Config default: `true`                                        |
 
 ### Admonitions
 
