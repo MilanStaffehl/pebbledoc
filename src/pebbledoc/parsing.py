@@ -221,6 +221,27 @@ class SphinxRstVisitor(nodes.SparseNodeVisitor):
     :class:`ListContext` to save important context information for the
     current position in a list.
 
+    The block context can take the following string values:
+
+    - ``"paragraph"``: This denotes any plain text, potentially with
+      inline markup. It is **not** limited to actual paragraph nodes,
+      but can also include text inside blocks that follow the same
+      formatting rules as a normal paragraph (for example inside an
+      admonition or block quote).
+    - ``"literal_block"``: All fence blocks, including code blocks and
+      plain literal blocks. These must usually be formatted as-is and
+      cannot be reformatted.
+    - ``"math_block"``: Special case of the literal block, used for
+      mathematic formulas. This block context must adhere to formatting
+      rules for TeX.
+    - ``"doctest_block"``: Special case of the literal block, which
+      must be formatted to adhere to the rules of Python doctests.
+    - ``"bullet_list"`` and ``"enumerated_list"``: Used for the
+      respective list type, for which the list context must be taken
+      into account for formatting.
+    - ``"field_list"``: Used for field list to ensure correct formatting
+      for fields such as addresses.
+
     The visitor can be configured using a ``pebbledoc`` configuration
     object, which determines how certain RST elements are parsed. Most
     notably, this determines the Markdown representation of admonitions.
@@ -401,8 +422,7 @@ class SphinxRstVisitor(nodes.SparseNodeVisitor):
         pass
 
     def depart_paragraph(self, node: nodes.paragraph) -> None:
-        current_block = self.block_context[-1]
-        if current_block == "paragraph":
+        if self.block_context[-1] == "paragraph":
             self.body.append("\n\n")
         else:
             self.body.append("\n")
@@ -412,6 +432,13 @@ class SphinxRstVisitor(nodes.SparseNodeVisitor):
         # remove stylistic line breaks (e.g. wrapped lines) from field lists
         if self.block_context[-1] == "field_list":
             text = text.replace("\n", " ")
+        remove_line_breaks = (
+            not self.config.keep_linewraps
+            and self.block_context[-1] == "paragraph"
+        )
+        if remove_line_breaks:
+            pattern = re.compile(r"(?<!\n)\n(?!\n)")
+            text = pattern.sub(" ", text)
         self.body.append(text)
 
     def visit_emphasis(self, node: nodes.emphasis) -> None:
@@ -461,10 +488,12 @@ class SphinxRstVisitor(nodes.SparseNodeVisitor):
 
     # DIRECTIVES
     def visit_math_block(self, node: nodes.math_block) -> None:
+        self.block_context.append("math_block")
         self.body.append("```math\n")
 
     def depart_math_block(self, node: nodes.math_block) -> None:
         self.body.append("\n```\n\n")
+        self.block_context.pop()
 
     def visit_reference(self, node: nodes.reference) -> None:
         hyperlink = node.get("refuri", None)
@@ -488,6 +517,7 @@ class SphinxRstVisitor(nodes.SparseNodeVisitor):
 
     # BLOCKS
     def visit_literal_block(self, node: nodes.literal_block) -> None:
+        self.block_context.append("literal_block")
         classes = node["classes"]
         if "code" in classes:
             classes.remove("code")
@@ -499,12 +529,15 @@ class SphinxRstVisitor(nodes.SparseNodeVisitor):
 
     def depart_literal_block(self, node: nodes.literal_block) -> None:
         self.body.append("\n```\n\n")
+        self.block_context.pop()
 
     def visit_doctest_block(self, node: nodes.doctest_block) -> None:
+        self.block_context.append("doctest_block")
         self.body.append("```doctest\n")
 
     def depart_doctest_block(self, node: nodes.doctest_block) -> None:
         self.body.append("\n```\n\n")
+        self.block_context.pop()
 
     def visit_block_quote(self, node: nodes.block_quote) -> None:
         attribution = node.next_node(nodes.attribution)
@@ -526,7 +559,7 @@ class SphinxRstVisitor(nodes.SparseNodeVisitor):
             quote += "\n"
 
         self.body.append(quote)
-        raise nodes.SkipNode
+        raise nodes.SkipChildren
 
     def visit_comment(self, node: nodes.comment) -> None:
         self.body.append("<!-- ")

@@ -42,6 +42,7 @@ class PebbledocConfig:
     collapsible_params: bool = True
     reference_links: bool = True
     full_toc_name: bool = True
+    keep_linewraps: bool = True
 
 
 def build_config(args: Namespace) -> PebbledocConfig:
@@ -126,6 +127,7 @@ def _update_for_cli_args(
         "no_collapsible_params": "collapsible_params",
         "no_references": "reference_links",
         "no_full_toc_name": "full_toc_name",
+        "no_preserve_linewraps": "keep_linewraps",
     }
     for arg_name, config_name in options.items():
         if getattr(args, arg_name):

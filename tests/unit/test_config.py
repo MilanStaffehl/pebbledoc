@@ -29,6 +29,7 @@ def assert_config(
     collapsible_params: bool = True,
     reference_links: bool = True,
     full_toc_name: bool = True,
+    keep_linewraps: bool = True,
 ) -> None:
     """Check that the given config has the expected values."""
     if exclude is None:
@@ -47,6 +48,7 @@ def assert_config(
     assert cfg.collapsible_params is collapsible_params
     assert cfg.reference_links is reference_links
     assert cfg.full_toc_name is full_toc_name
+    assert cfg.keep_linewraps is keep_linewraps
 
 
 def test_build_config_default() -> None:
@@ -73,6 +75,7 @@ def test_build_config_max_diff() -> None:
         no_collapsible_params=True,
         no_references=True,
         no_full_toc_name=True,
+        no_preserve_linewraps=True,
     )
     output = cli.build_config(namespace)
     assert_config(
@@ -91,6 +94,7 @@ def test_build_config_max_diff() -> None:
         collapsible_params=False,
         reference_links=False,
         full_toc_name=False,
+        keep_linewraps=False,
     )
 
 

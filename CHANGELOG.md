@@ -15,6 +15,7 @@ document, which is based on PEP440.
 - Option to disable collapsible info field lists ([#99](https://github.com/MilanStaffehl/pebbledoc/pull/99))
 - Option to not render Sphinx-style references as links ([#100](https://github.com/MilanStaffehl/pebbledoc/pull/100))
 - Option to create a TOC with shortened member names ([#101](https://github.com/MilanStaffehl/pebbledoc/pull/101))
+- Option to remove line wraps (singular line breaks in paragraphs) ([#102](https://github.com/MilanStaffehl/pebbledoc/pull/102))
 
 ### Changed
 
