@@ -79,23 +79,29 @@ def _build_toc(root: Member, config: PebbledocConfig) -> str:
     :return: A nested list of links, pointing to the header of the section
         for each of the children of ``root``.
     """
+    toc = ""
     # find out if we are handling the top-level node
     is_pkg_root = root.name == config.package_name
-    toc = ""
+    # find display name and full name
     full_name = util.full_qualified_name(root.name, root.parent)
+    shorten_module_name = (
+        not config.full_toc_name and not config.main_module_header
+    )
+    display_name = root.name if shorten_module_name else full_name
     if not is_pkg_root or config.main_module_header:
-        toc = f"- [`{full_name}`](#{util.name_to_ref(full_name)})\n"
+        toc = f"- [`{display_name}`](#{util.name_to_ref(full_name)})\n"
     # iteratively add children, descending into submodules
     for child in root.children:
-        full_name = util.full_qualified_name(child.name, child.parent)
         if child.kind == "module":
             toc += _build_toc(child, config)  # descend into submodules
         else:
+            full_name = util.full_qualified_name(child.name, child.parent)
+            display_name = full_name if config.full_toc_name else child.name
             ref_target = util.name_to_ref(full_name)
             spacer = (
                 "" if is_pkg_root and not config.main_module_header else "  "
             )
-            toc += f"{spacer}- [`{full_name}`](#{ref_target})\n"
+            toc += f"{spacer}- [`{display_name}`](#{ref_target})\n"
     return toc
 
 

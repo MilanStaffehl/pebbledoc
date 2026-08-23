@@ -28,6 +28,7 @@ def assert_config(
     main_module_header: bool = True,
     collapsible_params: bool = True,
     reference_links: bool = True,
+    full_toc_name: bool = True,
 ) -> None:
     """Check that the given config has the expected values."""
     if exclude is None:
@@ -45,6 +46,7 @@ def assert_config(
     assert cfg.main_module_header is main_module_header
     assert cfg.collapsible_params is collapsible_params
     assert cfg.reference_links is reference_links
+    assert cfg.full_toc_name is full_toc_name
 
 
 def test_build_config_default() -> None:
@@ -70,6 +72,7 @@ def test_build_config_max_diff() -> None:
         no_main_module_header=True,
         no_collapsible_params=True,
         no_references=True,
+        no_full_toc_name=True,
     )
     output = cli.build_config(namespace)
     assert_config(
@@ -87,6 +90,7 @@ def test_build_config_max_diff() -> None:
         main_module_header=False,
         collapsible_params=False,
         reference_links=False,
+        full_toc_name=False,
     )
 
 

@@ -138,6 +138,11 @@ def _build_parser() -> argparse.ArgumentParser:
         help="do not turn Sphinx-style references into hyperlinks",
         action="store_true",
     )
+    options.add_argument(
+        "--no-full-toc-name",
+        help="use only shortened member names in table of contents",
+        action="store_true",
+    )
 
     return parser
 

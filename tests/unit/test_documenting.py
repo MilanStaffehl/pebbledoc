@@ -11,6 +11,14 @@ from pytest_mock import MockerFixture
 from pebbledoc import config, documenting, inspect_runtime
 
 
+@dataclass
+class MockMember:
+    name: str
+    kind: str
+    parent: str
+    children: list[MockMember] = field(default_factory=list)
+
+
 @pytest.fixture
 def patch_parse_docstring(mocker: MockerFixture) -> Mock:
     """Patch the function to parse docstrings."""
@@ -19,6 +27,30 @@ def patch_parse_docstring(mocker: MockerFixture) -> Mock:
         side_effect=lambda d, c, vt: f"{d.rstrip('\n')}\n",
     )
     return mock_parse_docstring
+
+
+@pytest.fixture
+def mock_toc_module() -> MockMember:
+    """Build a mock member hierarchy to test TOC building."""
+    # build a small mock hierarchy
+    subsubmember_1 = MockMember("sub-sub-member 1", "class", "subsubparent")
+    subsubmember_2 = MockMember("sub-sub-member 2", "function", "subsubparent")
+    subsubmodule = MockMember(
+        "subsubmodule", "module", "submodule", [subsubmember_1, subsubmember_2]
+    )
+    submember_1 = MockMember("sub-member 1", "class", "subparent")
+    submember_2 = MockMember("sub-member 2", "function", "subparent")
+    submodule = MockMember(
+        "submodule",
+        "module",
+        "module",
+        [submember_1, submember_2, subsubmodule],
+    )
+    member_1 = MockMember("member 1", "class", "module")
+    member_2 = MockMember("member 2", "function", "module")
+    module = MockMember("module", "class", "", [member_1, member_2, submodule])
+
+    return module
 
 
 # == TESTS FOR _VALID_REFERENCE_TARGETS ================================
@@ -436,38 +468,12 @@ def test_document_member_no_main_module_header(
 # == FUNCTIONS FOR BUILDING THE DOCS ===================================
 
 
-def test_build_toc() -> None:
+def test_build_toc(mock_toc_module: MockMember) -> None:
     """Test the function to create TOC lists."""
-
-    @dataclass
-    class MockMember:
-        name: str
-        kind: str
-        parent: str
-        children: list[MockMember] = field(default_factory=list)
-
-    # build a small mock hierarchy
-    subsubmember_1 = MockMember("sub-sub-member 1", "class", "subsubparent")
-    subsubmember_2 = MockMember("sub-sub-member 2", "function", "subsubparent")
-    subsubmodule = MockMember(
-        "subsubmodule", "module", "submodule", [subsubmember_1, subsubmember_2]
-    )
-    submember_1 = MockMember("sub-member 1", "class", "subparent")
-    submember_2 = MockMember("sub-member 2", "function", "subparent")
-    submodule = MockMember(
-        "submodule",
-        "module",
-        "module",
-        [submember_1, submember_2, subsubmodule],
-    )
-    member_1 = MockMember("member 1", "class", "module")
-    member_2 = MockMember("member 2", "function", "module")
-    module = MockMember("module", "class", "", [member_1, member_2, submodule])
-
     # test the function
     test_config = config.PebbledocConfig(package_name="module")
     toc = documenting._build_toc(
-        module,  # pyrefly: ignore[bad-argument-type]
+        mock_toc_module,  # pyrefly: ignore[bad-argument-type]
         test_config,
     )
 
@@ -486,40 +492,14 @@ def test_build_toc() -> None:
     assert toc == expected
 
 
-def test_build_toc_no_main_module_header() -> None:
+def test_build_toc_no_main_module_header(mock_toc_module: MockMember) -> None:
     """Test the function to create TOC list without the main module header."""
-
-    @dataclass
-    class MockMember:
-        name: str
-        kind: str
-        parent: str
-        children: list[MockMember] = field(default_factory=list)
-
-    # build a small mock hierarchy
-    subsubmember_1 = MockMember("sub-sub-member 1", "class", "subsubparent")
-    subsubmember_2 = MockMember("sub-sub-member 2", "function", "subsubparent")
-    subsubmodule = MockMember(
-        "subsubmodule", "module", "submodule", [subsubmember_1, subsubmember_2]
-    )
-    submember_1 = MockMember("sub-member 1", "class", "subparent")
-    submember_2 = MockMember("sub-member 2", "function", "subparent")
-    submodule = MockMember(
-        "submodule",
-        "module",
-        "module",
-        [submember_1, submember_2, subsubmodule],
-    )
-    member_1 = MockMember("member 1", "class", "module")
-    member_2 = MockMember("member 2", "function", "module")
-    module = MockMember("module", "class", "", [member_1, member_2, submodule])
-
     # test the function
     test_config = config.PebbledocConfig(
         package_name="module", main_module_header=False
     )
     toc = documenting._build_toc(
-        module,  # pyrefly: ignore[bad-argument-type]
+        mock_toc_module,  # pyrefly: ignore[bad-argument-type]
         test_config,
     )
 
@@ -533,5 +513,60 @@ def test_build_toc_no_main_module_header() -> None:
         "- [`submodule.subsubmodule`](#submodulesubsubmodule)\n"
         "  - [`subsubparent.sub-sub-member 1`](#subsubparentsub-sub-member-1)\n"
         "  - [`subsubparent.sub-sub-member 2`](#subsubparentsub-sub-member-2)\n"
+    )
+    assert toc == expected
+
+
+def test_build_toc_no_full_name(mock_toc_module: MockMember) -> None:
+    """Test the function to create TOC lists with shortened names."""
+    # test the function
+    test_config = config.PebbledocConfig(
+        package_name="module", full_toc_name=False
+    )
+    toc = documenting._build_toc(
+        mock_toc_module,  # pyrefly: ignore[bad-argument-type]
+        test_config,
+    )
+
+    # check output
+    expected = (
+        "- [`module`](#module)\n"
+        "  - [`member 1`](#modulemember-1)\n"
+        "  - [`member 2`](#modulemember-2)\n"
+        "- [`module.submodule`](#modulesubmodule)\n"
+        "  - [`sub-member 1`](#subparentsub-member-1)\n"
+        "  - [`sub-member 2`](#subparentsub-member-2)\n"
+        "- [`submodule.subsubmodule`](#submodulesubsubmodule)\n"
+        "  - [`sub-sub-member 1`](#subsubparentsub-sub-member-1)\n"
+        "  - [`sub-sub-member 2`](#subsubparentsub-sub-member-2)\n"
+    )
+    assert toc == expected
+
+
+def test_build_toc_no_full_name_no_main_module_header(
+    mock_toc_module: MockMember,
+) -> None:
+    """Test the function with shortened names and no main module header."""
+    # test the function
+    test_config = config.PebbledocConfig(
+        package_name="module",
+        full_toc_name=False,
+        main_module_header=False,
+    )
+    toc = documenting._build_toc(
+        mock_toc_module,  # pyrefly: ignore[bad-argument-type]
+        test_config,
+    )
+
+    # check output
+    expected = (
+        "- [`member 1`](#modulemember-1)\n"
+        "- [`member 2`](#modulemember-2)\n"
+        "- [`submodule`](#modulesubmodule)\n"
+        "  - [`sub-member 1`](#subparentsub-member-1)\n"
+        "  - [`sub-member 2`](#subparentsub-member-2)\n"
+        "- [`subsubmodule`](#submodulesubsubmodule)\n"
+        "  - [`sub-sub-member 1`](#subsubparentsub-sub-member-1)\n"
+        "  - [`sub-sub-member 2`](#subsubparentsub-sub-member-2)\n"
     )
     assert toc == expected
