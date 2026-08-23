@@ -125,6 +125,14 @@ def _build_parser() -> argparse.ArgumentParser:
         help="omit the h2 header for the main module",
         action="store_true",
     )
+    options.add_argument(
+        "--no-collapsible-params",
+        help=(
+            "render parameter info field lists as static lists instead of "
+            "collapsible sections"
+        ),
+        action="store_true",
+    )
 
     return parser
 
