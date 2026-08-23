@@ -133,6 +133,11 @@ def _build_parser() -> argparse.ArgumentParser:
         ),
         action="store_true",
     )
+    options.add_argument(
+        "--no-references",
+        help="do not turn Sphinx-style references into hyperlinks",
+        action="store_true",
+    )
 
     return parser
 
