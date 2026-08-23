@@ -185,7 +185,7 @@ formatting:
   --no-references       do not turn Sphinx-style references into hyperlinks
   --no-full-toc-name    use only shortened member names in table of contents
   --no-preserve-linewraps
-                        remove line stylistic wraps (singular line breaks) in texts
+                        remove stylistic line wraps (singular line breaks) in texts
 ```
 
 For a more in-depth description of the configuration options, see the section on [configuration options](#options) below.
