@@ -247,7 +247,7 @@ The following table shows how the configuration options map to the command line 
 | `include_back_to_top` | `--no-back-to-top`        | Config default: `true`                                        |
 | `main_module_header`  | `--no-main-module-header` | Config default: `true`                                        |
 | `collapsible_params`  | `--no-collapsible-params` | Config default: `true`                                        |
-| `reference_links`     | `--no-references`         | Cobfig default: `true`                                        |
+| `reference_links`     | `--no-references`         | Config default: `true`                                        |
 
 ### Admonitions
 
