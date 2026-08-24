@@ -33,7 +33,7 @@
 - [Installation & prerequisites](#installation--prerequisites)
 - [Usage](#usage)
 - [Configuration](#configuration)
-- [Supported rst syntax](#supported-rst-syntax)
+- [Supported RST syntax](#supported-rst-syntax)
 - [Examples](#examples)
 - [Integration](#integration)
 - [Contributing](#contributing)
