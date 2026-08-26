@@ -142,8 +142,11 @@ def _signature_str(
         if kind == "positional or keyword" and has_pos_only:
             params.append("/")
             has_pos_only = False  # we've found it, no longer need to look
-        if param.annotation is not inspect.Signature.empty:
-            descr += f": {param.annotation}"
+        annotation = param.annotation
+        if annotation is not inspect.Signature.empty:
+            if not isinstance(annotation, str):
+                annotation = inspect.formatannotation(annotation)
+            descr += f": {annotation}"
         if param.default is not inspect.Parameter.empty:
             bracket = "'" if isinstance(param.default, str) else ""
             descr += f" = {bracket}{param.default}{bracket}"
@@ -153,6 +156,8 @@ def _signature_str(
     signature_str = f"({', '.join(params)})"
     return_annotation = sig.return_annotation
     if return_annotation is not inspect.Signature.empty:
+        if not isinstance(return_annotation, str):
+            return_annotation = inspect.formatannotation(return_annotation)
         signature_str += f" -> {return_annotation}"
     return signature_str
 
@@ -200,7 +205,6 @@ def _explicitly_reexported(package: ModuleType) -> list[str]:
         raise FileNotFoundError(
             f"Unable to find origin of module {package.__name__}"
         )
-    print(init_file)
 
     # parse the __init__.py (or other origin) of the package as AST
     init_file = Path(init_file).resolve()
@@ -223,7 +227,9 @@ def _explicitly_reexported(package: ModuleType) -> list[str]:
     return [m for m in explicit_reexports if not m.startswith("_")]
 
 
-def _member_constant(name: str, constant: object, parent: str) -> Member:
+def _member_constant(
+    name: str, constant: object, parent: str, annotation: str | None
+) -> Member:
     """
     Create a :class:`Member` node for a constant.
 
@@ -234,8 +240,10 @@ def _member_constant(name: str, constant: object, parent: str) -> Member:
     """
     # make sure only string type values have quotes
     quotes = "'" if isinstance(constant, str) else ""
+    if annotation is None:
+        annotation = type(constant).__name__
     # do not inherit docstrings from parent classes
-    sig = f"{name}: {type(constant).__name__} = {quotes}{constant}{quotes}"
+    sig = f"{name}: {annotation} = {quotes}{constant}{quotes}"
     node = Member(
         name=name,
         parent=parent,
@@ -328,6 +336,8 @@ def _member_property(name: str, property_: property, parent: str) -> Member:
         if return_annotation is inspect.Parameter.empty:
             annotation = ""
         else:
+            if not isinstance(return_annotation, str):
+                return_annotation = inspect.formatannotation(return_annotation)
             annotation = f": {return_annotation}"
     parent_class = parent.split(".")[-1]
     sig = f"@property\n{parent_class}.{name}{annotation}"
@@ -343,7 +353,9 @@ def _member_property(name: str, property_: property, parent: str) -> Member:
     return node
 
 
-def _member_classvar(name: str, classvar: object, parent: str) -> Member:
+def _member_classvar(
+    name: str, classvar: object, parent: str, annotation: str | None
+) -> Member:
     """
     Create a :class:`Member` node for a class variable.
 
@@ -355,10 +367,11 @@ def _member_classvar(name: str, classvar: object, parent: str) -> Member:
     """
     q = "'" if isinstance(classvar, str) else ""
     parent_class = parent.split(".")[-1]
-    sig = (
-        f"{parent_class}.{name}: ClassVar[{type(classvar).__name__}] "
-        f"= {q}{classvar}{q}"
-    )
+    if annotation is None:
+        annotation = f"ClassVar[{type(classvar).__name__}]"
+    if not annotation.startswith("ClassVar"):
+        annotation = f"ClassVar[{annotation}]"
+    sig = f"{parent_class}.{name}: {annotation} = {q}{classvar}{q}"
     node = Member(
         name=name,
         parent=parent,
@@ -401,6 +414,7 @@ def _member_class(
 
     # find all public members of the class
     class_members = [m for m in klass.__dict__.keys() if not m.startswith("_")]
+    annotations_dict = inspect.get_annotations(klass)
     children = []
     new_parent = full_qualified_name(name, parent)
     for child_name in class_members:
@@ -428,7 +442,12 @@ def _member_class(
         elif child_name in fields_set:
             continue  # we do not document fields with defaults
         else:
-            children.append(_member_classvar(child_name, obj, new_parent))
+            annotation = annotations_dict.get(child_name, None)
+            if annotation is not None and not isinstance(annotation, str):
+                annotation = inspect.formatannotation(annotation)
+            children.append(
+                _member_classvar(child_name, obj, new_parent, annotation)
+            )
 
     # construct the node
     node = Member(
@@ -478,6 +497,7 @@ def _member_module(
     # find children, create their nodes
     children = []
     sub_modules = []
+    annotations_dict = inspect.get_annotations(module)
     new_parent = full_qualified_name(name, parent)
     for member_name in public_members:
         member = getattr(module, member_name)
@@ -499,7 +519,12 @@ def _member_module(
         else:
             if not config.document_constants:
                 continue  # skip constants
-            children.append(_member_constant(member_name, member, new_parent))
+            annotation = annotations_dict.get(member_name, None)
+            if annotation is not None and not isinstance(annotation, str):
+                annotation = inspect.formatannotation(annotation, new_parent)
+            children.append(
+                _member_constant(member_name, member, new_parent, annotation)
+            )
 
     # create module member node
     node = Member(

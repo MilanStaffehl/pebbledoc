@@ -1,26 +1,44 @@
 """Tests for the inspect_runtime module."""
 
-from __future__ import annotations
+import __future__
 
 import importlib
+import importlib.util
 import inspect
 import sys
 from pathlib import Path
 from types import ModuleType
-from typing import Literal
+from typing import Iterator, Literal
 
 import pytest
 
 from pebbledoc import config, inspect_runtime
 
 
-@pytest.fixture
-def mock_module() -> ModuleType:
-    """Return the test mock module."""
-    sys.path.insert(0, str(Path(__file__).parent / "resources"))
-    module = importlib.import_module("mock_module")
-    sys.path.pop(0)
-    return module
+@pytest.fixture(
+    params=[False, True], ids=["eager_annotations", "future_annotations"]
+)
+def mock_module(request: pytest.FixtureRequest) -> Iterator[ModuleType]:
+    """Return the mock module, once with, once without future annotations."""
+    origin_path = Path(__file__).parent / "resources" / "mock_module.py"
+    with open(origin_path, "r") as f:
+        code = f.read()
+    flags = __future__.annotations.compiler_flag if request.param else 0
+    code = compile(code, filename=str(origin_path), mode="exec", flags=flags)
+
+    # needed for get_type_hints() to resolve forward refs:
+    spec = importlib.util.spec_from_loader(
+        "mock_module", loader=None, origin=str(origin_path)
+    )
+    assert spec is not None
+    module = importlib.util.module_from_spec(spec)
+    sys.modules["mock_module"] = module
+    exec(code, module.__dict__)
+
+    yield module
+
+    # cleanup for next test
+    del sys.modules["mock_module"]
 
 
 @pytest.fixture
@@ -287,7 +305,7 @@ def check_constant_mock_constant(node: inspect_runtime.Member) -> None:
     assert node.name == "MOCK_CONSTANT"
     assert node.parent == "mock_module"
     assert node.kind == "constant"
-    assert node.signature == "MOCK_CONSTANT: float = 3.12"
+    assert node.signature == "MOCK_CONSTANT: Final[float] = 3.12"
     assert node.raw_docstring == ""
     assert node.header_level == 3
 
@@ -297,7 +315,7 @@ def check_constant_undocumented(node: inspect_runtime.Member) -> None:
     assert node.name == "UNDOCUMENTED"
     assert node.parent == "mock_module"
     assert node.kind == "constant"
-    assert node.signature == "UNDOCUMENTED: bool = False"
+    assert node.signature == "UNDOCUMENTED: Final[bool] = False"
     assert node.raw_docstring == ""
     assert node.header_level == 3
 
@@ -328,8 +346,12 @@ def check_function_function_with_custom_type(
     assert node.name == "function_with_custom_type"
     assert node.parent == "mock_module"
     assert node.kind == "routine"
-    assert node.signature == (
-        "function_with_custom_type(param: MockClass) -> MockDataclass"
+    # signature is slightly different between modules with and without
+    # future imports of annotations:
+    assert node.signature in (
+        "function_with_custom_type(param: mock_module.MockClass) "
+        "-> mock_module.MockDataclass",
+        "function_with_custom_type(param: MockClass) -> MockDataclass",
     )
     assert node.raw_docstring == (
         "Function with custom types.\n\n"
@@ -588,15 +610,31 @@ def check_class_abstract_base_class(node: inspect_runtime.Member) -> None:
 def test_member_constant_with_docstring(mock_module: ModuleType) -> None:
     """Test the function for a member with a constant value."""
     output = inspect_runtime._member_constant(
-        "MOCK_CONSTANT", mock_module.MOCK_CONSTANT, "mock_module"
+        "MOCK_CONSTANT",
+        mock_module.MOCK_CONSTANT,
+        "mock_module",
+        "Final[float]",
     )
     check_constant_mock_constant(output)
+
+
+def test_member_constant_no_annotation(mock_module: ModuleType) -> None:
+    """Test a missing annotation can be deduced automatically."""
+    output = inspect_runtime._member_constant(
+        "MOCK_CONSTANT", mock_module.MOCK_CONSTANT, "mock_module", None
+    )
+    assert output.name == "MOCK_CONSTANT"
+    assert output.parent == "mock_module"
+    assert output.kind == "constant"
+    assert output.signature == "MOCK_CONSTANT: float = 3.12"
+    assert output.raw_docstring == ""
+    assert output.header_level == 3
 
 
 def test_member_constant_no_docstring(mock_module: ModuleType) -> None:
     """Test the function for a member with a constant value."""
     output = inspect_runtime._member_constant(
-        "UNDOCUMENTED", mock_module.UNDOCUMENTED, "mock_module"
+        "UNDOCUMENTED", mock_module.UNDOCUMENTED, "mock_module", "Final[bool]"
     )
     check_constant_undocumented(output)
 
@@ -604,7 +642,7 @@ def test_member_constant_no_docstring(mock_module: ModuleType) -> None:
 def test_member_constant_string_types() -> None:
     """Test that members of type string appear in quotes in their signature."""
     output = inspect_runtime._member_constant(
-        "STRING_CONSTANT", "abc", "mock_module"
+        "STRING_CONSTANT", "abc", "mock_module", "str"
     )
     assert output.name == "STRING_CONSTANT"
     assert output.parent == "mock_module"
@@ -614,14 +652,11 @@ def test_member_constant_string_types() -> None:
     assert output.header_level == 3
 
 
-@pytest.mark.xfail(
-    reason="Literal types not yet supported for constants, see #30"
-)
-def test_member_constant_string_literal_types() -> None:
+def test_member_constant_string_literal_types(mock_module) -> None:
     """Test that members of type string literal have correct signature."""
     my_const: Literal["abc", "xyz"] = "abc"
     output = inspect_runtime._member_constant(
-        "STRING_CONSTANT", my_const, "mock_module"
+        "STRING_CONSTANT", my_const, "mock_module", "Literal['abc', 'xyz']"
     )
     assert output.name == "STRING_CONSTANT"
     assert output.parent == "mock_module"
@@ -720,7 +755,10 @@ def test_member_method_abstractmethod(mock_module: ModuleType) -> None:
 def test_member_classvar(mock_module: ModuleType) -> None:
     """Test the function for a classvar."""
     output = inspect_runtime._member_classvar(
-        "class_var", mock_module.MockClass.class_var, "mock_module.MockClass"
+        "class_var",
+        mock_module.MockClass.class_var,
+        "mock_module.MockClass",
+        "ClassVar[str]",
     )
     check_classvar_class_var(output)
 
@@ -731,8 +769,33 @@ def test_member_classvar_no_docs(mock_module: ModuleType) -> None:
         "undocumented",
         mock_module.MockClass.undocumented,
         "mock_module.MockClass",
+        "ClassVar[bool]",
     )
     check_classvar_undocumented(output)
+
+
+def test_member_classvar_missing_annotation(mock_module: ModuleType) -> None:
+    """Test missing annotations can be replaced."""
+    output = inspect_runtime._member_classvar(
+        "class_var",
+        mock_module.MockClass.class_var,
+        "mock_module.MockClass",
+        None,
+    )
+    check_classvar_class_var(output)
+
+
+def test_member_classvar_incomplete_annotation(
+    mock_module: ModuleType,
+) -> None:
+    """Test class vars are always denoted as such using ``ClassVar``."""
+    output = inspect_runtime._member_classvar(
+        "class_var",
+        mock_module.MockClass.class_var,
+        "mock_module.MockClass",
+        "str",
+    )
+    check_classvar_class_var(output)
 
 
 def test_member_property(mock_module: ModuleType) -> None:

@@ -1,7 +1,5 @@
 """Mock module docstring."""
 
-from __future__ import annotations
-
 import abc
 from dataclasses import dataclass
 from typing import ClassVar, Final
