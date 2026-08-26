@@ -21,6 +21,11 @@ document, which is based on PEP440.
 
 - Info field lists for parameters, return values, etc. now render as collapsible sections ([#99](https://github.com/MilanStaffehl/pebbledoc/pull/99))
 
+### Fixed
+
+- Types of constants and class variables are now correctly rendered when a type annotation is given ([#108](https://github.com/MilanStaffehl/pebbledoc/pull/108))
+- Type annotations are now correctly rendered for modules without `from __future__ import annotations` ([#108](https://github.com/MilanStaffehl/pebbledoc/pull/108))
+
 ## [0.1.0] - 2026-08-21
 
 ### Added
