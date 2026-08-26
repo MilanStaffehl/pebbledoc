@@ -146,6 +146,30 @@ def test_pebbledoc_exclude_members(
     assert exit_code == 0
 
 
+def test_pebbledoc_exclude_members_full_names(
+    patch_open: Mock, patch_config_discovery: None
+) -> None:
+    """Test pebbledoc with members excluded by full name."""
+    input_file = Path(__file__).parent / "expected" / "excluded_members.md"
+    with open(input_file, "r") as f:
+        expected = f.read()
+
+    # create a run config and execute the code
+    namespace = utils.prepare_namespace(
+        source_directory=str(Path(__file__).parent / "resources"),
+        exclude=[
+            "observation.Observation",
+            "stellarium_lite.CelestialObject.describe",
+            "ObservableMixin.observe",
+            "observation.HybridObject.observe",
+        ],
+    )
+    exit_code = cli._handle_args(namespace)
+
+    assert_write_call(patch_open, namespace.output, expected + "\n")
+    assert exit_code == 0
+
+
 @pytest.mark.parametrize(
     "admonition_style", ["github", "classic", "mix", "map"]
 )
@@ -523,30 +547,6 @@ def test_pebbledoc_config_file_with_output_renamed(
             f"{''.join(diff)}"
         )
         pytest.fail(msg)
-    assert exit_code == 0
-
-
-def test_pebbledoc_exclude_members_full_names(
-    patch_open: Mock, patch_config_discovery: None
-) -> None:
-    """Test pebbledoc with members excluded by full name."""
-    input_file = Path(__file__).parent / "expected" / "excluded_members.md"
-    with open(input_file, "r") as f:
-        expected = f.read()
-
-    # create a run config and execute the code
-    namespace = utils.prepare_namespace(
-        source_directory=str(Path(__file__).parent / "resources"),
-        exclude=[
-            "observation.Observation",
-            "stellarium_lite.CelestialObject.describe",
-            "ObservableMixin.observe",
-            "observation.HybridObject.observe",
-        ],
-    )
-    exit_code = cli._handle_args(namespace)
-
-    assert_write_call(patch_open, namespace.output, expected + "\n")
     assert exit_code == 0
 
 
