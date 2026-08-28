@@ -3,11 +3,60 @@
 import argparse
 import importlib.metadata
 import sys
+import textwrap
 from pathlib import Path
 from typing import Never
 
 from . import documenting
 from .config import build_config
+
+
+class PebbledocHelpTextFormatter(argparse.HelpFormatter):
+    """
+    Custom help text formatter for pebbledoc.
+
+    The formatter preserves formatting in the description and the
+    argument help texts, but without wrapping in the middle of words.
+    Help texts are also correctly indented when wrapped. The formatter
+    also correctly identifies lists starting with ``-`` or ``*`` as
+    bullets, and correctly indents any list items that need to be
+    wrapped.
+    """
+
+    def __init__(
+        self,
+        prog: str,
+        indent_increment: int = 2,
+        max_help_position: int = 28,
+        width: int | None = None,
+    ) -> None:
+        """Set custom max. help text position."""
+        super().__init__(prog, indent_increment, max_help_position, width)
+
+    def _fill_text(self, text: str, width: int, indent: str) -> str:
+        wrapped = []
+        for line in text.split("\n"):
+            if line:
+                wrapped += textwrap.wrap(
+                    line,
+                    width,
+                    initial_indent=indent,
+                    subsequent_indent=indent,
+                )
+            else:
+                wrapped.append(line)
+        return "\n".join(wrapped)
+
+    def _split_lines(self, text: str, width: int) -> list[str]:
+        lines = text.splitlines()
+        wrapped = []
+        for line in lines:
+            if line.startswith("- ") or line.startswith("* "):
+                indent = "  "
+            else:
+                indent = ""
+            wrapped += textwrap.wrap(line, width, subsequent_indent=indent)
+        return wrapped
 
 
 def _build_parser() -> argparse.ArgumentParser:
@@ -27,7 +76,7 @@ def _build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(
         prog="pebbledoc",
         description=description,
-        formatter_class=argparse.RawTextHelpFormatter,
+        formatter_class=PebbledocHelpTextFormatter,
     )
     parser.add_argument(
         "--version",
@@ -77,6 +126,7 @@ def _build_parser() -> argparse.ArgumentParser:
         default=None,
     )
     parser.add_argument(
+        "-a",
         "--admonition-style",
         help=(
             "rendering style for admonitions:\n"
@@ -93,6 +143,7 @@ def _build_parser() -> argparse.ArgumentParser:
         default=None,
     )
     parser.add_argument(
+        "-t",
         "--title",
         help="set the title for the document (i.e. its main header)",
         metavar="",
