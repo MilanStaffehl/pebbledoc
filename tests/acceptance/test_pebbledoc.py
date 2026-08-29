@@ -596,10 +596,9 @@ def test_pebbledoc_diff_option(
     # from which we load the expected diff. We therefore remove these
     # whitespaces before comparison:
     real_diff = capsys.readouterr().out
-    print(real_diff)
     pattern = re.compile(r"^\s+\n", flags=re.MULTILINE)
     cleaned_diff = pattern.sub("\n", real_diff)
-    assert cleaned_diff.removesuffix("\n") == expected_diff
+    assert cleaned_diff == expected_diff
 
 
 def test_pebbledoc_diff_option_no_diff(
