@@ -1,5 +1,6 @@
 """Acceptance tests for pebbledoc."""
 
+import codecs
 import difflib
 import importlib
 import re
@@ -8,6 +9,7 @@ from pathlib import Path
 from typing import Final
 from unittest.mock import Mock
 
+import colorama
 import pytest
 from pytest_mock import MockerFixture
 
@@ -16,7 +18,9 @@ from pebbledoc import cli
 sys.path.insert(0, str(Path(__file__).parents[1]))
 import utils
 
-ERROR_PREFIX: Final[str] = "\033[91mError:\033[0m"
+ERROR_PREFIX: Final[str] = (
+    f"{colorama.Fore.RED}Error:{colorama.Style.RESET_ALL}"
+)
 
 
 @pytest.fixture
@@ -582,15 +586,20 @@ def test_pebbledoc_diff_option(
     handle = patched_open()
     handle.write.assert_not_called()
 
-    expected_diff = Path(__file__).parent / "expected_diff.txt"
-    real_diff = capsys.readouterr().out
+    # Python escapes the backslashes of the ANSI sequences when we load
+    # the expected diff from file, so we must decode the string again:
+    diff_file = Path(__file__).parent / "expected_diff.txt"
+    encoded = diff_file.read_text().encode("utf-8")
+    expected_diff = codecs.escape_decode(encoded)[0].decode("utf-8")
     # unfortunately, newlines in the captured output contain whitespace,
     # which multiple linting tools and IDEs remove from the text file
     # from which we load the expected diff. We therefore remove these
     # whitespaces before comparison:
+    real_diff = capsys.readouterr().out
+    print(real_diff)
     pattern = re.compile(r"^\s+\n", flags=re.MULTILINE)
     cleaned_diff = pattern.sub("\n", real_diff)
-    assert cleaned_diff.removesuffix("\n") == expected_diff.read_text()
+    assert cleaned_diff.removesuffix("\n") == expected_diff
 
 
 def test_pebbledoc_diff_option_no_diff(
@@ -621,7 +630,7 @@ def test_pebbledoc_diff_option_no_diff(
     handle = patched_open()
     handle.write.assert_not_called()
 
-    assert capsys.readouterr().out == "No changes."
+    assert capsys.readouterr().out == ""  # no diff
 
 
 # == TESTS FOR INVALID INPUTS ==========================================

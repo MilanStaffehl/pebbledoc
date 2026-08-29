@@ -5,8 +5,11 @@ import difflib
 import importlib.metadata
 import sys
 import textwrap
+from collections.abc import Iterator
 from pathlib import Path
 from typing import Never
+
+import colorama
 
 from . import documenting
 from .config import build_config
@@ -214,7 +217,27 @@ def _build_parser() -> argparse.ArgumentParser:
 
 def _error(msg: str) -> None:
     """Helper function to emit to ``stderr``."""
-    print(f"\033[91mError:\033[0m {msg}", file=sys.stderr)
+    red = colorama.Fore.RED
+    reset = colorama.Style.RESET_ALL
+    print(f"{red}Error:{reset} {msg}", file=sys.stderr)
+
+
+def _diff(diff: Iterator[str]) -> None:
+    """Helper function to color and emit unified diffs."""
+    for line in diff:
+        if line.startswith("+"):
+            start = colorama.Fore.GREEN
+            end = colorama.Style.RESET_ALL
+        elif line.startswith("-"):
+            start = colorama.Fore.RED
+            end = colorama.Style.RESET_ALL
+        elif line.startswith("@@"):
+            start = colorama.Fore.BLUE
+            end = colorama.Style.RESET_ALL
+        else:
+            start = ""
+            end = ""
+        print(f"{start}{line.removesuffix('\n')}{end}")
 
 
 def _handle_args(args: argparse.Namespace) -> int:
@@ -283,20 +306,21 @@ def _handle_args(args: argparse.Namespace) -> int:
     if args.diff:
         if output.exists():
             with open(output, "r") as stream:
-                old_content = stream.readlines()
+                old_content = stream.read()
+            old_file = output.name
         else:
-            old_content = [""]
-        new_content = document_str.splitlines(keepends=True)
+            old_content = ""
+            old_file = "<none>"
+        # ignore newlines at end of file (might be added/removed by linters)
+        old_content = old_content.rstrip("\n")
+        new_content = document_str.rstrip("\n")
         diff = difflib.unified_diff(
-            old_content,
-            new_content,
-            fromfile=str(output.name),
+            old_content.splitlines(keepends=True),
+            new_content.splitlines(keepends=True),
+            fromfile=old_file,
             tofile=str(output.name),
         )
-        diff_msg = "".join(diff)
-        if not diff_msg:
-            diff_msg = "No changes."
-        print(diff_msg)
+        _diff(diff)
         return 0
 
     # otherwise, create documentation file
@@ -312,6 +336,7 @@ def _handle_args(args: argparse.Namespace) -> int:
 
 def main() -> Never:
     """Entry point for pebbledoc as a command-line tool."""
+    colorama.just_fix_windows_console()
     parser = _build_parser()
     args = parser.parse_args()
     sys.exit(_handle_args(args))
