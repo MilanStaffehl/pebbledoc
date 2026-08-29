@@ -156,8 +156,8 @@ def _build_parser() -> argparse.ArgumentParser:
     parser.add_argument(
         "--diff",
         help=(
-            "show changes with respect to previous version instead of "
-            "writing docs to file"
+            "show changes with respect to existing file instead of writing "
+            "docs to file"
         ),
         action="store_true",
     )

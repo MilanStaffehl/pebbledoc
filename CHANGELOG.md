@@ -17,10 +17,12 @@ document, which is based on PEP440.
 - Option to create a TOC with shortened member names ([#101](https://github.com/MilanStaffehl/pebbledoc/pull/101))
 - Option to remove line wraps (singular line breaks in paragraphs) ([#102](https://github.com/MilanStaffehl/pebbledoc/pull/102))
 - Shorthand command line arguments for `--admonition-style` and `--title` ([#109](https://github.com/MilanStaffehl/pebbledoc/pull/109))
+- Option `--diff` to show changes instead of overwriting file ([#112](https://github.com/MilanStaffehl/pebbledoc/pull/112))
 
 ### Changed
 
 - Info field lists for parameters, return values, etc. now render as collapsible sections ([#99](https://github.com/MilanStaffehl/pebbledoc/pull/99))
+- New dependency `colorama` to color diffs and error messages ([#112](https://github.com/MilanStaffehl/pebbledoc/pull/112))
 
 ### Fixed
 
