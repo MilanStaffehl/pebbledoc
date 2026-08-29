@@ -302,18 +302,20 @@ def _handle_args(args: argparse.Namespace) -> int:
         if source_dir is not None:
             sys.path.remove(str(source_dir))
 
+    # check if the file would change
+    if output.exists():
+        with open(output, "r") as stream:
+            old_content = stream.read()
+        old_file = output.name
+    else:
+        old_content = ""
+        old_file = "<none>"
+    # ignore newlines at end of file (might be added/removed by linters)
+    old_content = old_content.rstrip("\n")
+    new_content = document_str.rstrip("\n")
+
     # print diff, if requested
     if args.diff:
-        if output.exists():
-            with open(output, "r") as stream:
-                old_content = stream.read()
-            old_file = output.name
-        else:
-            old_content = ""
-            old_file = "<none>"
-        # ignore newlines at end of file (might be added/removed by linters)
-        old_content = old_content.rstrip("\n")
-        new_content = document_str.rstrip("\n")
         diff = difflib.unified_diff(
             old_content.splitlines(keepends=True),
             new_content.splitlines(keepends=True),
@@ -321,6 +323,10 @@ def _handle_args(args: argparse.Namespace) -> int:
             tofile=str(output.name),
         )
         _diff(diff)
+        return 0
+
+    # if no changes (except newlines at the end) occur, exit now
+    if old_content == new_content:
         return 0
 
     # otherwise, create documentation file

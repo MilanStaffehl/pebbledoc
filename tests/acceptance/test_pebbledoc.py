@@ -478,7 +478,9 @@ def test_pebbledoc_config_file(
         Path("pebbledoc.toml").resolve(),
         "rb",
     )
-    mock_write.assert_called_once_with(Path("API.md").resolve(), "w")
+    assert mock_write.call_count == 2  # once for diff (r), once for writing
+    assert mock_write.call_args_list[0].args == (Path("API.md").resolve(), "r")
+    assert mock_write.call_args_list[1].args == (Path("API.md").resolve(), "w")
     handle = mock_write()
     handle.write.assert_called_once()
     assert handle.write.call_count == 1
@@ -533,7 +535,12 @@ def test_pebbledoc_config_file_with_output_renamed(
         Path("pebbledoc.toml").resolve(),
         "rb",
     )
-    mock_write.assert_called_once_with(
+    assert mock_write.call_count == 2  # once for diff (r), once for writing
+    assert mock_write.call_args_list[0].args == (
+        Path("DOCUMENTATION.md").resolve(),
+        "r",
+    )
+    assert mock_write.call_args_list[1].args == (
         Path("DOCUMENTATION.md").resolve(),
         "w",
     )
@@ -630,6 +637,28 @@ def test_pebbledoc_diff_option_no_diff(
     handle.write.assert_not_called()
 
     assert capsys.readouterr().out == ""  # no diff
+
+
+def test_pebbledoc_no_changes_to_previous_file(
+    mocker: MockerFixture, patch_config_discovery: None
+) -> None:
+    """Test pebbledoc does not write to file when unnecessary."""
+    input_file = Path(__file__).parent / "expected" / "base.md"
+    with open(input_file, "r") as f:
+        old_text = f.read()
+    patched_open = mocker.mock_open(read_data=old_text)
+    mocker.patch("pebbledoc.cli.open", patched_open)
+
+    # create a run config and execute the code
+    namespace = utils.prepare_namespace(
+        source_directory=str(Path(__file__).parent / "resources"),
+        output=str(input_file),  # compare to previous version
+    )
+    exit_code = cli._handle_args(namespace)
+
+    handle = patched_open()
+    handle.write.assert_not_called()  # file was not overwritten
+    assert exit_code == 0
 
 
 # == TESTS FOR INVALID INPUTS ==========================================
