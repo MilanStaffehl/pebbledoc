@@ -1,0 +1,50 @@
+--- diff.md
++++ diff.md
+@@ -23,7 +23,6 @@
+
+ - **author:** Milan Staffehl
+ - **copyright:** 2026 Milan Staffehl
+-- **version:** 2026.01
+
+ <a name="supported_catalogs"></a>
+ ### `bootes_loader.SUPPORTED_CATALOGS`
+@@ -46,9 +45,10 @@
+ An abstract base class for catalogs.
+
+ The class provides abstract methods that implementations for each of
+-the supported halo catalogs must implement.
++the supported halo catalogs must implement. You can add support for
++your own catalog by implementing this abstract base class.
+
+-> [!WARNING]
++> [!CAUTION]
+ >
+ > Any catalog from [`SUPPORTED_CATALOGS`](#supported_catalogs) that does not
+ > have an associated catalog subclass will cause importing the
+@@ -62,10 +62,10 @@
+
+ ```Python
+ @abstractmethod
+-Catalog.load_catalog(self, path, structure, snap)
++Catalog.load_catalog(self, path, structure, snapshot)
+ ```
+
+-This function loads the catalog from file.
++Function to load the catalog from file.
+
+ The function **must** return the full raw file content of the
+ given snapshot. Fields are filtered only later in the
+@@ -93,7 +93,7 @@
+ <sup>[Back to top](#bootes_loader-documentation)</sup>
+
+ ```Python
+-load_catalog(catalog_name, catalog_type, path, snap, fields)
++load_catalog(catalog_name, catalog_type, path, snapshot, fields)
+ ```
+
+ Load data from anyone of the supported halo catalogs.
+@@ -122,3 +122,4 @@
+ `dict[str, NDArray[Any]]`: A mapping of field names to the respective values as arrays.
+
+ </details>
++

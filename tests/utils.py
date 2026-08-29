@@ -12,6 +12,7 @@ def prepare_namespace(
     exclude: list[str] | None = None,
     admonition_style: str | None = None,
     title: str | None = None,
+    diff: bool = False,
     no_module_docstring: bool = False,
     no_include_constants: bool = False,
     no_toc: bool = False,

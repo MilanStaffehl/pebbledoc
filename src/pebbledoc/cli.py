@@ -1,6 +1,7 @@
 """Command line interface for pebbledoc."""
 
 import argparse
+import difflib
 import importlib.metadata
 import sys
 import textwrap
@@ -149,6 +150,14 @@ def _build_parser() -> argparse.ArgumentParser:
         metavar="",
         default=None,
     )
+    parser.add_argument(
+        "--diff",
+        help=(
+            "show changes with respect to previous version instead of "
+            "writing docs to file"
+        ),
+        action="store_true",
+    )
 
     options = parser.add_argument_group(title="formatting")
     options.add_argument(
@@ -229,12 +238,14 @@ def _handle_args(args: argparse.Namespace) -> int:
         input.
     :return: An exit code, which is handed to ``sys.exit``.
     """
+    # attempt to find the configuration file
     try:
         config = build_config(args)
     except IOError as exc_info:
         _error(f"Could not locate config file: {exc_info}")
         return 4
 
+    # check that the given output is valid
     output = Path(config.output).resolve()
     if output.exists() and output.is_dir():
         _error("Output must be a file, not a directory")
@@ -243,6 +254,7 @@ def _handle_args(args: argparse.Namespace) -> int:
         _error(f"Output directory {output.parent} does not exist")
         return 1
 
+    # add source directory to PATH, if provided
     source_dir = config.source_directory
     if isinstance(source_dir, str):
         source_dir = Path(args.source_directory).resolve()
@@ -252,6 +264,7 @@ def _handle_args(args: argparse.Namespace) -> int:
     if source_dir is not None:
         sys.path.insert(0, str(source_dir))
 
+    # generate documentation
     try:
         document_str = documenting.markdown_documentation(args.package, config)
     except ImportError as exc_info:
@@ -266,6 +279,27 @@ def _handle_args(args: argparse.Namespace) -> int:
         if source_dir is not None:
             sys.path.remove(str(source_dir))
 
+    # print diff, if requested
+    if args.diff:
+        if output.exists():
+            with open(output, "r") as stream:
+                old_content = stream.readlines()
+        else:
+            old_content = [""]
+        new_content = document_str.splitlines(keepends=True)
+        diff = difflib.unified_diff(
+            old_content,
+            new_content,
+            fromfile=str(output.name),
+            tofile=str(output.name),
+        )
+        diff_msg = "".join(diff)
+        if not diff_msg:
+            diff_msg = "No changes."
+        print(diff_msg)
+        return 0
+
+    # otherwise, create documentation file
     try:
         with open(output, "w") as f:
             f.write(document_str)
