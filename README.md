@@ -171,6 +171,7 @@ options:
                             - map: render all admonitions in GitHub style, map unsupported admonitions
                               to the closest supported type
   -t, --title               set the title for the document (i.e. its main header)
+  --diff                    show changes with respect to existing file instead of writing docs to file
 
 formatting:
   --no-module-docstring     omit module-level docstrings for submodules and sub-packages

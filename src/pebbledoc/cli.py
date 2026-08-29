@@ -1,11 +1,15 @@
 """Command line interface for pebbledoc."""
 
 import argparse
+import difflib
 import importlib.metadata
 import sys
 import textwrap
+from collections.abc import Iterator
 from pathlib import Path
 from typing import Never
+
+import colorama
 
 from . import documenting
 from .config import build_config
@@ -149,6 +153,14 @@ def _build_parser() -> argparse.ArgumentParser:
         metavar="",
         default=None,
     )
+    parser.add_argument(
+        "--diff",
+        help=(
+            "show changes with respect to existing file instead of writing "
+            "docs to file"
+        ),
+        action="store_true",
+    )
 
     options = parser.add_argument_group(title="formatting")
     options.add_argument(
@@ -205,7 +217,27 @@ def _build_parser() -> argparse.ArgumentParser:
 
 def _error(msg: str) -> None:
     """Helper function to emit to ``stderr``."""
-    print(f"\033[91mError:\033[0m {msg}", file=sys.stderr)
+    red = colorama.Fore.RED
+    reset = colorama.Style.RESET_ALL
+    print(f"{red}Error:{reset} {msg}", file=sys.stderr)
+
+
+def _diff(diff: Iterator[str]) -> None:
+    """Helper function to color and emit unified diffs."""
+    for line in diff:
+        if line.startswith("+"):
+            start = colorama.Fore.GREEN
+            end = colorama.Style.RESET_ALL
+        elif line.startswith("-"):
+            start = colorama.Fore.RED
+            end = colorama.Style.RESET_ALL
+        elif line.startswith("@@"):
+            start = colorama.Fore.BLUE
+            end = colorama.Style.RESET_ALL
+        else:
+            start = ""
+            end = ""
+        print(f"{start}{line.removesuffix('\n')}{end}")
 
 
 def _handle_args(args: argparse.Namespace) -> int:
@@ -229,12 +261,14 @@ def _handle_args(args: argparse.Namespace) -> int:
         input.
     :return: An exit code, which is handed to ``sys.exit``.
     """
+    # attempt to find the configuration file
     try:
         config = build_config(args)
     except IOError as exc_info:
         _error(f"Could not locate config file: {exc_info}")
         return 4
 
+    # check that the given output is valid
     output = Path(config.output).resolve()
     if output.exists() and output.is_dir():
         _error("Output must be a file, not a directory")
@@ -243,6 +277,7 @@ def _handle_args(args: argparse.Namespace) -> int:
         _error(f"Output directory {output.parent} does not exist")
         return 1
 
+    # add source directory to PATH, if provided
     source_dir = config.source_directory
     if isinstance(source_dir, str):
         source_dir = Path(args.source_directory).resolve()
@@ -252,6 +287,7 @@ def _handle_args(args: argparse.Namespace) -> int:
     if source_dir is not None:
         sys.path.insert(0, str(source_dir))
 
+    # generate documentation
     try:
         document_str = documenting.markdown_documentation(args.package, config)
     except ImportError as exc_info:
@@ -266,6 +302,28 @@ def _handle_args(args: argparse.Namespace) -> int:
         if source_dir is not None:
             sys.path.remove(str(source_dir))
 
+    # print diff, if requested
+    if args.diff:
+        if output.exists():
+            with open(output, "r") as stream:
+                old_content = stream.read()
+            old_file = output.name
+        else:
+            old_content = ""
+            old_file = "<none>"
+        # ignore newlines at end of file (might be added/removed by linters)
+        old_content = old_content.rstrip("\n")
+        new_content = document_str.rstrip("\n")
+        diff = difflib.unified_diff(
+            old_content.splitlines(keepends=True),
+            new_content.splitlines(keepends=True),
+            fromfile=old_file,
+            tofile=str(output.name),
+        )
+        _diff(diff)
+        return 0
+
+    # otherwise, create documentation file
     try:
         with open(output, "w") as f:
             f.write(document_str)
@@ -278,6 +336,7 @@ def _handle_args(args: argparse.Namespace) -> int:
 
 def main() -> Never:
     """Entry point for pebbledoc as a command-line tool."""
+    colorama.just_fix_windows_console()
     parser = _build_parser()
     args = parser.parse_args()
     sys.exit(_handle_args(args))

@@ -1,0 +1,45 @@
+\x1b[31m--- diff.md\x1b[0m
+\x1b[32m+++ diff.md\x1b[0m
+\x1b[34m@@ -23,7 +23,6 @@\x1b[0m
+
+ - **author:** Milan Staffehl
+ - **copyright:** 2026 Milan Staffehl
+\x1b[31m-- **version:** 2026.01\x1b[0m
+
+ <a name="supported_catalogs"></a>
+ ### `bootes_loader.SUPPORTED_CATALOGS`
+\x1b[34m@@ -46,9 +45,10 @@\x1b[0m
+ An abstract base class for catalogs.
+
+ The class provides abstract methods that implementations for each of
+\x1b[31m-the supported halo catalogs must implement.\x1b[0m
+\x1b[32m+the supported halo catalogs must implement. You can add support for\x1b[0m
+\x1b[32m+your own catalog by implementing this abstract base class.\x1b[0m
+
+\x1b[31m-> [!WARNING]\x1b[0m
+\x1b[32m+> [!CAUTION]\x1b[0m
+ >
+ > Any catalog from [`SUPPORTED_CATALOGS`](#supported_catalogs) that does not
+ > have an associated catalog subclass will cause importing the
+\x1b[34m@@ -62,10 +62,10 @@\x1b[0m
+
+ ```Python
+ @abstractmethod
+\x1b[31m-Catalog.load_catalog(self, path, structure, snap)\x1b[0m
+\x1b[32m+Catalog.load_catalog(self, path, structure, snapshot)\x1b[0m
+ ```
+
+\x1b[31m-This function loads the catalog from file.\x1b[0m
+\x1b[32m+Function to load the catalog from file.\x1b[0m
+
+ The function **must** return the full raw file content of the
+ given snapshot. Fields are filtered only later in the
+\x1b[34m@@ -93,7 +93,7 @@\x1b[0m
+ <sup>[Back to top](#bootes_loader-documentation)</sup>
+
+ ```Python
+\x1b[31m-load_catalog(catalog_name, catalog_type, path, snap, fields)\x1b[0m
+\x1b[32m+load_catalog(catalog_name, catalog_type, path, snapshot, fields)\x1b[0m
+ ```
+
+ Load data from anyone of the supported halo catalogs.

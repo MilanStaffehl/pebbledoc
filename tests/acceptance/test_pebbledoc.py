@@ -1,12 +1,15 @@
 """Acceptance tests for pebbledoc."""
 
+import codecs
 import difflib
 import importlib
+import re
 import sys
 from pathlib import Path
 from typing import Final
 from unittest.mock import Mock
 
+import colorama
 import pytest
 from pytest_mock import MockerFixture
 
@@ -15,7 +18,9 @@ from pebbledoc import cli
 sys.path.insert(0, str(Path(__file__).parents[1]))
 import utils
 
-ERROR_PREFIX: Final[str] = "\033[91mError:\033[0m"
+ERROR_PREFIX: Final[str] = (
+    f"{colorama.Fore.RED}Error:{colorama.Style.RESET_ALL}"
+)
 
 
 @pytest.fixture
@@ -548,6 +553,83 @@ def test_pebbledoc_config_file_with_output_renamed(
         )
         pytest.fail(msg)
     assert exit_code == 0
+
+
+# == TESTS FOR NON-FILE OUTPUTS ========================================
+
+
+def test_pebbledoc_diff_option(
+    patch_config_discovery: None,
+    capsys: pytest.CaptureFixture,
+    mocker: MockerFixture,
+) -> None:
+    """Test the --diff option for a source code that has slightly changed."""
+    # mock loading the expected old docs file
+    output_file = (
+        Path(__file__).parent / "expected" / "bootes_loader" / "diff.md"
+    )
+    with open(output_file, "r") as f:
+        old_text = f.read()
+    patched_open = mocker.mock_open(read_data=old_text)
+    mocker.patch("pebbledoc.cli.open", patched_open)
+    # create a run config and execute the code
+    namespace = utils.prepare_namespace(
+        package="bootes_loader",
+        source_directory=str(Path(__file__).parent / "resources"),
+        output=str(output_file),
+        diff=True,
+    )
+    exit_code = cli._handle_args(namespace)
+
+    assert exit_code == 0
+    patched_open.assert_called_once_with(output_file, "r")
+    handle = patched_open()
+    handle.write.assert_not_called()
+
+    # Python escapes the backslashes of the ANSI sequences when we load
+    # the expected diff from file, so we must decode the string again:
+    diff_file = Path(__file__).parent / "expected_diff.txt"
+    encoded = diff_file.read_text().encode("utf-8")
+    expected_diff = codecs.escape_decode(encoded)[0].decode("utf-8")
+    # unfortunately, newlines in the captured output contain whitespace,
+    # which multiple linting tools and IDEs remove from the text file
+    # from which we load the expected diff. We therefore remove these
+    # whitespaces before comparison:
+    real_diff = capsys.readouterr().out
+    pattern = re.compile(r"^\s+\n", flags=re.MULTILINE)
+    cleaned_diff = pattern.sub("\n", real_diff)
+    assert cleaned_diff == expected_diff
+
+
+def test_pebbledoc_diff_option_no_diff(
+    patch_config_discovery: None,
+    capsys: pytest.CaptureFixture,
+    mocker: MockerFixture,
+) -> None:
+    """Test the --diff option when nothing would change."""
+    # mock loading the expected old docs file
+    output_file = (
+        Path(__file__).parent / "expected" / "bootes_loader" / "base.md"
+    )
+    with open(output_file, "r") as f:
+        old_text = f.read()
+    patched_open = mocker.mock_open(read_data=old_text)
+    mocker.patch("pebbledoc.cli.open", patched_open)
+    # create a run config and execute the code
+    namespace = utils.prepare_namespace(
+        package="bootes_loader",
+        source_directory=str(Path(__file__).parent / "resources"),
+        output=str(output_file),
+        diff=True,
+    )
+    exit_code = cli._handle_args(namespace)
+
+    assert exit_code == 0
+    patched_open.assert_called_once_with(output_file, "r")
+    handle = patched_open()
+    handle.write.assert_not_called()
+
+    assert capsys.readouterr().out == ""  # no diff
 
 
 # == TESTS FOR INVALID INPUTS ==========================================
