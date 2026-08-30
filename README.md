@@ -139,10 +139,11 @@ pebbledoc --package my_package
 This creates a file `API.md` in the current working directory. From there, you can choose to configure `pebbledoc` to your liking using the options. Below is the full listing of command line options; you can display the same text by typing `pebbledoc --help`.
 
 ```
-usage: pebbledoc [-h] [--version] -p  [-s ] [-o ] [-c ] [-x member [member ...]]
-                 [-a {classic,mix,github,map}] [-t ] [--no-module-docstring] [--no-include-constants]
-                 [--no-toc] [--no-back-to-top] [--no-main-module-header] [--no-collapsible-params]
-                 [--no-references] [--no-full-toc-name] [--no-preserve-linewraps]
+usage: pebbledoc [-h] [--version] -p  [-s ] [-x member [member ...]] [--config-file ] [-o ] [--diff]
+                 [--exit-code] [--admonition-style {classic,mix,github,map}] [--title ]
+                 [--no-module-docstring] [--no-include-constants] [--no-toc] [--no-back-to-top]
+                 [--no-main-module-header] [--no-collapsible-params] [--no-references]
+                 [--no-full-toc-name] [--no-preserve-linewraps]
 
 pebbledoc is a lightweight documentation tool - automatically generate a single-file API documentation
 for your Python project!
@@ -154,25 +155,31 @@ dependencies must be installed.
 options:
   -h, --help                show this help message and exit
   --version                 show program's version number and exit
+
+source:
   -p, --package             name of the package to document
   -s, --source-directory    source directory of the package; must be specified if the package is not
                             installed in the current environment
-  -o, --output              name and filepath of the output file
-  -c, --config-file         file containing pebbledoc configuration instructions, optional
   -x, --exclude member [member ...]
                             names of members to exclude from the documentation, separated by whitespace
-  -a, --admonition-style {classic,mix,github,map}
+  --config-file             file containing pebbledoc configuration instructions, optional
+
+output:
+  -o, --output              name and filepath of the output file
+  --diff                    show changes with respect to existing file instead of writing docs to file
+  --exit-code               exit with non-zero exit code when documentation changes
+
+rendering:
+  --admonition-style {classic,mix,github,map}
                             rendering style for admonitions:
                             - classic: render all admonitions as block quotes with headers in bold type
-                            - mix: render admonitions supported by GitHub in GitHub style, all others in
-                              classic style
+                            - mix: render admonitions supported by GitHub in GitHub style, all others
+                              in classic style
                             - github: render all admonitions in GitHub style, as block quotes with
                               headers of the form [!TYPE]
                             - map: render all admonitions in GitHub style, map unsupported admonitions
                               to the closest supported type
-  -t, --title               set the title for the document (i.e. its main header)
-  --diff                    show changes with respect to existing file instead of writing docs to file
-  --exit-code               exit with non-zero exit code when documentation changes
+  --title                   set the title for the document (i.e. its main header)
 
 formatting:
   --no-module-docstring     omit module-level docstrings for submodules and sub-packages
