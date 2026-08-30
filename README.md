@@ -172,6 +172,7 @@ options:
                               to the closest supported type
   -t, --title               set the title for the document (i.e. its main header)
   --diff                    show changes with respect to existing file instead of writing docs to file
+  --exit-code               exit with non-zero exit code when documentation changes
 
 formatting:
   --no-module-docstring     omit module-level docstrings for submodules and sub-packages

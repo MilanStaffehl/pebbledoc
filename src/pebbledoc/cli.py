@@ -164,7 +164,7 @@ def _build_parser() -> argparse.ArgumentParser:
     )
     parser.add_argument(
         "--exit-code",
-        help="Exit with non-zero exit code when documentation changes",
+        help="exit with non-zero exit code when documentation changes",
         action="store_true",
     )
 
