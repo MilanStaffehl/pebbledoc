@@ -63,7 +63,7 @@ dev = [
 
 # entry points
 [project.scripts]
-pebbledoc = "pebbledoc.cli:main"
+pebbledoc = "pebbledoc.cli_logic:main"
 
 
 # tools
