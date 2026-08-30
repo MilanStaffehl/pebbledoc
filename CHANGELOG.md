@@ -16,7 +16,6 @@ document, which is based on PEP440.
 - Option to not render Sphinx-style references as links ([#100](https://github.com/MilanStaffehl/pebbledoc/pull/100))
 - Option to create a TOC with shortened member names ([#101](https://github.com/MilanStaffehl/pebbledoc/pull/101))
 - Option to remove line wraps (singular line breaks in paragraphs) ([#102](https://github.com/MilanStaffehl/pebbledoc/pull/102))
-- Shorthand command line arguments for `--admonition-style` and `--title` ([#109](https://github.com/MilanStaffehl/pebbledoc/pull/109))
 - Option `--diff` to show changes instead of overwriting file ([#112](https://github.com/MilanStaffehl/pebbledoc/pull/112))
 - Option `--exit-code` to emit non-zero exit code when a run changes the docs ([#117](https://github.com/MilanStaffehl/pebbledoc/pull/117))
 
@@ -26,6 +25,7 @@ document, which is based on PEP440.
 - New dependency `colorama` to color diffs and error messages ([#112](https://github.com/MilanStaffehl/pebbledoc/pull/112))
 - If newly generated documentation is identical to the existing one, the old file will no longer be overwritten ([#113](https://github.com/MilanStaffehl/pebbledoc/pull/113))
 - Some exit codes have changed ([#119](https://github.com/MilanStaffehl/pebbledoc/pull/119))
+- Command line arguments are now grouped differently in help text ([#120](https://github.com/MilanStaffehl/pebbledoc/pull/120))
 
 ### Fixed
 
