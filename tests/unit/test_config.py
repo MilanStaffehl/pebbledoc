@@ -6,7 +6,7 @@ from pathlib import Path
 import pytest
 from pytest_mock import MockerFixture
 
-from pebbledoc import cli, config
+from pebbledoc import cli_logic, config
 
 sys.path.insert(0, str(Path(__file__).parents[1]))
 import utils
@@ -54,7 +54,7 @@ def assert_config(
 def test_build_config_default() -> None:
     """Test building a config with no args."""
     namespace = utils.prepare_namespace(package="test_package")
-    output = cli.build_config(namespace)
+    output = cli_logic.build_config(namespace)
     assert_config(output)  # default values should be set
 
 
@@ -77,7 +77,7 @@ def test_build_config_max_diff() -> None:
         no_full_toc_name=True,
         no_preserve_linewraps=True,
     )
-    output = cli.build_config(namespace)
+    output = cli_logic.build_config(namespace)
     assert_config(
         output,
         package="test_package",
@@ -111,7 +111,7 @@ def test_build_config_cli_args() -> None:
         no_include_constants=True,
         no_module_docstring=True,
     )
-    output = cli.build_config(namespace)
+    output = cli_logic.build_config(namespace)
     assert_config(
         output,
         source_directory=mock_source_dir,
@@ -144,7 +144,7 @@ def test_build_config_pyrpoject(mocker: MockerFixture) -> None:
     namespace = utils.prepare_namespace(
         package="test_package", config_file="pyproject.toml"
     )
-    output = cli.build_config(namespace)
+    output = cli_logic.build_config(namespace)
     assert_config(
         output,
         package="test_package",
@@ -177,7 +177,7 @@ def test_build_config_pebbledoc_config(mocker: MockerFixture) -> None:
     namespace = utils.prepare_namespace(
         package="test_package", config_file="pebbledoc.toml"
     )
-    output = cli.build_config(namespace)
+    output = cli_logic.build_config(namespace)
     assert_config(
         output,
         package="test_package",
@@ -219,7 +219,7 @@ def test_build_config_pyrpoject_cli_override(mocker: MockerFixture) -> None:
         no_module_docstring=True,
         no_collapsible_params=True,
     )
-    output = cli.build_config(namespace)
+    output = cli_logic.build_config(namespace)
     assert_config(
         output,
         package="test_package",
@@ -264,7 +264,7 @@ def test_build_config_pebbledoc_cli_override(mocker: MockerFixture) -> None:
         no_module_docstring=True,
         no_collapsible_params=True,
     )
-    output = cli.build_config(namespace)
+    output = cli_logic.build_config(namespace)
     assert_config(
         output,
         package="test_package",
@@ -292,7 +292,7 @@ def test_build_config_missing_file(mocker: MockerFixture) -> None:
         package="test_package", config_file="pyproject.toml"
     )
     with pytest.raises(FileNotFoundError) as exc_info:
-        cli.build_config(namespace)
+        cli_logic.build_config(namespace)
     path = Path("pyproject.toml").resolve()
     assert exc_info.value.args[0] == f"{path} is not a file or does not exist"
     mock_open.assert_not_called()
@@ -309,7 +309,7 @@ def test_build_config_only_directory(mocker: MockerFixture) -> None:
         package="test_package", config_file="./src/"
     )
     with pytest.raises(FileNotFoundError) as exc_info:
-        cli.build_config(namespace)
+        cli_logic.build_config(namespace)
     path = Path("./src/").resolve()
     assert exc_info.value.args[0] == f"{path} is not a file or does not exist"
     mock_open.assert_not_called()
@@ -326,7 +326,7 @@ def test_build_config_invalid_file_name(mocker: MockerFixture) -> None:
         package="test_package", config_file="setup.cfg"
     )
     with pytest.raises(IOError) as exc_info:
-        cli.build_config(namespace)
+        cli_logic.build_config(namespace)
     assert exc_info.value.args[0] == (
         "Config file must be one of the following: pebbledoc.toml, "
         ".pebbledoc.toml, pyproject.toml"
@@ -355,7 +355,7 @@ def test_build_config_unsupported_fields(mocker: MockerFixture) -> None:
         package="test_package", config_file="pebbledoc.toml"
     )
     with pytest.warns(UserWarning) as w_info:
-        output = cli.build_config(namespace)
+        output = cli_logic.build_config(namespace)
     assert_config(
         output,
         package="test_package",
@@ -410,7 +410,7 @@ def test_build_config_file_discovery(mocker: MockerFixture) -> None:
     mock_open = mocker.patch("pebbledoc.config.open", m)
 
     namespace = utils.prepare_namespace(package="test_package")
-    output = cli.build_config(namespace)
+    output = cli_logic.build_config(namespace)
     assert_config(
         output,
         package="test_package",
