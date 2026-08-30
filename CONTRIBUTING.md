@@ -336,7 +336,10 @@ public members should be aimed at users.
 When you add support for a new Sphinx-specific RST syntax feature, you should
 add a note to the README of the project in the respective section. Additionally,
 whenever you implement support for a new RST syntax feature, you must update
-the [FEATURES.md](./FEATURES.md) document accordingly.
+the [FEATURES.md](./FEATURES.md) document accordingly. If your contribution changes the
+help text of the command line interface of `pebbledoc`, you must update the help
+text in the README. If you add new config file options, you must also add these
+to the respective table and example config file in the README.
 
 Finally, all changes you make must be documented in the [CHANGELOG](./CHANGELOG.md)
 of the project. `pebbledoc` uses the [Keep a Changelog](https://keepachangelog.com/en/1.1.0/)
