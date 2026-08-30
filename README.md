@@ -295,11 +295,11 @@ The mapping from admonitions to alerts in `map` style is as follows:
 
 ## Supported RST syntax
 
+For a full list of all supported, planned, and unsupported RST features, see the [FEATURES.md](./FEATURES.md) document.
+
 Most of the standard RST syntax is supported by `pebbledoc`, but not all of it. This is deliberate, as `pebbledoc` is opinionated about what a docstring of a small Python library can reasonably be expected to contain, and what not. If you believe this opinion is ill-advised and would like to suggest adding an unsupported feature, see the [contributing section](#contributing) for a guide on how to make suggestions.
 
 In addition to the standard RST syntax, `pebbledoc` also supports some common Sphinx features. The next section gives some details.
-
-For a full list of all supported, planned, and unsupported RST features, see the [FEATURES.md](./FEATURES.md) document.
 
 ### Sphinx roles & directives
 
