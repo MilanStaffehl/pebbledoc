@@ -196,6 +196,17 @@ formatting:
 
 For a more in-depth description of the configuration options, see the section on [configuration options](#options) below.
 
+### Output options
+
+The options in the "output" group can change the behavior of `pebbledoc`, which can be useful for CI or scripting:
+
+- `--diff` causes `pebbledoc` to compare the newly generated documentation content with the old one. For this purpose, it loads the text from the existing file specified by `--output`. Any differences are then presented as colored output. If there is no difference, the command exits silently. In either case, no files are changed.
+- `--exit-code` instructs `pebbledoc` to exit with a non-zero exit code when the documentation changes compared to its previous state (i.e. compared to the contents of the file specified by `--output`). When this flag is used together with `--diff`, any difference will cause a non-zero exit code to be emitted, the difference is printed to the terminal, and no file is changed.
+
+> [!NOTE]
+>
+> In both cases, the comparison ignores trailing newline characters (`\n`) at the end of the file. This is because they are sometimes added or removed by linters, formatters, or IDEs.
+
 ### As a library
 
 In addition to the command line interface, `pebbledoc` also exposes some of its more useful utilities for programmatic use. To use them, simply import `pebbledoc` in your code:
@@ -284,11 +295,11 @@ The mapping from admonitions to alerts in `map` style is as follows:
 
 ## Supported RST syntax
 
+For a full list of all supported, planned, and unsupported RST features, see the [FEATURES.md](./FEATURES.md) document.
+
 Most of the standard RST syntax is supported by `pebbledoc`, but not all of it. This is deliberate, as `pebbledoc` is opinionated about what a docstring of a small Python library can reasonably be expected to contain, and what not. If you believe this opinion is ill-advised and would like to suggest adding an unsupported feature, see the [contributing section](#contributing) for a guide on how to make suggestions.
 
 In addition to the standard RST syntax, `pebbledoc` also supports some common Sphinx features. The next section gives some details.
-
-For a full list of all supported, planned, and unsupported RST features, see the [FEATURES.md](./FEATURES.md) document.
 
 ### Sphinx roles & directives
 
