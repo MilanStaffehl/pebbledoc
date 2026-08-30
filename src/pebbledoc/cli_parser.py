@@ -77,14 +77,16 @@ def _build_parser() -> argparse.ArgumentParser:
         action="version",
         version=f"pebbledoc version {importlib.metadata.version('pebbledoc')}",
     )
-    parser.add_argument(
+
+    source_group = parser.add_argument_group(title="source")
+    source_group.add_argument(
         "-p",
         "--package",
         help="name of the package to document",
         metavar="",
         required=True,
     )
-    parser.add_argument(
+    source_group.add_argument(
         "-s",
         "--source-directory",
         help=(
@@ -94,21 +96,7 @@ def _build_parser() -> argparse.ArgumentParser:
         metavar="",
         default=None,
     )
-    parser.add_argument(
-        "-o",
-        "--output",
-        help="name and filepath of the output file",
-        metavar="",
-        default=None,
-    )
-    parser.add_argument(
-        "-c",
-        "--config-file",
-        help="file containing pebbledoc configuration instructions, optional",
-        metavar="",
-        default=None,
-    )
-    parser.add_argument(
+    source_group.add_argument(
         "-x",
         "--exclude",
         help=(
@@ -119,8 +107,37 @@ def _build_parser() -> argparse.ArgumentParser:
         nargs="+",
         default=None,
     )
-    parser.add_argument(
-        "-a",
+    source_group.add_argument(
+        "--config-file",
+        help="file containing pebbledoc configuration instructions, optional",
+        metavar="",
+        default=None,
+    )
+
+    output_group = parser.add_argument_group(title="output")
+    output_group.add_argument(
+        "-o",
+        "--output",
+        help="name and filepath of the output file",
+        metavar="",
+        default=None,
+    )
+    output_group.add_argument(
+        "--diff",
+        help=(
+            "show changes with respect to existing file instead of writing "
+            "docs to file"
+        ),
+        action="store_true",
+    )
+    output_group.add_argument(
+        "--exit-code",
+        help="exit with non-zero exit code when documentation changes",
+        action="store_true",
+    )
+
+    rendering_group = parser.add_argument_group(title="rendering")
+    rendering_group.add_argument(
         "--admonition-style",
         help=(
             "rendering style for admonitions:\n"
@@ -136,54 +153,40 @@ def _build_parser() -> argparse.ArgumentParser:
         choices=["classic", "mix", "github", "map"],
         default=None,
     )
-    parser.add_argument(
-        "-t",
+    rendering_group.add_argument(
         "--title",
         help="set the title for the document (i.e. its main header)",
         metavar="",
         default=None,
     )
-    parser.add_argument(
-        "--diff",
-        help=(
-            "show changes with respect to existing file instead of writing "
-            "docs to file"
-        ),
-        action="store_true",
-    )
-    parser.add_argument(
-        "--exit-code",
-        help="exit with non-zero exit code when documentation changes",
-        action="store_true",
-    )
 
-    options = parser.add_argument_group(title="formatting")
-    options.add_argument(
+    formatting_group = parser.add_argument_group(title="formatting")
+    formatting_group.add_argument(
         "--no-module-docstring",
         help="omit module-level docstrings for submodules and sub-packages",
         action="store_true",
     )
-    options.add_argument(
+    formatting_group.add_argument(
         "--no-include-constants",
         help="omit constants defined as module-level globals",
         action="store_true",
     )
-    options.add_argument(
+    formatting_group.add_argument(
         "--no-toc",
         help="omit the table of contents at the beginning of the file",
         action="store_true",
     )
-    options.add_argument(
+    formatting_group.add_argument(
         "--no-back-to-top",
         help="omit the 'back to top' links at the beginning of each section",
         action="store_true",
     )
-    options.add_argument(
+    formatting_group.add_argument(
         "--no-main-module-header",
         help="omit the h2 header for the main module",
         action="store_true",
     )
-    options.add_argument(
+    formatting_group.add_argument(
         "--no-collapsible-params",
         help=(
             "render parameter info field lists as static lists instead of "
@@ -191,17 +194,17 @@ def _build_parser() -> argparse.ArgumentParser:
         ),
         action="store_true",
     )
-    options.add_argument(
+    formatting_group.add_argument(
         "--no-references",
         help="do not turn Sphinx-style references into hyperlinks",
         action="store_true",
     )
-    options.add_argument(
+    formatting_group.add_argument(
         "--no-full-toc-name",
         help="use only shortened member names in table of contents",
         action="store_true",
     )
-    options.add_argument(
+    formatting_group.add_argument(
         "--no-preserve-linewraps",
         help="remove stylistic line wraps (singular line breaks) in texts",
         action="store_true",
