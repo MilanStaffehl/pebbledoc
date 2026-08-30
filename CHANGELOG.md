@@ -18,6 +18,7 @@ document, which is based on PEP440.
 - Option to remove line wraps (singular line breaks in paragraphs) ([#102](https://github.com/MilanStaffehl/pebbledoc/pull/102))
 - Shorthand command line arguments for `--admonition-style` and `--title` ([#109](https://github.com/MilanStaffehl/pebbledoc/pull/109))
 - Option `--diff` to show changes instead of overwriting file ([#112](https://github.com/MilanStaffehl/pebbledoc/pull/112))
+- Option `--exit-code` to emit non-zero exit code when a run changes the docs ([#117](https://github.com/MilanStaffehl/pebbledoc/pull/117))
 
 ### Changed
 

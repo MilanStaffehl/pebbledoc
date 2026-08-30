@@ -13,6 +13,7 @@ def prepare_namespace(
     admonition_style: str | None = None,
     title: str | None = None,
     diff: bool = False,
+    exit_code: bool = False,
     no_module_docstring: bool = False,
     no_include_constants: bool = False,
     no_toc: bool = False,
