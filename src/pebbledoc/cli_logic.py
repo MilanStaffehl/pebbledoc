@@ -3,6 +3,7 @@
 import argparse
 import contextlib
 import difflib
+import enum
 import sys
 from collections.abc import Iterator
 from pathlib import Path
@@ -13,6 +14,37 @@ import colorama
 from . import documenting
 from .cli_parser import _build_parser
 from .config import build_config
+
+
+class _ErrorCodes(enum.IntEnum):
+    """Error codes for pebbledoc."""
+
+    EX_SUCCESS = 0
+    """Execution was successful."""
+
+    EX_GENERIC_ERROR = 1
+    """A generic, unspecified error occurred."""
+
+    EX_BAD_ARGS = 2
+    """Invalid arguments were given (automatically used by argparse)."""
+
+    EX_IMPORT_ERR = 3
+    """The package to document could not be imported."""
+
+    EX_INVALID_PATH = 4
+    """A user-supplied path is invalid."""
+
+    EX_CANT_WRITE = 5
+    """The output file could not be written."""
+
+    EX_MISSING_CONFIG = 6
+    """The user-specified config file was not found."""
+
+    EX_NO_ORIGIN = 7
+    """The origin of a (sub-)package could not be found."""
+
+    EX_DOCS_CHANGED = 255
+    """Emitted when docs change and non-zero exit was requested by user."""
 
 
 def _error(msg: str) -> None:
@@ -147,8 +179,8 @@ def _regular_exit(docs_unchanged: bool, emit_exit_code: bool) -> int:
         dedicated to indicate changed file contents.
     """
     if emit_exit_code and not docs_unchanged:
-        return 255
-    return 0
+        return _ErrorCodes.EX_DOCS_CHANGED
+    return _ErrorCodes.EX_SUCCESS
 
 
 def _handle_args(args: argparse.Namespace) -> int:
@@ -158,15 +190,19 @@ def _handle_args(args: argparse.Namespace) -> int:
     Function returns an error code when something goes wrong. The error
     codes have the following meaning:
 
-    - 1: Either the given source or output paths are invalid.
-    - 2: The package to document or its dependencies could not be
+    - 1: A generic, unspecified error occurred.
+    - 3: The package to document or its dependencies could not be
       imported.
-    - 3: The output file could not be written.
-    - 4: The specified config file could not be located.
-    - 5: The package or one of its subpackages did not provide a list
+    - 4: Either the given source or output paths are invalid.
+    - 5: The output file could not be written.
+    - 6: The specified config file could not be located.
+    - 7: The package or one of its subpackages did not provide a list
       of members for its API (i.e. it had no ``__all__``), and an
       attempt at finding its public members using AST parsing failed due
       to the origin of the package not being discoverable.
+    - 255: Execution was successful, but the ``--exit-code`` flag was
+      set and requested a non-zero exit code when the documentation
+      changed from its previous state.
 
     :param args: The ``argparse.Namespace`` object created from the user
         input.
@@ -177,7 +213,7 @@ def _handle_args(args: argparse.Namespace) -> int:
         config = build_config(args)
     except IOError as exc_info:
         _error(f"Could not locate config file: {exc_info}")
-        return 4
+        return _ErrorCodes.EX_MISSING_CONFIG
 
     # check that the given output and source dir are valid
     try:
@@ -185,7 +221,7 @@ def _handle_args(args: argparse.Namespace) -> int:
         source_dir = _validate_source_directory(config.source_directory)
     except ValueError as exc_info:
         _error(str(exc_info))
-        return 1
+        return _ErrorCodes.EX_INVALID_PATH
 
     # generate documentation
     try:
@@ -197,10 +233,10 @@ def _handle_args(args: argparse.Namespace) -> int:
         _error(
             f"Could not import package {args.package} or its dependencies: {exc_info}"
         )
-        return 2
+        return _ErrorCodes.EX_IMPORT_ERR
     except FileNotFoundError as exc_info:
         _error(f"One or more (sub-)packages could not be found: {exc_info}")
-        return 5
+        return _ErrorCodes.EX_NO_ORIGIN
 
     # check if the file would change
     old_content, old_file = _read_existing_docs(output)
@@ -211,7 +247,7 @@ def _handle_args(args: argparse.Namespace) -> int:
 
     # if no changes (except newlines at the end) occur, exit now
     if docs_unchanged:
-        return 0
+        return _ErrorCodes.EX_SUCCESS
 
     # print diff, if requested
     if args.diff:
@@ -230,7 +266,7 @@ def _handle_args(args: argparse.Namespace) -> int:
             f.write(document_str)
     except IOError as exc_info:
         _error(f"Could not write {output}: {exc_info}")
-        return 3
+        return _ErrorCodes.EX_CANT_WRITE
 
     # exit with non-zero exit code if docs changed and instructed to do so:
     return _regular_exit(docs_unchanged, args.exit_code)

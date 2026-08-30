@@ -111,7 +111,7 @@ def test_pebbledoc_default_setup(
     exit_code = cli_logic._handle_args(namespace)
 
     assert_write_call(patch_open, namespace.output, expected + "\n")
-    assert exit_code == 0
+    assert exit_code == cli_logic._ErrorCodes.EX_SUCCESS
 
 
 def test_pebbledoc_member_discovery(
@@ -129,7 +129,7 @@ def test_pebbledoc_member_discovery(
     exit_code = cli_logic._handle_args(namespace)
 
     assert_write_call(patch_open, namespace.output, expected + "\n")
-    assert exit_code == 0
+    assert exit_code == cli_logic._ErrorCodes.EX_SUCCESS
 
 
 def test_pebbledoc_different_name(
@@ -148,7 +148,7 @@ def test_pebbledoc_different_name(
     exit_code = cli_logic._handle_args(namespace)
 
     assert_write_call(patch_open, namespace.output, expected + "\n")
-    assert exit_code == 0
+    assert exit_code == cli_logic._ErrorCodes.EX_SUCCESS
 
 
 # == CONFIG OPTIONS & FEATURES =========================================
@@ -170,7 +170,7 @@ def test_pebbledoc_exclude_members(
     exit_code = cli_logic._handle_args(namespace)
 
     assert_write_call(patch_open, namespace.output, expected + "\n")
-    assert exit_code == 0
+    assert exit_code == cli_logic._ErrorCodes.EX_SUCCESS
 
 
 def test_pebbledoc_exclude_members_full_names(
@@ -194,7 +194,7 @@ def test_pebbledoc_exclude_members_full_names(
     exit_code = cli_logic._handle_args(namespace)
 
     assert_write_call(patch_open, namespace.output, expected + "\n")
-    assert exit_code == 0
+    assert exit_code == cli_logic._ErrorCodes.EX_SUCCESS
 
 
 @pytest.mark.parametrize(
@@ -217,7 +217,7 @@ def test_pebbledoc_admonition_style(
     exit_code = cli_logic._handle_args(namespace)
 
     assert_write_call(patch_open, namespace.output, expected + "\n")
-    assert exit_code == 0
+    assert exit_code == cli_logic._ErrorCodes.EX_SUCCESS
 
 
 def test_pebbledoc_custom_title(
@@ -236,7 +236,7 @@ def test_pebbledoc_custom_title(
     exit_code = cli_logic._handle_args(namespace)
 
     assert_write_call(patch_open, namespace.output, expected + "\n")
-    assert exit_code == 0
+    assert exit_code == cli_logic._ErrorCodes.EX_SUCCESS
 
 
 def test_pebbledoc_no_module_docstring(
@@ -256,7 +256,7 @@ def test_pebbledoc_no_module_docstring(
     exit_code = cli_logic._handle_args(namespace)
 
     assert_write_call(patch_open, namespace.output, expected + "\n")
-    assert exit_code == 0
+    assert exit_code == cli_logic._ErrorCodes.EX_SUCCESS
 
 
 def test_pebbledoc_no_include_constants(
@@ -275,7 +275,7 @@ def test_pebbledoc_no_include_constants(
     exit_code = cli_logic._handle_args(namespace)
 
     assert_write_call(patch_open, namespace.output, expected + "\n")
-    assert exit_code == 0
+    assert exit_code == cli_logic._ErrorCodes.EX_SUCCESS
 
 
 def test_pebbledoc_no_toc(
@@ -294,7 +294,7 @@ def test_pebbledoc_no_toc(
     exit_code = cli_logic._handle_args(namespace)
 
     assert_write_call(patch_open, namespace.output, expected + "\n")
-    assert exit_code == 0
+    assert exit_code == cli_logic._ErrorCodes.EX_SUCCESS
 
 
 def test_pebbledoc_no_back_to_top(
@@ -313,7 +313,7 @@ def test_pebbledoc_no_back_to_top(
     exit_code = cli_logic._handle_args(namespace)
 
     assert_write_call(patch_open, namespace.output, expected + "\n")
-    assert exit_code == 0
+    assert exit_code == cli_logic._ErrorCodes.EX_SUCCESS
 
 
 def test_pebbledoc_no_main_module_header(
@@ -334,7 +334,7 @@ def test_pebbledoc_no_main_module_header(
     exit_code = cli_logic._handle_args(namespace)
 
     assert_write_call(patch_open, namespace.output, expected + "\n")
-    assert exit_code == 0
+    assert exit_code == cli_logic._ErrorCodes.EX_SUCCESS
 
 
 def test_pebbledoc_no_collapsible_params(
@@ -355,7 +355,7 @@ def test_pebbledoc_no_collapsible_params(
     exit_code = cli_logic._handle_args(namespace)
 
     assert_write_call(patch_open, namespace.output, expected + "\n")
-    assert exit_code == 0
+    assert exit_code == cli_logic._ErrorCodes.EX_SUCCESS
 
 
 def test_pebbledoc_no_references(
@@ -374,7 +374,7 @@ def test_pebbledoc_no_references(
     exit_code = cli_logic._handle_args(namespace)
 
     assert_write_call(patch_open, namespace.output, expected + "\n")
-    assert exit_code == 0
+    assert exit_code == cli_logic._ErrorCodes.EX_SUCCESS
 
 
 def test_pebbledoc_no_full_toc_name(
@@ -393,7 +393,7 @@ def test_pebbledoc_no_full_toc_name(
     exit_code = cli_logic._handle_args(namespace)
 
     assert_write_call(patch_open, namespace.output, expected + "\n")
-    assert exit_code == 0
+    assert exit_code == cli_logic._ErrorCodes.EX_SUCCESS
 
 
 def test_pebbledoc_no_full_toc_name_no_main_module_header(
@@ -417,7 +417,7 @@ def test_pebbledoc_no_full_toc_name_no_main_module_header(
     exit_code = cli_logic._handle_args(namespace)
 
     assert_write_call(patch_open, namespace.output, expected + "\n")
-    assert exit_code == 0
+    assert exit_code == cli_logic._ErrorCodes.EX_SUCCESS
 
 
 def test_pebbledoc_no_preserve_linewraps(
@@ -438,7 +438,7 @@ def test_pebbledoc_no_preserve_linewraps(
     exit_code = cli_logic._handle_args(namespace)
 
     assert_write_call(patch_open, namespace.output, expected + "\n")
-    assert exit_code == 0
+    assert exit_code == cli_logic._ErrorCodes.EX_SUCCESS
 
 
 # == SPECIAL TESTS =====================================================
@@ -460,7 +460,7 @@ def test_pebbledoc_exit_code(
     exit_code = cli_logic._handle_args(namespace)
 
     assert_write_call(patch_open, namespace.output, expected + "\n")
-    assert exit_code == 255
+    assert exit_code == cli_logic._ErrorCodes.EX_DOCS_CHANGED
 
 
 def test_pebbledoc_untyped_package(
@@ -481,7 +481,7 @@ def test_pebbledoc_untyped_package(
     exit_code = cli_logic._handle_args(namespace)
 
     assert_write_call(patch_open, namespace.output, expected + "\n")
-    assert exit_code == 0
+    assert exit_code == cli_logic._ErrorCodes.EX_SUCCESS
 
 
 def test_pebbledoc_config_file(
@@ -537,7 +537,7 @@ def test_pebbledoc_config_file(
             f"{''.join(diff)}"
         )
         pytest.fail(msg)
-    assert exit_code == 0
+    assert exit_code == cli_logic._ErrorCodes.EX_SUCCESS
 
 
 def test_pebbledoc_config_file_with_output_renamed(
@@ -600,7 +600,7 @@ def test_pebbledoc_config_file_with_output_renamed(
             f"{''.join(diff)}"
         )
         pytest.fail(msg)
-    assert exit_code == 0
+    assert exit_code == cli_logic._ErrorCodes.EX_SUCCESS
 
 
 # == TESTS FOR NON-FILE OUTPUTS ========================================
@@ -629,7 +629,7 @@ def test_pebbledoc_diff_option(
     )
     exit_code = cli_logic._handle_args(namespace)
 
-    assert exit_code == 0
+    assert exit_code == cli_logic._ErrorCodes.EX_SUCCESS
     assert_diff_matches(patched_open, output_file, capsys.readouterr().out)
 
 
@@ -659,7 +659,7 @@ def test_pebbledoc_diff_option_no_diff(
     )
     exit_code = cli_logic._handle_args(namespace)
 
-    assert exit_code == 0
+    assert exit_code == cli_logic._ErrorCodes.EX_SUCCESS
     patched_open.assert_called_once_with(output_file, "r")
     handle = patched_open()
     handle.write.assert_not_called()
@@ -691,7 +691,7 @@ def test_pebbledoc_diff_option_with_exit_code(
     )
     exit_code = cli_logic._handle_args(namespace)
 
-    assert exit_code == 255
+    assert exit_code == cli_logic._ErrorCodes.EX_DOCS_CHANGED
     assert_diff_matches(patched_open, output_file, capsys.readouterr().out)
 
 
@@ -716,7 +716,7 @@ def test_pebbledoc_no_changes_to_previous_file(
 
     handle = patched_open()
     handle.write.assert_not_called()  # file was not overwritten
-    assert exit_code == 0
+    assert exit_code == cli_logic._ErrorCodes.EX_SUCCESS
 
 
 # == TESTS FOR INVALID INPUTS ==========================================
@@ -737,7 +737,7 @@ def test_pebbledoc_invalid_output_file(
     assert (
         out.err == f"{ERROR_PREFIX} Output must be a file, not a directory\n"
     )
-    assert exit_code == 1
+    assert exit_code == cli_logic._ErrorCodes.EX_INVALID_PATH
 
     # output directory does not exist
     output_path = Path("/this/does/not/exist/API.md")
@@ -753,7 +753,7 @@ def test_pebbledoc_invalid_output_file(
         f"not exist\n"
     )
     assert out.err == expected_msg
-    assert exit_code == 1
+    assert exit_code == cli_logic._ErrorCodes.EX_INVALID_PATH
 
 
 def test_pebbledoc_invalid_source_directory(
@@ -772,7 +772,7 @@ def test_pebbledoc_invalid_source_directory(
         f"{ERROR_PREFIX} Source directory {source_dir} does not exist\n"
     )
     assert out.err == expected_msg
-    assert exit_code == 1
+    assert exit_code == cli_logic._ErrorCodes.EX_INVALID_PATH
 
 
 def test_pebbledoc_import_error(
@@ -791,7 +791,7 @@ def test_pebbledoc_import_error(
         f"dependencies: No module named 'makebelieve'\n"
     )
     assert out.err == expected_msg
-    assert exit_code == 2
+    assert exit_code == cli_logic._ErrorCodes.EX_IMPORT_ERR
 
 
 def test_pebbledoc_unable_to_write_output(
@@ -815,7 +815,7 @@ def test_pebbledoc_unable_to_write_output(
         f"{ERROR_PREFIX} Could not write {output}: Not allowed to write\n"
     )
     assert out.err == expected_msg
-    assert exit_code == 3
+    assert exit_code == cli_logic._ErrorCodes.EX_CANT_WRITE
 
 
 def test_pebbledoc_invalid_config_file(
@@ -836,7 +836,7 @@ def test_pebbledoc_invalid_config_file(
         f"is not a file or does not exist\n"
     )
     assert out.err == expected_msg
-    assert exit_code == 4
+    assert exit_code == cli_logic._ErrorCodes.EX_MISSING_CONFIG
 
     # wrong file format
     mocker.patch("pebbledoc.cli_logic.Path.exists", return_value=True)
@@ -854,7 +854,7 @@ def test_pebbledoc_invalid_config_file(
         f"pyproject.toml\n"
     )
     assert out.err == expected_msg
-    assert exit_code == 4
+    assert exit_code == cli_logic._ErrorCodes.EX_MISSING_CONFIG
 
 
 def test_pebbledoc_no_package_origin(
@@ -886,4 +886,4 @@ def test_pebbledoc_no_package_origin(
         f"Unable to find origin of module stellarium_lite\n"
     )
     assert out.err == expected_msg
-    assert exit_code == 5
+    assert exit_code == cli_logic._ErrorCodes.EX_NO_ORIGIN
