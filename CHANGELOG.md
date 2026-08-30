@@ -25,6 +25,7 @@ document, which is based on PEP440.
 - Info field lists for parameters, return values, etc. now render as collapsible sections ([#99](https://github.com/MilanStaffehl/pebbledoc/pull/99))
 - New dependency `colorama` to color diffs and error messages ([#112](https://github.com/MilanStaffehl/pebbledoc/pull/112))
 - If newly generated documentation is identical to the existing one, the old file will no longer be overwritten ([#113](https://github.com/MilanStaffehl/pebbledoc/pull/113))
+- Some exit codes have changed ([#119](https://github.com/MilanStaffehl/pebbledoc/pull/119))
 
 ### Fixed
 
