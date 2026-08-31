@@ -99,3 +99,6 @@ project-excludes = [
 use-ignore-files = true
 search-path = ["src", "tests/acceptance/resources", "tests"]
 python-version = "3.13"
+
+[tool.pebbledoc]
+package = "pebbledoc"

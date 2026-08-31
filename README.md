@@ -364,7 +364,7 @@ jobs:
         run: uv sync --locked --all-extras --dev
 
       - name: Run pebbledoc
-        run: uv run pebbledoc --config-file=pyproject.toml --package <package_name>
+        run: uv run pebbledoc --config-file pyproject.toml --package <package_name>
 
       - name: Commit and push changes
         run: |
@@ -377,6 +377,66 @@ jobs:
             git commit -m "Automated update of docs with pebbledoc"
             git push
           fi
+```
+
+### GitHub Actions: check docs are up-too-date
+
+If you don't want a bot to create commits on your repository, you can alternatively check that your documentation is caught up with your code in every pull request:
+
+```yaml
+name: Run pebbledoc
+
+on:
+  pull-request:
+
+jobs:
+  check-docs:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v3
+
+      - name: Install the project
+        run: uv sync --locked --all-extras --dev
+
+      - name: Check docs with pebbledoc
+        run: |
+          uv run pebbledoc --config-file pyproject.toml --package <package_name> --diff --exit-code
+```
+
+### pre-commit: update docs
+
+You can use this repository as a pre-commit hook. Add the following to your `.pre-commit-config.yaml` to update your documentation on every commit:
+
+```yaml
+-   repo: https://github.com/MilanStaffehl/pebbledoc
+    rev: 0.1.0
+    hooks:
+      - id: pebbledoc-update
+        name: Update docs (pebbledoc)
+        args: [--package=<package_name>, --config=pyproject.toml]  # replace with your package
+        additional_dependencies: [<package_name>]  # replace with your package
+        stages: [pre-commit, pre-merge-commit]
+```
+
+### pre-commit: check docs
+
+Alternatively, you can configure pre-commit to check that the docs are up-to-date:
+
+```yaml
+-   repo: https://github.com/MilanStaffehl/pebbledoc
+    rev: 0.1.0
+    hooks:
+      - id: pebbledoc-check
+        name: Check docs (pebbledoc)
+        args: [--package=<package_name>, --config=pyproject.toml]  # replace with your package
+        additional_dependencies: [<package_name>]  # replace with your package
+        stages: [pre-commit, pre-merge-commit]
+        always_run: true
 ```
 
 
