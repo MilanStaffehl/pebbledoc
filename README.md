@@ -410,33 +410,17 @@ jobs:
 
 ### pre-commit: update docs
 
-You can use this repository as a pre-commit hook. Add the following to your `.pre-commit-config.yaml` to update your documentation on every commit:
+You can use this repository as a pre-commit hook. Add the following to your `.pre-commit-config.yaml` to update your documentation on every commit that changes a Python file:
 
 ```yaml
 -   repo: https://github.com/MilanStaffehl/pebbledoc
     rev: 0.1.0
     hooks:
-      - id: pebbledoc-update
+      - id: pebbledoc
         name: Update docs (pebbledoc)
         args: [--package=<package_name>, --config=pyproject.toml]  # replace with your package
-        additional_dependencies: [<package_name>]  # replace with your package
+        additional_dependencies: []  # replace with your dependencies
         stages: [pre-commit, pre-merge-commit]
-```
-
-### pre-commit: check docs
-
-Alternatively, you can configure pre-commit to check that the docs are up-to-date:
-
-```yaml
--   repo: https://github.com/MilanStaffehl/pebbledoc
-    rev: 0.1.0
-    hooks:
-      - id: pebbledoc-check
-        name: Check docs (pebbledoc)
-        args: [--package=<package_name>, --config=pyproject.toml]  # replace with your package
-        additional_dependencies: [<package_name>]  # replace with your package
-        stages: [pre-commit, pre-merge-commit]
-        always_run: true
 ```
 
 

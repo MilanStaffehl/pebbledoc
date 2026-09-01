@@ -1,18 +1,9 @@
--   id: pebbledoc-update
+-   id: pebbledoc
     name: Update docs with pebbledoc
     description: Update the documentation file with pebbledoc.
     entry: pebbledoc --exit-code
     language: python
     types_or: [python, pyi]
-    args: []
-    pass_filenames: false
-    require_serial: true
-
--   id: pebbledoc-check
-    name: Check docs
-    description: Check that the pebbledoc documentation is up to date.
-    entry: pebbledoc --exit-code --diff
-    language: python
     args: []
     pass_filenames: false
     require_serial: true
