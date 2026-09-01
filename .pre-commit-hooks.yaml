@@ -1,0 +1,9 @@
+-   id: pebbledoc
+    name: Update docs with pebbledoc
+    description: Update the documentation file with pebbledoc.
+    entry: pebbledoc --exit-code
+    language: python
+    types_or: [python, pyi]
+    args: []
+    pass_filenames: false
+    require_serial: true
