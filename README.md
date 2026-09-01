@@ -379,7 +379,7 @@ jobs:
           fi
 ```
 
-### GitHub Actions: check docs are up-too-date
+### GitHub Actions: check docs are up-to-date
 
 If you don't want a bot to create commits on your repository, you can alternatively check that your documentation is caught up with your code in every pull request:
 
