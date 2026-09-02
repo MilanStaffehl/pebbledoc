@@ -330,7 +330,7 @@ def _member_property(name: str, property_: property, parent: str) -> Member:
         relevant data.
     """
     if property_.fget is None:
-        annotation = ": Any"
+        annotation = ""
     else:
         return_annotation = inspect.signature(property_.fget).return_annotation
         if return_annotation is inspect.Parameter.empty:
