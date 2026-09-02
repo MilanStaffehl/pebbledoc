@@ -1,5 +1,7 @@
 # bootes_loader documentation
 
+This document lists the full public API of the `bootes_loader` package.
+
 #### Table of contents
 - [`bootes_loader`](#bootes_loader)
   - [`bootes_loader.SUPPORTED_CATALOGS`](#bootes_loadersupported_catalogs)

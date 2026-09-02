@@ -35,6 +35,7 @@ class PebbledocConfig:
     document_title: str | None = None
 
     document_constants: bool = True
+    include_intro: bool = True
     module_docstring: bool = True
     include_toc: bool = True
     include_back_to_top: bool = True
@@ -119,6 +120,7 @@ def _update_for_cli_args(
 
     # and finally, overwrite options, if given
     options = {
+        "no_generic_intro": "include_intro",
         "no_module_docstring": "module_docstring",
         "no_include_constants": "document_constants",
         "no_toc": "include_toc",

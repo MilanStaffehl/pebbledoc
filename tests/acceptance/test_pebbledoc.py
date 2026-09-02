@@ -441,6 +441,25 @@ def test_pebbledoc_no_preserve_linewraps(
     assert exit_code == cli_logic._ErrorCodes.EX_SUCCESS
 
 
+def test_pebbledoc_no_generic_intro(
+    patch_open: Mock, patch_config_discovery: None
+) -> None:
+    """Test pebbledoc with option to remove the genric introduction."""
+    input_file = Path(__file__).parent / "expected" / "no_generic_intro.md"
+    with open(input_file, "r") as f:
+        expected = f.read()
+
+    # create a run config and execute the code
+    namespace = utils.prepare_namespace(
+        source_directory=str(Path(__file__).parent / "resources"),
+        no_generic_intro=True,
+    )
+    exit_code = cli_logic._handle_args(namespace)
+
+    assert_write_call(patch_open, namespace.output, expected + "\n")
+    assert exit_code == cli_logic._ErrorCodes.EX_SUCCESS
+
+
 # == SPECIAL TESTS =====================================================
 
 

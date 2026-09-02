@@ -26,8 +26,6 @@ def markdown_documentation(
 
     :param package_name: The name of the package as it should appear in
         the header of the document.
-    :param package_obj: The package to document as a Python object,
-        retrieved for example using ``importlib.import_module``.
     :param config: A filled pebbledoc config object, detailing how to
         parse the found docstrings and how to arrange them into the final
         document.
@@ -45,6 +43,14 @@ def markdown_documentation(
     valid_targets = _valid_reference_targets(root)
     main_body = _document_member(root, config, valid_targets)
 
+    # build and intro
+    intro = ""
+    if config.include_intro:
+        intro += (
+            f"This document lists the full public API of the `{package_name}` "
+            f"package.\n\n"
+        )
+
     # build TOC
     if config.include_toc:
         toc = "#### Table of contents\n"
@@ -53,7 +59,7 @@ def markdown_documentation(
     else:
         toc = ""
 
-    return f"{header}{toc}{main_body}"
+    return f"{header}{intro}{toc}{main_body}"
 
 
 def _build_toc(root: Member, config: PebbledocConfig) -> str:

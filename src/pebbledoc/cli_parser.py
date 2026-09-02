@@ -162,6 +162,11 @@ def _build_parser() -> argparse.ArgumentParser:
 
     formatting_group = parser.add_argument_group(title="formatting")
     formatting_group.add_argument(
+        "--no-generic-intro",
+        help="omit the generic introduction after the main header",
+        action="store_true",
+    )
+    formatting_group.add_argument(
         "--no-module-docstring",
         help="omit module-level docstrings for submodules and sub-packages",
         action="store_true",

@@ -12,6 +12,12 @@ sys.path.insert(0, str(Path(__file__).parents[1]))
 import utils
 
 
+@pytest.fixture
+def patch_config_file_discovery(mocker: MockerFixture) -> None:
+    """Prevent tests from discovering pebbledocs pyproject.toml."""
+    mocker.patch("pebbledoc.config._discover_config_file", return_value=None)
+
+
 def assert_config(
     cfg: config.PebbledocConfig,
     *,
@@ -51,14 +57,14 @@ def assert_config(
     assert cfg.keep_linewraps is keep_linewraps
 
 
-def test_build_config_default() -> None:
+def test_build_config_default(patch_config_file_discovery: None) -> None:
     """Test building a config with no args."""
     namespace = utils.prepare_namespace(package="test_package")
     output = cli_logic.build_config(namespace)
     assert_config(output)  # default values should be set
 
 
-def test_build_config_max_diff() -> None:
+def test_build_config_max_diff(patch_config_file_discovery: None) -> None:
     """Test building a config with every argument is changed from default."""
     namespace = utils.prepare_namespace(
         package="test_package",
@@ -98,7 +104,7 @@ def test_build_config_max_diff() -> None:
     )
 
 
-def test_build_config_cli_args() -> None:
+def test_build_config_cli_args(patch_config_file_discovery: None) -> None:
     """Test building a config when CLI args are given."""
     mock_source_dir = "~/pylibs/my_package"
     namespace = utils.prepare_namespace(

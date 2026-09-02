@@ -1,5 +1,7 @@
 # stellarium_lite documentation
 
+This document lists the full public API of the `stellarium_lite` package.
+
 ## `stellarium_lite`
 
 <sup>[Back to top](#stellarium_lite-documentation)</sup>

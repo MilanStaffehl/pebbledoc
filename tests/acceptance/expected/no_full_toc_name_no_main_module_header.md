@@ -1,5 +1,7 @@
 # stellarium_lite documentation
 
+This document lists the full public API of the `stellarium_lite` package.
+
 #### Table of contents
 - [`DEFAULT_CATALOG_NAME`](#stellarium_litedefault_catalog_name)
 - [`load_catalog`](#stellarium_liteload_catalog)

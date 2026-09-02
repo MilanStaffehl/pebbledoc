@@ -14,6 +14,7 @@ def prepare_namespace(
     title: str | None = None,
     diff: bool = False,
     exit_code: bool = False,
+    no_generic_intro: bool = False,
     no_module_docstring: bool = False,
     no_include_constants: bool = False,
     no_toc: bool = False,
