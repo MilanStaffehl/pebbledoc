@@ -154,6 +154,19 @@ def _build_parser() -> argparse.ArgumentParser:
         default=None,
     )
     rendering_group.add_argument(
+        "--main-docstring",
+        help=(
+            "position for the main docstring of the package:\n"
+            "- default: place the package docstring in its dedicated section "
+            "(default)\n"
+            "- pre: places the docstring before the table of contents\n"
+            "- post: places the docstring after the table of contents\n"
+            "- omit: omits the main docstring entirely"
+        ),
+        choices=["default", "pre", "post", "omit"],
+        default=None,
+    )
+    rendering_group.add_argument(
         "--title",
         help="set the title for the document (i.e. its main header)",
         metavar="",

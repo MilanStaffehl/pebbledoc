@@ -11,6 +11,7 @@ def prepare_namespace(
     config_file: str | None = None,
     exclude: list[str] | None = None,
     admonition_style: str | None = None,
+    main_docstring: str | None = None,
     title: str | None = None,
     diff: bool = False,
     exit_code: bool = False,
