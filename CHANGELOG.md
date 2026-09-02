@@ -19,6 +19,8 @@ document, which is based on PEP440.
 - Option `--diff` to show changes instead of overwriting file ([#112](https://github.com/MilanStaffehl/pebbledoc/pull/112))
 - Option `--exit-code` to emit non-zero exit code when a run changes the docs ([#117](https://github.com/MilanStaffehl/pebbledoc/pull/117))
 - Support for using the repo in pre-commit ([#124](https://github.com/MilanStaffehl/pebbledoc/pull/124))
+- A generic one-sentence introductory paragraph, and the option to remove it ([#128](https://github.com/MilanStaffehl/pebbledoc/pull/128))
+- Option to place the package's main docstring at different locations (before or after TOC, in its section, or omit entirely) ([#128](https://github.com/MilanStaffehl/pebbledoc/pull/128))
 
 ### Changed
 

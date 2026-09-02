@@ -9,7 +9,7 @@ from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Final
 
-from .types import AdmonitionStyle
+from .types import AdmonitionStyle, DocstringPosition
 
 # CAUTION: Order of the list determines order of precedence!
 # pyproject.toml is last, so that an existing pyproject.toml with no
@@ -32,9 +32,11 @@ class PebbledocConfig:
     output: str = "API.md"
     exclude: list[str] = field(default_factory=list)
     admonition_style: AdmonitionStyle = "mix"
+    main_docstring_location: DocstringPosition = "default"
     document_title: str | None = None
 
     document_constants: bool = True
+    include_intro: bool = True
     module_docstring: bool = True
     include_toc: bool = True
     include_back_to_top: bool = True
@@ -114,11 +116,14 @@ def _update_for_cli_args(
         config.exclude = args.exclude
     if args.admonition_style is not None:
         config.admonition_style = args.admonition_style
+    if args.main_docstring is not None:
+        config.main_docstring_location = args.main_docstring
     if args.title is not None:
         config.document_title = args.title
 
     # and finally, overwrite options, if given
     options = {
+        "no_generic_intro": "include_intro",
         "no_module_docstring": "module_docstring",
         "no_include_constants": "document_constants",
         "no_toc": "include_toc",

@@ -2,28 +2,24 @@
 
 This document lists the full public API of the `stellarium_lite` package.
 
-#### Table of contents
-- [`stellarium_lite`](#stellarium_lite)
-  - [`stellarium_lite.load_catalog`](#stellarium_liteload_catalog)
-  - [`stellarium_lite.CelestialObject`](#stellarium_litecelestialobject)
-  - [`stellarium_lite.Star`](#stellarium_litestar)
-- [`stellarium_lite.observation`](#stellarium_liteobservation)
-  - [`stellarium_lite.observation.plan_session`](#stellarium_liteobservationplan_session)
-  - [`stellarium_lite.observation.ObservableMixin`](#stellarium_liteobservationobservablemixin)
-  - [`stellarium_lite.observation.VariableStar`](#stellarium_liteobservationvariablestar)
-  - [`stellarium_lite.observation.HybridObject`](#stellarium_liteobservationhybridobject)
-  - [`stellarium_lite.observation.Observation`](#stellarium_liteobservationobservation)
-
-
-## `stellarium_lite`
-
-<sup>[Back to top](#stellarium_lite-documentation)</sup>
-
 A tiny mock astronomy package used to exercise an RST-to-Markdown docstring renderer.
 
 This package is not a real astronomy library -- every function is a stub and
 every constant is arbitrary. It exists purely as a fixture. If you have any
 questions, *don't* send an email to <user@example.com>!
+
+## `stellarium_lite`
+
+<sup>[Back to top](#stellarium_lite-documentation)</sup>
+
+<a name="default_catalog_name"></a>
+### `stellarium_lite.DEFAULT_CATALOG_NAME`
+
+<sup>[Back to top](#stellarium_lite-documentation)</sup>
+
+```Python
+DEFAULT_CATALOG_NAME: str = 'Messier'
+```
 
 <a name="load_catalog"></a>
 ### `stellarium_lite.load_catalog`
@@ -255,6 +251,16 @@ See also `catalog` for how instances are typically constructed via
 <sup>[Back to top](#stellarium_lite-documentation)</sup>
 
 The observation module contains utilities for orchestrating surveys.
+
+<a name="observationmax_magnitude"></a>
+<a name="max_magnitude"></a>
+### `stellarium_lite.observation.MAX_MAGNITUDE`
+
+<sup>[Back to top](#stellarium_lite-documentation)</sup>
+
+```Python
+MAX_MAGNITUDE: float = 30.0
+```
 
 <a name="observationplan_session"></a>
 <a name="plan_session"></a>

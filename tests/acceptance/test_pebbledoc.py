@@ -63,7 +63,9 @@ def assert_write_call(
     if not actual == expected:
         lines_actual = actual.splitlines(keepends=True)
         lines_expected = expected.splitlines(keepends=True)
-        diff = difflib.unified_diff(lines_expected, lines_actual)
+        diff = difflib.unified_diff(
+            lines_expected, lines_actual, fromfile="expected", tofile="actual"
+        )
         msg = (
             f"Output was not identical to expected Markdown:\n\n"
             f"{''.join(diff)}"
@@ -213,6 +215,96 @@ def test_pebbledoc_admonition_style(
     namespace = utils.prepare_namespace(
         source_directory=str(Path(__file__).parent / "resources"),
         admonition_style=admonition_style,
+    )
+    exit_code = cli_logic._handle_args(namespace)
+
+    assert_write_call(patch_open, namespace.output, expected + "\n")
+    assert exit_code == cli_logic._ErrorCodes.EX_SUCCESS
+
+
+@pytest.mark.parametrize(
+    "main_docstring_loc", ["default", "pre", "post", "omit"]
+)
+def test_pebbledoc_main_docstring_location(
+    main_docstring_loc: str, patch_open: Mock, patch_config_discovery: None
+) -> None:
+    """Test pebbledoc for all admonition styles."""
+    if main_docstring_loc == "default":
+        filename = "base.md"  # default is, well... the default
+    else:
+        filename = f"main_docstring_location_{main_docstring_loc}.md"
+    input_file = Path(__file__).parent / "expected" / filename
+    with open(input_file, "r") as f:
+        expected = f.read()
+
+    # create a run config and execute the code
+    namespace = utils.prepare_namespace(
+        source_directory=str(Path(__file__).parent / "resources"),
+        main_docstring=main_docstring_loc,
+    )
+    exit_code = cli_logic._handle_args(namespace)
+
+    assert_write_call(patch_open, namespace.output, expected + "\n")
+    assert exit_code == cli_logic._ErrorCodes.EX_SUCCESS
+
+
+def test_pebbledoc_main_docstring_location_post_no_main_module_header(
+    patch_open: Mock, patch_config_discovery: None
+) -> None:
+    """Test how the ``post`` location plays without header."""
+    filename = "main_docstring_location_post_no_main_module_header.md"
+    input_file = Path(__file__).parent / "expected" / filename
+    with open(input_file, "r") as f:
+        expected = f.read()
+
+    # create a run config and execute the code
+    namespace = utils.prepare_namespace(
+        source_directory=str(Path(__file__).parent / "resources"),
+        main_docstring="post",
+        no_main_module_header=True,
+    )
+    exit_code = cli_logic._handle_args(namespace)
+
+    assert_write_call(patch_open, namespace.output, expected + "\n")
+    assert exit_code == cli_logic._ErrorCodes.EX_SUCCESS
+
+
+def test_pebbledoc_main_docstring_location_pre_no_generic_intro(
+    patch_open: Mock, patch_config_discovery: None
+) -> None:
+    """Test how the ``pre`` location plays without the generic intro."""
+    filename = "main_docstring_location_pre_no_generic_intro.md"
+    input_file = Path(__file__).parent / "expected" / filename
+    with open(input_file, "r") as f:
+        expected = f.read()
+
+    # create a run config and execute the code
+    namespace = utils.prepare_namespace(
+        source_directory=str(Path(__file__).parent / "resources"),
+        main_docstring="pre",
+        no_generic_intro=True,
+    )
+    exit_code = cli_logic._handle_args(namespace)
+
+    assert_write_call(patch_open, namespace.output, expected + "\n")
+    assert exit_code == cli_logic._ErrorCodes.EX_SUCCESS
+
+
+@pytest.mark.parametrize("main_docstring_loc", ["pre", "post"])
+def test_pebbledoc_main_docstring_location_no_toc(
+    main_docstring_loc: str, patch_open: Mock, patch_config_discovery: None
+) -> None:
+    """Test that, without a TOC, pre and post are identical."""
+    filename = "main_docstring_location_no_toc.md"
+    input_file = Path(__file__).parent / "expected" / filename
+    with open(input_file, "r") as f:
+        expected = f.read()
+
+    # create a run config and execute the code
+    namespace = utils.prepare_namespace(
+        source_directory=str(Path(__file__).parent / "resources"),
+        main_docstring=main_docstring_loc,
+        no_toc=True,
     )
     exit_code = cli_logic._handle_args(namespace)
 
@@ -434,6 +526,25 @@ def test_pebbledoc_no_preserve_linewraps(
     namespace = utils.prepare_namespace(
         source_directory=str(Path(__file__).parent / "resources"),
         no_preserve_linewraps=True,
+    )
+    exit_code = cli_logic._handle_args(namespace)
+
+    assert_write_call(patch_open, namespace.output, expected + "\n")
+    assert exit_code == cli_logic._ErrorCodes.EX_SUCCESS
+
+
+def test_pebbledoc_no_generic_intro(
+    patch_open: Mock, patch_config_discovery: None
+) -> None:
+    """Test pebbledoc with option to remove the genric introduction."""
+    input_file = Path(__file__).parent / "expected" / "no_generic_intro.md"
+    with open(input_file, "r") as f:
+        expected = f.read()
+
+    # create a run config and execute the code
+    namespace = utils.prepare_namespace(
+        source_directory=str(Path(__file__).parent / "resources"),
+        no_generic_intro=True,
     )
     exit_code = cli_logic._handle_args(namespace)
 

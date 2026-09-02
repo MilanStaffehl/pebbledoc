@@ -26,8 +26,6 @@ def markdown_documentation(
 
     :param package_name: The name of the package as it should appear in
         the header of the document.
-    :param package_obj: The package to document as a Python object,
-        retrieved for example using ``importlib.import_module``.
     :param config: A filled pebbledoc config object, detailing how to
         parse the found docstrings and how to arrange them into the final
         document.
@@ -41,9 +39,30 @@ def markdown_documentation(
     else:
         header = f"# {package_name} documentation\n\n"
 
+    # construct a node tree view of the package
     root = build_member_tree(package_name, config)
     valid_targets = _valid_reference_targets(root)
-    main_body = _document_member(root, config, valid_targets)
+
+    # check where the main docstring goes
+    main_doc = ""
+    if config.main_docstring_location != "default":
+        # we remove the docstring from the tree and render and place it
+        # separately from the main body:
+        main_doc = parsing.parse_docstring(
+            root.raw_docstring, config, valid_targets
+        )
+        root.raw_docstring = ""  # prevent docstring from being rendered twice
+
+    # build and intro
+    intro = ""
+    if config.include_intro:
+        intro += (
+            f"This document lists the full public API of the `{package_name}` "
+            f"package.\n\n"
+        )
+    if config.main_docstring_location == "pre":
+        intro += main_doc
+        intro += "\n"
 
     # build TOC
     if config.include_toc:
@@ -52,8 +71,14 @@ def markdown_documentation(
         toc += "\n\n"
     else:
         toc = ""
+    if config.main_docstring_location == "post":
+        toc += main_doc
+        toc += "\n"
 
-    return f"{header}{toc}{main_body}"
+    # generate the main body of the docs
+    main_body = _document_member(root, config, valid_targets)
+
+    return f"{header}{intro}{toc}{main_body}"
 
 
 def _build_toc(root: Member, config: PebbledocConfig) -> str:

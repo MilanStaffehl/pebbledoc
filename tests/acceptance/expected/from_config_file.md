@@ -1,5 +1,7 @@
 # stellarium_lite documentation
 
+This document lists the full public API of the `stellarium_lite` package.
+
 ## `stellarium_lite`
 
 A tiny mock astronomy package used to exercise an RST-to-Markdown docstring renderer.

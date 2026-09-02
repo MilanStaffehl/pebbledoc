@@ -140,7 +140,8 @@ This creates a file `API.md` in the current working directory. From there, you c
 
 ```
 usage: pebbledoc [-h] [--version] -p  [-s ] [-x member [member ...]] [--config-file ] [-o ] [--diff]
-                 [--exit-code] [--admonition-style {classic,mix,github,map}] [--title ]
+                 [--exit-code] [--admonition-style {classic,mix,github,map}]
+                 [--main-docstring {default,pre,post,omit}] [--title ] [--no-generic-intro]
                  [--no-module-docstring] [--no-include-constants] [--no-toc] [--no-back-to-top]
                  [--no-main-module-header] [--no-collapsible-params] [--no-references]
                  [--no-full-toc-name] [--no-preserve-linewraps]
@@ -179,9 +180,16 @@ rendering:
                               headers of the form [!TYPE]
                             - map: render all admonitions in GitHub style, map unsupported admonitions
                               to the closest supported type
+  --main-docstring {default,pre,post,omit}
+                            position for the main docstring of the package:
+                            - default: place the package docstring in its dedicated section (default)
+                            - pre: places the docstring before the table of contents
+                            - post: places the docstring after the table of contents
+                            - omit: omits the main docstring entirely
   --title                   set the title for the document (i.e. its main header)
 
 formatting:
+  --no-generic-intro        omit the generic introduction after the main header
   --no-module-docstring     omit module-level docstrings for submodules and sub-packages
   --no-include-constants    omit constants defined as module-level globals
   --no-toc                  omit the table of contents at the beginning of the file
@@ -239,7 +247,9 @@ source_directory = "~/pylibs/my_package"
 output = "API.md"
 exclude = []  # list of strings
 admonition_style = "mix"
+main_docstring_location = "default"
 document_title = "my_package - documentation"
+include_intro = true
 document_constants = true
 module_docstring = true
 include_toc = true
@@ -255,23 +265,25 @@ keep_linewraps = true
 
 The following table shows how the configuration options map to the command line flags. For a description of what the options are, see the help text of the corresponding command line option in [Command line usage](#command-line-usage).
 
-| Config key            | CLI flag                  | Notes                                                         |
-|-----------------------|---------------------------|---------------------------------------------------------------|
-| `package_name`        | `--package`               | Also used as the document title if `document_title` isn't set |
-| `source_directory`    | `--source-directory`      | Must be given if package is not installed                     |
-| `output`              | `--output`                | Defaults to `API.md` in the current directory                 |
-| `exclude`             | `--exclude`               | Can also be full importable name (e.g. `my_package.MyClass`)  |
-| `admonition_style`    | `--admonition-style`      | See [Admonitions](#admonitions) for details on each style     |
-| `document_title`      | `--title`                 | Overrides the default title derived from `package_name`       |
-| `document_constants`  | `--no-include-constants`  | Config default: `true`                                        |
-| `module_docstring`    | `--no-module-docstring`   | Config default: `true`                                        |
-| `include_toc`         | `--no-toc`                | Config default: `true`                                        |
-| `include_back_to_top` | `--no-back-to-top`        | Config default: `true`                                        |
-| `main_module_header`  | `--no-main-module-header` | Config default: `true`                                        |
-| `collapsible_params`  | `--no-collapsible-params` | Config default: `true`                                        |
-| `reference_links`     | `--no-references`         | Config default: `true`                                        |
-| `full_toc_name`       | `--no-full-toc-name`      | Config default: `true`                                        |
-| `keep_linewraps`      | `--no-preserve-linewraps` | Config default: `true`                                        |
+| Config key                | CLI flag                  | Notes                                                         |
+|---------------------------|---------------------------|---------------------------------------------------------------|
+| `package_name`            | `--package`               | Also used as the document title if `document_title` isn't set |
+| `source_directory`        | `--source-directory`      | Must be given if package is not installed                     |
+| `output`                  | `--output`                | Defaults to `API.md` in the current directory                 |
+| `exclude`                 | `--exclude`               | Can also be full importable name (e.g. `my_package.MyClass`)  |
+| `admonition_style`        | `--admonition-style`      | See [Admonitions](#admonitions) for details on each style     |
+| `main_docstring_location` | `--main-docstring`        | Only affects the docstring of the package's `__init__.py`     |
+| `document_title`          | `--title`                 | Overrides the default title derived from `package_name`       |
+| `include_intro`           | `--no-generic-intro`      | Config default: `true`                                        |
+| `document_constants`      | `--no-include-constants`  | Config default: `true`                                        |
+| `module_docstring`        | `--no-module-docstring`   | Config default: `true`                                        |
+| `include_toc`             | `--no-toc`                | Config default: `true`                                        |
+| `include_back_to_top`     | `--no-back-to-top`        | Config default: `true`                                        |
+| `main_module_header`      | `--no-main-module-header` | Config default: `true`                                        |
+| `collapsible_params`      | `--no-collapsible-params` | Config default: `true`                                        |
+| `reference_links`         | `--no-references`         | Config default: `true`                                        |
+| `full_toc_name`           | `--no-full-toc-name`      | Config default: `true`                                        |
+| `keep_linewraps`          | `--no-preserve-linewraps` | Config default: `true`                                        |
 
 ### Admonitions
 
