@@ -24,7 +24,6 @@ jobs:
         uses: astral-sh/setup-uv@v5
 
       - name: Install the project
-        working-directory: ./pebbledoc
         run: uv sync --locked --all-extras --dev
 
       - name: Run coverage
