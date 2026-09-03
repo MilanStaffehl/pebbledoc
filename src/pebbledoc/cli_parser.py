@@ -180,8 +180,8 @@ def _build_parser() -> argparse.ArgumentParser:
         action="store_true",
     )
     formatting_group.add_argument(
-        "--no-module-docstring",
-        help="omit module-level docstrings for submodules and sub-packages",
+        "--no-module-docstrings",
+        help="omit module-level docstrings for sub-modules and sub-packages",
         action="store_true",
     )
     formatting_group.add_argument(

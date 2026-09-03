@@ -30,6 +30,8 @@ document, which is based on PEP440.
 - Some exit codes have changed ([#119](https://github.com/MilanStaffehl/pebbledoc/pull/119))
 - Command line arguments are now grouped differently in help text ([#120](https://github.com/MilanStaffehl/pebbledoc/pull/120))
 - Write-only properties no longer receive a superfluous `Any` return type annotation ([#129](https://github.com/MilanStaffehl/pebbledoc/pull/129))
+- Option `--no-module-docstring` changed to `--no-module-docstrings` ([#131](https://github.com/MilanStaffehl/pebbledoc/pull/131))
+- Option `--no-module-docstrings` now only affects doctrings of submodules and sub-packages ([#131](https://github.com/MilanStaffehl/pebbledoc/pull/131))
 
 ### Fixed
 

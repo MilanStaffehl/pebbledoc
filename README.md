@@ -190,7 +190,7 @@ rendering:
 
 formatting:
   --no-generic-intro        omit the generic introduction after the main header
-  --no-module-docstring     omit module-level docstrings for submodules and sub-packages
+  --no-module-docstrings    omit module-level docstrings for submodules and sub-packages
   --no-include-constants    omit constants defined as module-level globals
   --no-toc                  omit the table of contents at the beginning of the file
   --no-back-to-top          omit the 'back to top' links at the beginning of each section
@@ -251,7 +251,7 @@ main_docstring_location = "default"
 document_title = "my_package - documentation"
 include_intro = true
 document_constants = true
-module_docstring = true
+module_docstrings = true
 include_toc = true
 include_back_to_top = true
 main_module_header = true
@@ -276,7 +276,7 @@ The following table shows how the configuration options map to the command line 
 | `document_title`          | `--title`                 | Overrides the default title derived from `package_name`       |
 | `include_intro`           | `--no-generic-intro`      | Config default: `true`                                        |
 | `document_constants`      | `--no-include-constants`  | Config default: `true`                                        |
-| `module_docstring`        | `--no-module-docstring`   | Config default: `true`                                        |
+| `module_docstrings`       | `--no-module-docstrings`  | Config default: `true`                                        |
 | `include_toc`             | `--no-toc`                | Config default: `true`                                        |
 | `include_back_to_top`     | `--no-back-to-top`        | Config default: `true`                                        |
 | `main_module_header`      | `--no-main-module-header` | Config default: `true`                                        |

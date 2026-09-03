@@ -331,11 +331,11 @@ def test_pebbledoc_custom_title(
     assert exit_code == cli_logic._ErrorCodes.EX_SUCCESS
 
 
-def test_pebbledoc_no_module_docstring(
+def test_pebbledoc_no_module_docstrings(
     patch_open: Mock, patch_config_discovery: None
 ) -> None:
-    """Test pebbledoc when not using module docstrings."""
-    filename = "no_module_docstring.md"
+    """Test pebbledoc when not using submodule docstrings."""
+    filename = "no_module_docstrings.md"
     input_file = Path(__file__).parent / "expected" / filename
     with open(input_file, "r") as f:
         expected = f.read()
@@ -343,7 +343,28 @@ def test_pebbledoc_no_module_docstring(
     # create a run config and execute the code
     namespace = utils.prepare_namespace(
         source_directory=str(Path(__file__).parent / "resources"),
-        no_module_docstring=True,
+        no_module_docstrings=True,
+    )
+    exit_code = cli_logic._handle_args(namespace)
+
+    assert_write_call(patch_open, namespace.output, expected + "\n")
+    assert exit_code == cli_logic._ErrorCodes.EX_SUCCESS
+
+
+def test_pebbledoc_no_module_docstrings_no_main_docstring(
+    patch_open: Mock, patch_config_discovery: None
+) -> None:
+    """Test pebbledoc when not using any docstrings."""
+    filename = "no_module_docstrings_main_docstring_skip.md"
+    input_file = Path(__file__).parent / "expected" / filename
+    with open(input_file, "r") as f:
+        expected = f.read()
+
+    # create a run config and execute the code
+    namespace = utils.prepare_namespace(
+        source_directory=str(Path(__file__).parent / "resources"),
+        no_module_docstrings=True,
+        main_docstring="omit",
     )
     exit_code = cli_logic._handle_args(namespace)
 

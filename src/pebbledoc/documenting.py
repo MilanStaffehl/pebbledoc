@@ -209,7 +209,13 @@ def _document_member(
         snippet += f"```Python\n{member.signature}\n```\n\n"
 
     # Render and add the docstring
-    if member.raw_docstring:
+    render_docstring = True
+    if member.kind == "module":
+        if is_pkg_root and config.main_docstring_location == "omit":
+            render_docstring = False
+        if not is_pkg_root and not config.module_docstrings:
+            render_docstring = False
+    if member.raw_docstring and render_docstring:
         snippet += parsing.parse_docstring(
             member.raw_docstring, config, valid_reference_targets
         )
