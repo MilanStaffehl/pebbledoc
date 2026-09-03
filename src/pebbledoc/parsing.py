@@ -696,14 +696,14 @@ class SphinxRstVisitor(nodes.SparseNodeVisitor):
 
     def visit_VersionNotice(self, node: VersionNotice) -> None:
         version_labels = {
-            "versionadded": ":heavy_plus_sign: Added in version",
-            "version-added": ":heavy_plus_sign: Added in version",
-            "versionchanged": ":recycle: Changed in version",
-            "version-changed": ":recycle: Changed in version",
-            "version-deprecated": ":warning: Deprecated since version",
-            "deprecated": ":warning: Deprecated since version",
-            "versionremoved": ":x: Removed in version",
-            "version-removed": ":x: Removed in version",
+            "versionadded": (":heavy_plus_sign:", "Added in version"),
+            "version-added": (":heavy_plus_sign:", "Added in version"),
+            "versionchanged": (":recycle:", "Changed in version"),
+            "version-changed": (":recycle:", "Changed in version"),
+            "version-deprecated": (":warning:", "Deprecated since version"),
+            "deprecated": (":warning:", "Deprecated since version"),
+            "versionremoved": (":x:", "Removed in version"),
+            "version-removed": (":x:", "Removed in version"),
         }
 
         kind = node.get("type")
@@ -715,15 +715,27 @@ class SphinxRstVisitor(nodes.SparseNodeVisitor):
                 f"Version notice has no version attribute: {node.pformat()}"
             )
 
-        if len(node.children) > 0:
+        icon = version_labels[kind][0]
+        label = version_labels[kind][1]
+
+        if len(node.children) == 0:
+            body_str = "\n\n"  # no paragraph node, must add manually
+            colon = ""
+        else:
             content = _parse_multiple_nodes(
                 node.children, self.config, self.document, self.valid_targets
             )
-            body_str = f": {content}"
-        else:
-            body_str = "\n\n"  # no paragraph node, must add manually
-
-        self.body.append(f"> {version_labels[kind]} {version}{body_str}")
+            # single paragraphs are rendered on the same line
+            is_single_paragraph = len(node.children) == 1 and isinstance(
+                node.children[0], nodes.paragraph
+            )
+            # everything else gets its own paragraphs below the label
+            line_break = " " if is_single_paragraph else "\n\n"
+            body_str = f"{line_break}{content}"
+            colon = ":"
+        text = f"{icon} **{label} {version}{colon}**{body_str}"
+        self.body.append(_format_as_quote(text))
+        self.body.append("\n")
         raise nodes.SkipNode
 
     # FIELD LISTS

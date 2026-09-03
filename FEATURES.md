@@ -190,31 +190,31 @@ to be used in docstrings. Hence, most are unsupported.
 
 ### Directives
 
-| Feature                   | Status             | Name                                                                                                                    |
-|---------------------------|--------------------|-------------------------------------------------------------------------------------------------------------------------|
-| `.. toctree::`            | :x:                | TOC trees are directly controlled by `pebbledoc`                                                                        |
-| `.. seealso::`            | :soon:             | Sphinx-specific admonition, [see #75](https://github.com/MilanStaffehl/pebbledoc/issues/75)                             |
-| `.. version-added::`      | :yellow_circle:    | Includes custom rendering as block quote with icon, but see [#89](https://github.com/MilanStaffehl/pebbledoc/issues/89) |
-| `.. versionadded::`       | :yellow_circle:    | Includes custom rendering as block quote with icon, but see [#89](https://github.com/MilanStaffehl/pebbledoc/issues/89) |
-| `.. version-changed::`    | :yellow_circle:    | Includes custom rendering as block quote with icon, but see [#89](https://github.com/MilanStaffehl/pebbledoc/issues/89) |
-| `.. versionchanged::`     | :yellow_circle:    | Includes custom rendering as block quote with icon, but see [#89](https://github.com/MilanStaffehl/pebbledoc/issues/89) |
-| `.. version-deprecated::` | :yellow_circle:    | Includes custom rendering as block quote with icon, but see [#89](https://github.com/MilanStaffehl/pebbledoc/issues/89) |
-| `.. deprecated::`         | :yellow_circle:    | Includes custom rendering as block quote with icon, but see [#89](https://github.com/MilanStaffehl/pebbledoc/issues/89) |
-| `.. version-removed::`    | :yellow_circle:    | Includes custom rendering as block quote with icon, but see [#89](https://github.com/MilanStaffehl/pebbledoc/issues/89) |
-| `.. versionremoved::`     | :yellow_circle:    | Includes custom rendering as block quote with icon, but see [#89](https://github.com/MilanStaffehl/pebbledoc/issues/89) |
-| `.. centered::`           | :soon:             | [See #76](https://github.com/MilanStaffehl/pebbledoc/issues/76)                                                         |
-| `.. hlist::`              | :x:                |                                                                                                                         |
-| `.. highlight::`          | :x:                | Use `.. code-block::` or `.. code::` instead                                                                            |
-| `.. code-block::`         | :white_check_mark: |                                                                                                                         |
-| `.. sourcecode::`         | :white_check_mark: |                                                                                                                         |
-| `.. literalinclude::`     | :x:                |                                                                                                                         |
-| `.. glossary::`           | :x:                |                                                                                                                         |
-| `.. sectionauthor::`      | :x:                |                                                                                                                         |
-| `.. codeauthor::`         | :x:                |                                                                                                                         |
-| `.. index::`              | :x:                |                                                                                                                         |
-| `.. only::`               | :x:                |                                                                                                                         |
-| `.. tabularcolumns::`     | :x:                |                                                                                                                         |
-| `.. productionlist::`     | :x:                |                                                                                                                         |
+| Feature                   | Status             | Name                                                                                        |
+|---------------------------|--------------------|---------------------------------------------------------------------------------------------|
+| `.. toctree::`            | :x:                | TOC trees are directly controlled by `pebbledoc`                                            |
+| `.. seealso::`            | :soon:             | Sphinx-specific admonition, [see #75](https://github.com/MilanStaffehl/pebbledoc/issues/75) |
+| `.. version-added::`      | :white_check_mark: | Includes custom rendering as block quote with icon                                          |
+| `.. versionadded::`       | :white_check_mark: | Includes custom rendering as block quote with icon                                          |
+| `.. version-changed::`    | :white_check_mark: | Includes custom rendering as block quote with icon                                          |
+| `.. versionchanged::`     | :white_check_mark: | Includes custom rendering as block quote with icon                                          |
+| `.. version-deprecated::` | :white_check_mark: | Includes custom rendering as block quote with icon                                          |
+| `.. deprecated::`         | :white_check_mark: | Includes custom rendering as block quote with icon                                          |
+| `.. version-removed::`    | :white_check_mark: | Includes custom rendering as block quote with icon                                          |
+| `.. versionremoved::`     | :white_check_mark: | Includes custom rendering as block quote with icon                                          |
+| `.. centered::`           | :soon:             | [See #76](https://github.com/MilanStaffehl/pebbledoc/issues/76)                             |
+| `.. hlist::`              | :x:                |                                                                                             |
+| `.. highlight::`          | :x:                | Use `.. code-block::` or `.. code::` instead                                                |
+| `.. code-block::`         | :white_check_mark: |                                                                                             |
+| `.. sourcecode::`         | :white_check_mark: |                                                                                             |
+| `.. literalinclude::`     | :x:                |                                                                                             |
+| `.. glossary::`           | :x:                |                                                                                             |
+| `.. sectionauthor::`      | :x:                |                                                                                             |
+| `.. codeauthor::`         | :x:                |                                                                                             |
+| `.. index::`              | :x:                |                                                                                             |
+| `.. only::`               | :x:                |                                                                                             |
+| `.. tabularcolumns::`     | :x:                |                                                                                             |
+| `.. productionlist::`     | :x:                |                                                                                             |
 
 Note that the version notices such as `.. version-added::` currently have
 limited support for other blocks inside them, such as block quotes. This bug

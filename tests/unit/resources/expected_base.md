@@ -58,7 +58,7 @@ Related considerations:
 > Do not use this function on matrices containing NaN values — the
 > refinement loop will not terminate and may hang the process.
 
-> :x: Removed in version 2.1.0: Support for tensors was moved to [`tensors`](#tensors).
+> :x: **Removed in version 2.1.0:** Support for tensors was moved to [`tensors`](#tensors).
 
 <details open>
 <summary><b>Parameters:</b></summary>
