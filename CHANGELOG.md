@@ -32,12 +32,14 @@ document, which is based on PEP440.
 - Write-only properties no longer receive a superfluous `Any` return type annotation ([#129](https://github.com/MilanStaffehl/pebbledoc/pull/129))
 - Option `--no-module-docstring` changed to `--no-module-docstrings` ([#131](https://github.com/MilanStaffehl/pebbledoc/pull/131))
 - Option `--no-module-docstrings` now only affects doctrings of submodules and sub-packages ([#131](https://github.com/MilanStaffehl/pebbledoc/pull/131))
+- Version notice labels are now bold ([#133](https://github.com/MilanStaffehl/pebbledoc/pull/133))
 
 ### Fixed
 
 - Types of constants and class variables are now correctly rendered when a type annotation is given ([#108](https://github.com/MilanStaffehl/pebbledoc/pull/108))
 - Type annotations are now correctly rendered for modules without `from __future__ import annotations` ([#108](https://github.com/MilanStaffehl/pebbledoc/pull/108))
 - Formatting of help text of command line interface ([#109](https://github.com/MilanStaffehl/pebbledoc/pull/109))
+- Multi-line version notices now render properly ([#133](https://github.com/MilanStaffehl/pebbledoc/pull/133))
 
 ## [0.1.0] - 2026-08-21
 

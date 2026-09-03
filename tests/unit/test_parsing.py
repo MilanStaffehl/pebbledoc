@@ -1409,9 +1409,14 @@ def test_parse_docstring_version_added() -> None:
     default_config = config.PebbledocConfig()
     expected = (
         "This is a preceding paragraph.\n\n"
-        "> :heavy_plus_sign: Added in version 1.0.0: This is the feature "
+        "> :heavy_plus_sign: **Added in version 1.0.0:** This is the feature "
         "that was added.\n\n"
-        "> :heavy_plus_sign: Added in version 2.0.0\n\n"
+        "> :heavy_plus_sign: **Added in version 2.0.0**\n\n"
+        "> :heavy_plus_sign: **Added in version 3.0.0:**\n"
+        ">\n"
+        "> This is a version notices with more than one paragraph.\n"
+        ">\n"
+        "> This is its second paragraph.\n\n"
         "This is a closing paragraph.\n"
     )
 
@@ -1421,6 +1426,9 @@ def test_parse_docstring_version_added() -> None:
         ".. versionadded:: 1.0.0\n\n"
         "    This is the feature that was added.\n\n"
         ".. versionadded:: 2.0.0\n\n"
+        ".. versionadded:: 3.0.0\n\n"
+        "    This is a version notices with more than one paragraph.\n\n"
+        "    This is its second paragraph.\n\n"
         "This is a closing paragraph."
     )
     output = parsing.parse_docstring(rst_str, default_config)
@@ -1432,6 +1440,9 @@ def test_parse_docstring_version_added() -> None:
         ".. version-added:: 1.0.0\n\n"
         "    This is the feature that was added.\n\n"
         ".. version-added:: 2.0.0\n\n"
+        ".. version-added:: 3.0.0\n\n"
+        "    This is a version notices with more than one paragraph.\n\n"
+        "    This is its second paragraph.\n\n"
         "This is a closing paragraph."
     )
     output = parsing.parse_docstring(rst_str, default_config)
@@ -1443,9 +1454,14 @@ def test_parse_docstring_version_changed() -> None:
     default_config = config.PebbledocConfig()
     expected = (
         "This is a preceding paragraph.\n\n"
-        "> :recycle: Changed in version 1.0.0: This is the feature "
+        "> :recycle: **Changed in version 1.0.0:** This is the feature "
         "that was changed.\n\n"
-        "> :recycle: Changed in version 2.0.0\n\n"
+        "> :recycle: **Changed in version 2.0.0**\n\n"
+        "> :recycle: **Changed in version 3.0.0:**\n"
+        ">\n"
+        "> This is a version notices with more than one paragraph.\n"
+        ">\n"
+        "> This is its second paragraph.\n\n"
         "This is a closing paragraph.\n"
     )
 
@@ -1455,6 +1471,9 @@ def test_parse_docstring_version_changed() -> None:
         ".. versionchanged:: 1.0.0\n\n"
         "    This is the feature that was changed.\n\n"
         ".. versionchanged:: 2.0.0\n\n"
+        ".. versionchanged:: 3.0.0\n\n"
+        "    This is a version notices with more than one paragraph.\n\n"
+        "    This is its second paragraph.\n\n"
         "This is a closing paragraph."
     )
     output = parsing.parse_docstring(rst_str, default_config)
@@ -1466,6 +1485,9 @@ def test_parse_docstring_version_changed() -> None:
         ".. version-changed:: 1.0.0\n\n"
         "    This is the feature that was changed.\n\n"
         ".. version-changed:: 2.0.0\n\n"
+        ".. version-changed:: 3.0.0\n\n"
+        "    This is a version notices with more than one paragraph.\n\n"
+        "    This is its second paragraph.\n\n"
         "This is a closing paragraph."
     )
     output = parsing.parse_docstring(rst_str, default_config)
@@ -1477,9 +1499,14 @@ def test_parse_docstring_version_deprecated() -> None:
     default_config = config.PebbledocConfig()
     expected = (
         "This is a preceding paragraph.\n\n"
-        "> :warning: Deprecated since version 1.0.0: This is the feature "
+        "> :warning: **Deprecated since version 1.0.0:** This is the feature "
         "that was deprecated.\n\n"
-        "> :warning: Deprecated since version 2.0.0\n\n"
+        "> :warning: **Deprecated since version 2.0.0**\n\n"
+        "> :warning: **Deprecated since version 3.0.0:**\n"
+        ">\n"
+        "> This is a version notices with more than one paragraph.\n"
+        ">\n"
+        "> This is its second paragraph.\n\n"
         "This is a closing paragraph.\n"
     )
 
@@ -1489,6 +1516,9 @@ def test_parse_docstring_version_deprecated() -> None:
         ".. deprecated:: 1.0.0\n\n"
         "    This is the feature that was deprecated.\n\n"
         ".. deprecated:: 2.0.0\n\n"
+        ".. deprecated:: 3.0.0\n\n"
+        "    This is a version notices with more than one paragraph.\n\n"
+        "    This is its second paragraph.\n\n"
         "This is a closing paragraph."
     )
     output = parsing.parse_docstring(rst_str, default_config)
@@ -1500,6 +1530,9 @@ def test_parse_docstring_version_deprecated() -> None:
         ".. version-deprecated:: 1.0.0\n\n"
         "    This is the feature that was deprecated.\n\n"
         ".. version-deprecated:: 2.0.0\n\n"
+        ".. version-deprecated:: 3.0.0\n\n"
+        "    This is a version notices with more than one paragraph.\n\n"
+        "    This is its second paragraph.\n\n"
         "This is a closing paragraph."
     )
     output = parsing.parse_docstring(rst_str, default_config)
@@ -1511,9 +1544,14 @@ def test_parse_docstring_version_removed() -> None:
     default_config = config.PebbledocConfig()
     expected = (
         "This is a preceding paragraph.\n\n"
-        "> :x: Removed in version 1.0.0: This is the feature "
+        "> :x: **Removed in version 1.0.0:** This is the feature "
         "that was removed.\n\n"
-        "> :x: Removed in version 2.0.0\n\n"
+        "> :x: **Removed in version 2.0.0**\n\n"
+        "> :x: **Removed in version 3.0.0:**\n"
+        ">\n"
+        "> This is a version notices with more than one paragraph.\n"
+        ">\n"
+        "> This is its second paragraph.\n\n"
         "This is a closing paragraph.\n"
     )
 
@@ -1523,6 +1561,9 @@ def test_parse_docstring_version_removed() -> None:
         ".. versionremoved:: 1.0.0\n\n"
         "    This is the feature that was removed.\n\n"
         ".. versionremoved:: 2.0.0\n\n"
+        ".. versionremoved:: 3.0.0\n\n"
+        "    This is a version notices with more than one paragraph.\n\n"
+        "    This is its second paragraph.\n\n"
         "This is a closing paragraph."
     )
     output = parsing.parse_docstring(rst_str, default_config)
@@ -1534,6 +1575,9 @@ def test_parse_docstring_version_removed() -> None:
         ".. version-removed:: 1.0.0\n\n"
         "    This is the feature that was removed.\n\n"
         ".. version-removed:: 2.0.0\n\n"
+        ".. version-removed:: 3.0.0\n\n"
+        "    This is a version notices with more than one paragraph.\n\n"
+        "    This is its second paragraph.\n\n"
         "This is a closing paragraph."
     )
     output = parsing.parse_docstring(rst_str, default_config)
@@ -1625,7 +1669,7 @@ def test_parse_docstring_mixed_block_quote_and_version_notice() -> None:
         "This is a preceding paragraph.\n\n"
         "    This is a quoted paragraph.\n\n"
         "    .. version-added:: 1.0.0\n\n"
-        "        This feature was added in version 1.0.0\n\n"
+        "        This feature was **Added in version 1.0.0**\n\n"
         "    This is still inside the quote.\n\n"
         "This is a closing paragraph."
     )
@@ -1634,8 +1678,8 @@ def test_parse_docstring_mixed_block_quote_and_version_notice() -> None:
         "This is a preceding paragraph.\n\n"
         "> This is a quoted paragraph.\n"
         ">\n"
-        "> > :heavy_plus_sign: Added in version 1.0.0: "
-        "This feature was added in version 1.0.0\n"
+        "> > :heavy_plus_sign: **Added in version 1.0.0:** "
+        "This feature was **Added in version 1.0.0**\n"
         ">\n"
         "> This is still inside the quote.\n\n"
         "This is a closing paragraph.\n"
@@ -1643,7 +1687,6 @@ def test_parse_docstring_mixed_block_quote_and_version_notice() -> None:
     assert output == expected
 
 
-@pytest.mark.xfail(reason="Not yet supported, see issue #89.")
 def test_parse_docstring_mixed_version_notice_and_block_quote() -> None:
     """Test parsing a version notice with a block quote."""
     default_config = config.PebbledocConfig()
@@ -1657,8 +1700,9 @@ def test_parse_docstring_mixed_version_notice_and_block_quote() -> None:
     output = parsing.parse_docstring(rst_str, default_config)
     expected = (
         "This is a preceding paragraph.\n\n"
-        "> :heavy_plus_sign: Added in version 1.0.0: This is a first "
-        "paragraph in the version notice.\n"
+        "> :heavy_plus_sign: **Added in version 1.0.0:**\n"
+        ">\n"
+        "> This is a first paragraph in the version notice.\n"
         ">\n"
         "> > This is a block quote inside the notice.\n\n"
         "This is a closing paragraph.\n"
@@ -1718,7 +1762,6 @@ def test_parse_docstring_mixed_admonition_and_block_quote() -> None:
     assert output == expected
 
 
-@pytest.mark.xfail(reason="Not yet supported, see issue #89.")
 def test_parse_docstring_mixed_version_notice_and_field_list() -> None:
     """Test parsing a version notice with a field list."""
     default_config = config.PebbledocConfig()
@@ -1734,18 +1777,18 @@ def test_parse_docstring_mixed_version_notice_and_field_list() -> None:
     output = parsing.parse_docstring(rst_str, default_config)
     expected = (
         "This is a preceding paragraph.\n\n"
-        "> :heavy_plus_sign: Added in version 1.0.0: This is a first "
-        "paragraph in the version notice.\n"
+        "> :heavy_plus_sign: **Added in version 1.0.0:**\n"
+        ">\n"
+        "> This is a first paragraph in the version notice.\n"
         ">\n"
         "> - **author:** Author McAuthorface\n"
         "> - **date:** 2026\n"
-        "> - **email:** author.mcauthorface@example.com\n\n"
+        "> - **email:** <author.mcauthorface@example.com>\n\n"
         "This is a closing paragraph.\n"
     )
     assert output == expected
 
 
-@pytest.mark.xfail(reason="Not yet supported, see issue #89.")
 def test_parse_docstring_mixed_version_notice_and_list() -> None:
     """Test parsing a version notice with a list."""
     default_config = config.PebbledocConfig()
@@ -1763,8 +1806,9 @@ def test_parse_docstring_mixed_version_notice_and_list() -> None:
     output = parsing.parse_docstring(rst_str, default_config)
     expected = (
         "This is a preceding paragraph.\n\n"
-        "> :heavy_plus_sign: Added in version 1.0.0: This is a first "
-        "paragraph in the version notice.\n"
+        "> :heavy_plus_sign: **Added in version 1.0.0:**\n"
+        ">\n"
+        "> This is a first paragraph in the version notice.\n"
         ">\n"
         "> - List item one\n"
         "> - List item two\n"
@@ -1786,8 +1830,9 @@ def test_parse_docstring_mixed_version_notice_and_list() -> None:
     output = parsing.parse_docstring(rst_str, default_config)
     expected = (
         "This is a preceding paragraph.\n\n"
-        "> :heavy_plus_sign: Added in version 1.0.0: This is a first "
-        "paragraph in the version notice.\n"
+        "> :heavy_plus_sign: **Added in version 1.0.0:**\n"
+        ">\n"
+        "> This is a first paragraph in the version notice.\n"
         ">\n"
         "> 1. List item one\n"
         "> 2. List item two\n"
@@ -1797,7 +1842,6 @@ def test_parse_docstring_mixed_version_notice_and_list() -> None:
     assert output == expected
 
 
-@pytest.mark.xfail(reason="Not yet supported, see issue #89.")
 def test_parse_docstring_mixed_version_notice_and_admonition() -> None:
     """Test parsing a version notice with an admonition."""
     default_config = config.PebbledocConfig(admonition_style="github")
@@ -1807,14 +1851,15 @@ def test_parse_docstring_mixed_version_notice_and_admonition() -> None:
         "    This is a first paragraph in the version notice.\n\n"
         "    .. note::\n\n"
         "        This is an admonition.\n\n"
-        "    This is still inside the version notice\n\n"
+        "    This is still inside the version notice.\n\n"
         "This is a closing paragraph."
     )
     output = parsing.parse_docstring(rst_str, default_config)
     expected = (
         "This is a preceding paragraph.\n\n"
-        "> :heavy_plus_sign: Added in version 1.0.0: This is a first "
-        "paragraph in the version notice.\n"
+        "> :heavy_plus_sign: **Added in version 1.0.0:**\n"
+        ">\n"
+        "> This is a first paragraph in the version notice.\n"
         ">\n"
         "> > [!NOTE]\n"
         "> >\n"
@@ -1826,7 +1871,51 @@ def test_parse_docstring_mixed_version_notice_and_admonition() -> None:
     assert output == expected
 
 
-@pytest.mark.xfail(reason="Not yet supported, see issue #89.")
+def test_parse_docstring_mixed_version_notice_single_child() -> None:
+    """Test that version notices correctly format single children.
+
+    Child paragraph nodes are placed into the same line, resulting in a
+    single-line block quote, but all other types of nodes are placed
+    into a new line, resulting in a multi-line block quote.
+    """
+    default_config = config.PebbledocConfig(admonition_style="github")
+
+    # single paragraph child node - rendered on the same line
+    rst_str = (
+        "This is a preceding paragraph.\n\n"
+        ".. version-added:: 1.0.0\n\n"
+        "    This is a single text paragraph.\n\n"
+        "This is a closing paragraph."
+    )
+    output = parsing.parse_docstring(rst_str, default_config)
+    expected = (
+        "This is a preceding paragraph.\n\n"
+        "> :heavy_plus_sign: **Added in version 1.0.0:** "
+        "This is a single text paragraph.\n\n"
+        "This is a closing paragraph.\n"
+    )
+    assert output == expected
+
+    # single child node of another type - rendered on its own line
+    rst_str = (
+        "This is a preceding paragraph.\n\n"
+        ".. version-added:: 1.0.0\n\n"
+        "    .. version-added:: 1.1.0 \n\n"
+        "        This is a single-line version notice.\n\n"
+        "This is a closing paragraph."
+    )
+    output = parsing.parse_docstring(rst_str, default_config)
+    expected = (
+        "This is a preceding paragraph.\n\n"
+        "> :heavy_plus_sign: **Added in version 1.0.0:**\n"
+        ">\n"
+        "> > :heavy_plus_sign: **Added in version 1.1.0:** "
+        "This is a single-line version notice.\n\n"
+        "This is a closing paragraph.\n"
+    )
+    assert output == expected
+
+
 def test_parse_docstring_mixed_admonition_and_version_notice() -> None:
     """Test parsing an admonition with a version notice."""
     default_config = config.PebbledocConfig(admonition_style="github")
@@ -1845,9 +1934,9 @@ def test_parse_docstring_mixed_admonition_and_version_notice() -> None:
         "> [!NOTE]\n"
         ">\n"
         "> This is a first paragraph in the admonition.\n"
-        "> > :heavy_plus_sign: Added in version 1.0.0:\n"
-        "> >\n"
-        "> > This is a version notice.\n"
+        ">\n"
+        "> > :heavy_plus_sign: **Added in version 1.0.0:** "
+        "This is a version notice.\n"
         ">\n"
         "> This is still inside the admonition.\n\n"
         "This is a closing paragraph.\n"

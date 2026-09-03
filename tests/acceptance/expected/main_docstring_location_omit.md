@@ -73,7 +73,7 @@ M42,Orion Nebula,83.82,-5.39
 > Catalog files are cached on first load; see `_normalize_name`
 > for how lookup keys are derived.
 
-> :heavy_plus_sign: Added in version 0.2.0
+> :heavy_plus_sign: **Added in version 0.2.0**
 
 <details open>
 <summary><b>Parameters:</b></summary>
@@ -120,7 +120,7 @@ $0^\circ \le \alpha < 360^\circ$ for right ascension.
 > Instances are **not** thread-safe; see [`kind`](#kind) mutation in
 > `_recompute`.
 
-> :recycle: Changed in version 0.3.0: `ra` and `dec` are now stored in degrees instead of radians.
+> :recycle: **Changed in version 0.3.0:** `ra` and `dec` are now stored in degrees instead of radians.
 
 <a name="celestialobjectkind"></a>
 <a name="kind"></a>
@@ -331,7 +331,7 @@ Abstract interface for anything that can report its own visibility.
 > Subclasses **must** implement [`observe`](#observe); the base class raises
 > `NotImplementedError` otherwise via the `abstractmethod` machinery.
 
-> :heavy_plus_sign: Added in version 0.1.0
+> :heavy_plus_sign: **Added in version 0.1.0**
 
 <a name="observationobservablemixinobserve"></a>
 <a name="observablemixinobserve"></a>
