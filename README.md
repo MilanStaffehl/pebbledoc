@@ -8,6 +8,7 @@
 
 [![Unit tests](https://github.com/MilanStaffehl/pebbledoc/actions/workflows/tests.yaml/badge.svg)](https://github.com/MilanStaffehl/pebbledoc/actions/workflows/tests.yaml)
 [![Build](https://github.com/MilanStaffehl/pebbledoc/actions/workflows/publish-release.yml/badge.svg)](https://github.com/MilanStaffehl/pebbledoc/actions/workflows/publish-release.yml)
+![Coverage](https://img.shields.io/endpoint?url=https://gist.githubusercontent.com/MilanStaffehl/b3aed92d981188c2152a987aaf5e566b/raw/pebbledoc_coverage.json)
 
 <a href="https://github.com/MilanStaffehl/pebbledoc">GitHub</a>
 ·
