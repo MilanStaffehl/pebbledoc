@@ -30,7 +30,7 @@ def assert_config(
     document_title: str | None = None,
     document_constants: bool = True,
     include_intro: bool = True,
-    module_docstring: bool = True,
+    module_docstrings: bool = True,
     include_toc: bool = True,
     include_back_to_top: bool = True,
     main_module_header: bool = True,
@@ -51,7 +51,7 @@ def assert_config(
     assert cfg.document_title == document_title
     assert cfg.document_constants is document_constants
     assert cfg.include_intro is include_intro
-    assert cfg.module_docstring is module_docstring
+    assert cfg.module_docstrings is module_docstrings
     assert cfg.include_toc is include_toc
     assert cfg.include_back_to_top is include_back_to_top
     assert cfg.main_module_header is main_module_header
@@ -78,7 +78,7 @@ def test_build_config_max_diff(patch_config_file_discovery: None) -> None:
         admonition_style="github",
         main_docstring="pre",
         title="My custom title",
-        no_module_docstring=True,
+        no_module_docstrings=True,
         no_generic_intro=True,
         no_include_constants=True,
         no_toc=True,
@@ -99,7 +99,7 @@ def test_build_config_max_diff(patch_config_file_discovery: None) -> None:
         admonition_style="github",
         main_docstring_location="pre",
         document_title="My custom title",
-        module_docstring=False,
+        module_docstrings=False,
         include_intro=False,
         document_constants=False,
         include_toc=False,
@@ -123,7 +123,7 @@ def test_build_config_cli_args(patch_config_file_discovery: None) -> None:
         admonition_style="github",
         title="My custom title",
         no_include_constants=True,
-        no_module_docstring=True,
+        no_module_docstrings=True,
     )
     output = cli_logic.build_config(namespace)
     assert_config(
@@ -134,7 +134,7 @@ def test_build_config_cli_args(patch_config_file_discovery: None) -> None:
         admonition_style="github",
         document_title="My custom title",
         document_constants=False,
-        module_docstring=False,
+        module_docstrings=False,
     )
 
 
@@ -231,7 +231,7 @@ def test_build_config_pyrpoject_cli_override(mocker: MockerFixture) -> None:
         exclude=["MyClass"],  # only one of the two in the config file
         title="My custom title",
         admonition_style="map",
-        no_module_docstring=True,
+        no_module_docstrings=True,
         no_collapsible_params=True,
     )
     output = cli_logic.build_config(namespace)
@@ -246,7 +246,7 @@ def test_build_config_pyrpoject_cli_override(mocker: MockerFixture) -> None:
         document_title="My custom title",
         include_back_to_top=False,
         include_toc=False,
-        module_docstring=False,
+        module_docstrings=False,
         collapsible_params=False,
     )
     mock_open.assert_called_once_with(Path("pyproject.toml").resolve(), "rb")
@@ -277,7 +277,7 @@ def test_build_config_pebbledoc_cli_override(mocker: MockerFixture) -> None:
         exclude=["my_decorator"],
         title="My custom title",
         admonition_style="map",
-        no_module_docstring=True,
+        no_module_docstrings=True,
         no_collapsible_params=True,
     )
     output = cli_logic.build_config(namespace)
@@ -291,7 +291,7 @@ def test_build_config_pebbledoc_cli_override(mocker: MockerFixture) -> None:
         document_title="My custom title",
         include_back_to_top=False,
         include_toc=False,
-        module_docstring=False,
+        module_docstrings=False,
         collapsible_params=False,
     )
     mock_open.assert_called_once_with(Path("pebbledoc.toml").resolve(), "rb")

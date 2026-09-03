@@ -485,11 +485,7 @@ def _member_module(
     :return: A :class:`Member` node for the module, filled with all
         relevant data.
     """
-    # gather information required for the node
-    if config.module_docstring:
-        doc = inspect.getdoc(module) or ""
-    else:
-        doc = ""
+    doc = inspect.getdoc(module) or ""
 
     # find all public members of the module
     public_members = discover_public_members(module)

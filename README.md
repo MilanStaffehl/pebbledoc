@@ -251,7 +251,7 @@ main_docstring_location = "default"
 document_title = "my_package - documentation"
 include_intro = true
 document_constants = true
-module_docstring = true
+module_docstrings = true
 include_toc = true
 include_back_to_top = true
 main_module_header = true
@@ -276,7 +276,7 @@ The following table shows how the configuration options map to the command line 
 | `document_title`          | `--title`                 | Overrides the default title derived from `package_name`       |
 | `include_intro`           | `--no-generic-intro`      | Config default: `true`                                        |
 | `document_constants`      | `--no-include-constants`  | Config default: `true`                                        |
-| `module_docstring`        | `--no-module-docstring`   | Config default: `true`                                        |
+| `module_docstrings`        | `--no-module-docstring`   | Config default: `true`                                        |
 | `include_toc`             | `--no-toc`                | Config default: `true`                                        |
 | `include_back_to_top`     | `--no-back-to-top`        | Config default: `true`                                        |
 | `main_module_header`      | `--no-main-module-header` | Config default: `true`                                        |
