@@ -11,8 +11,6 @@ This document lists the full public API of the `bootes_loader` package.
 
 ## `bootes_loader`
 
-<sup>[Back to top](#bootes_loader-documentation)</sup>
-
 Bootes is a Python library to help load various halo catalogs.
 
 Note that this is not a real package, and it only exists as fixture for
@@ -26,19 +24,19 @@ is entirely untyped and relies on docstring for type hints.
 - **author:** Milan Staffehl
 - **copyright:** 2026 Milan Staffehl
 
+<sup>[Back to top](#bootes_loader-documentation)</sup>
+
 <a name="supported_catalogs"></a>
 ### `bootes_loader.SUPPORTED_CATALOGS`
-
-<sup>[Back to top](#bootes_loader-documentation)</sup>
 
 ```Python
 SUPPORTED_CATALOGS: list = ['AHF', 'FOF', 'ROCKSTAR', 'HBT+', 'HBT-HERONS', 'SUBFIND']
 ```
 
+<sup>[Back to top](#bootes_loader-documentation)</sup>
+
 <a name="catalog"></a>
 ### `bootes_loader.Catalog`
-
-<sup>[Back to top](#bootes_loader-documentation)</sup>
 
 ```Python
 Catalog(ABC)
@@ -56,11 +54,11 @@ your own catalog by implementing this abstract base class.
 > have an associated catalog subclass will cause importing the
 > package to raise an exception.
 
+<sup>[Back to top](#bootes_loader-documentation)</sup>
+
 <a name="catalogload_catalog"></a>
 <a name="load_catalog"></a>
 #### `bootes_loader.Catalog.load_catalog`
-
-<sup>[Back to top](#bootes_loader-documentation)</sup>
 
 ```Python
 @abstractmethod
@@ -89,10 +87,10 @@ given snapshot. Fields are filtered only later in the
 
 </details>
 
+<sup>[Back to top](#bootes_loader-documentation)</sup>
+
 <a name="load_catalog"></a>
 ### `bootes_loader.load_catalog`
-
-<sup>[Back to top](#bootes_loader-documentation)</sup>
 
 ```Python
 load_catalog(catalog_name, catalog_type, path, snapshot, fields)
@@ -124,3 +122,5 @@ Load data from anyone of the supported halo catalogs.
 `dict[str, NDArray[Any]]`: A mapping of field names to the respective values as arrays.
 
 </details>
+
+<sup>[Back to top](#bootes_loader-documentation)</sup>

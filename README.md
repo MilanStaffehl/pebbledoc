@@ -194,7 +194,7 @@ formatting:
   --no-module-docstrings    omit module-level docstrings for submodules and sub-packages
   --no-include-constants    omit constants defined as module-level globals
   --no-toc                  omit the table of contents at the beginning of the file
-  --no-back-to-top          omit the 'back to top' links at the beginning of each section
+  --no-back-to-top          omit the 'back to top' links at the end of each section
   --no-main-module-header   omit the h2 header for the main module
   --no-collapsible-params   render parameter info field lists as static lists instead of collapsible
                             sections
