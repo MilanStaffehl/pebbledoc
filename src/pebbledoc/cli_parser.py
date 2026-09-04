@@ -196,7 +196,7 @@ def _build_parser() -> argparse.ArgumentParser:
     )
     formatting_group.add_argument(
         "--no-back-to-top",
-        help="omit the 'back to top' links at the beginning of each section",
+        help="omit the 'back to top' links at the end of each section",
         action="store_true",
     )
     formatting_group.add_argument(

@@ -33,6 +33,7 @@ document, which is based on PEP440.
 - Option `--no-module-docstring` changed to `--no-module-docstrings` ([#131](https://github.com/MilanStaffehl/pebbledoc/pull/131))
 - Option `--no-module-docstrings` now only affects doctrings of submodules and sub-packages ([#131](https://github.com/MilanStaffehl/pebbledoc/pull/131))
 - Version notice labels are now bold ([#133](https://github.com/MilanStaffehl/pebbledoc/pull/133))
+- "Back to top" links are now placed at the end of sections ([#135](https://github.com/MilanStaffehl/pebbledoc/pull/135))
 
 ### Fixed
 
