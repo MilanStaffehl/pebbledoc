@@ -195,14 +195,6 @@ def _document_member(
             snippet += f'<a name="{util.name_to_ref(target)}"></a>\n'
         snippet += f"{'#' * member.header_level} "
         snippet += f"`{full_name}`\n\n"
-        if config.include_back_to_top:
-            if config.document_title:
-                top_header = util.name_to_ref(config.document_title)
-            else:
-                top_header = util.name_to_ref(
-                    f"{config.package_name} documentation"
-                )
-            snippet += f"<sup>[Back to top](#{top_header})</sup>\n\n"
 
     # Add a signature
     if member.signature:
@@ -220,6 +212,16 @@ def _document_member(
             member.raw_docstring, config, valid_reference_targets
         )
         snippet += "\n"
+
+    # Add a back-to-top link, unless suppressed
+    if config.include_back_to_top and not exclude_header:
+        if config.document_title:
+            top_header = util.name_to_ref(config.document_title)
+        else:
+            top_header = util.name_to_ref(
+                f"{config.package_name} documentation"
+            )
+        snippet += f"<sup>[Back to top](#{top_header})</sup>\n\n"
 
     # Recursively render children as well
     if member.children:

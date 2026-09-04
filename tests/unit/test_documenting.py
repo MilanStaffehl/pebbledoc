@@ -131,11 +131,11 @@ def test_document_member_all_fields(patch_parse_docstring: Mock) -> None:
     expected = (
         '<a name="test_member"></a>\n'
         "### `parent.test_member`\n\n"
-        "<sup>[Back to top](#parent-documentation)</sup>\n\n"
         "```Python\n"
         "test_member = pytest.mock.Mock()\n"
         "```\n\n"
         "This is a test docstring.\n\n"
+        "<sup>[Back to top](#parent-documentation)</sup>\n\n"
     )
     assert output == expected
     patch_parse_docstring.assert_called_once_with(
@@ -163,11 +163,11 @@ def test_document_member_parent_hierarchy(patch_parse_docstring: Mock) -> None:
         '<a name="subcontainertest_member"></a>\n'
         '<a name="test_member"></a>\n'
         "### `parent.subparent.subcontainer.test_member`\n\n"
-        "<sup>[Back to top](#parent-documentation)</sup>\n\n"
         "```Python\n"
         "test_member = pytest.mock.Mock()\n"
         "```\n\n"
         "This is a test docstring.\n\n"
+        "<sup>[Back to top](#parent-documentation)</sup>\n\n"
     )
     assert output == expected
     patch_parse_docstring.assert_called_once_with(
@@ -192,9 +192,8 @@ def test_document_member_no_docstring(patch_parse_docstring: Mock) -> None:
     expected = (
         '<a name="test_member"></a>\n'
         "### `parent.test_member`\n\n"
+        "```Python\ntest_member = pytest.mock.Mock()\n```\n\n"
         "<sup>[Back to top](#parent-documentation)</sup>\n\n"
-        "```Python\ntest_member = "
-        "pytest.mock.Mock()\n```\n\n"
     )
     assert output == expected
     patch_parse_docstring.assert_not_called()
@@ -218,8 +217,8 @@ def test_document_member_no_signature(patch_parse_docstring: Mock) -> None:
     expected = (
         '<a name="test_member"></a>\n'
         "### `parent.test_member`\n\n"
-        "<sup>[Back to top](#parent-documentation)</sup>\n\n"
         "This is a test docstring.\n\n"
+        "<sup>[Back to top](#parent-documentation)</sup>\n\n"
     )
     assert output == expected
     patch_parse_docstring.assert_called_once_with(
@@ -247,11 +246,11 @@ def test_document_member_header_level(patch_parse_docstring: Mock) -> None:
         expected = (
             '<a name="test_member"></a>\n'
             f"{header_prefix} `parent.test_member`\n\n"
-            "<sup>[Back to top](#parent-documentation)</sup>\n\n"
             "```Python\n"
             "test_member = pytest.mock.Mock()\n"
             "```\n\n"
             "This is a test docstring.\n\n"
+            "<sup>[Back to top](#parent-documentation)</sup>\n\n"
         )
         assert output == expected
         patch_parse_docstring.assert_called_once_with(
@@ -294,27 +293,27 @@ def test_document_member_children(patch_parse_docstring: Mock) -> None:
     expected = (
         '<a name="test_member"></a>\n'
         "### `parent.test_member`\n\n"
-        "<sup>[Back to top](#parent-documentation)</sup>\n\n"
         "```Python\n"
         "test_member = pytest.mock.Mock()\n"
         "```\n\n"
         "This is a test docstring.\n\n"
+        "<sup>[Back to top](#parent-documentation)</sup>\n\n"
         '<a name="test_memberchild_one"></a>\n'
         '<a name="child_one"></a>\n'
         "#### `parent.test_member.child_one`\n\n"
-        "<sup>[Back to top](#parent-documentation)</sup>\n\n"
         "```Python\n"
         "test_member = pytest.mock.Mock()\n"
         "```\n\n"
         "This is child one's docstring.\n\n"
+        "<sup>[Back to top](#parent-documentation)</sup>\n\n"
         '<a name="test_memberchild_two"></a>\n'
         '<a name="child_two"></a>\n'
         "#### `parent.test_member.child_two`\n\n"
-        "<sup>[Back to top](#parent-documentation)</sup>\n\n"
         "```Python\n"
         "test_member = pytest.mock.Mock()\n"
         "```\n\n"
         "This is child two's docstring.\n\n"
+        "<sup>[Back to top](#parent-documentation)</sup>\n\n"
     )
     assert output == expected
     assert patch_parse_docstring.call_count == 3
@@ -350,11 +349,11 @@ def test_document_member_valid_targets(patch_parse_docstring: Mock) -> None:
     expected = (
         '<a name="test_member"></a>\n'
         "### `parent.test_member`\n\n"
-        "<sup>[Back to top](#parent-documentation)</sup>\n\n"
         "```Python\n"
         "test_member = pytest.mock.Mock()\n"
         "```\n\n"
         "This is a test docstring.\n\n"
+        "<sup>[Back to top](#parent-documentation)</sup>\n\n"
     )
     assert output == expected
     patch_parse_docstring.assert_called_once_with(
@@ -413,11 +412,11 @@ def test_document_member_custom_document_title(
     expected = (
         '<a name="test_member"></a>\n'
         "### `parent.test_member`\n\n"
-        "<sup>[Back to top](#custom-document-title)</sup>\n\n"
         "```Python\n"
         "test_member = pytest.mock.Mock()\n"
         "```\n\n"
         "This is a test docstring.\n\n"
+        "<sup>[Back to top](#custom-document-title)</sup>\n\n"
     )
     assert output == expected
     patch_parse_docstring.assert_called_once_with(
@@ -444,8 +443,8 @@ def test_document_member_no_main_module_header(
     output = documenting._document_member(test_member, test_config)
     expected = (
         "## `test_member`\n\n"
-        "<sup>[Back to top](#test_member-documentation)</sup>\n\n"
         "This is a test docstring.\n\n"
+        "<sup>[Back to top](#test_member-documentation)</sup>\n\n"
     )
     assert output == expected
     patch_parse_docstring.assert_called_once_with(
