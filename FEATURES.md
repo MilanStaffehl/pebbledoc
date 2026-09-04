@@ -216,10 +216,6 @@ to be used in docstrings. Hence, most are unsupported.
 | `.. tabularcolumns::`     | :x:                |                                                                                             |
 | `.. productionlist::`     | :x:                |                                                                                             |
 
-Note that the version notices such as `.. version-added::` currently have
-limited support for other blocks inside them, such as block quotes. This bug
-is known and will be fixed (issue [#89](https://github.com/MilanStaffehl/pebbledoc/issues/89)).
-
 ### Cross-references and domains
 
 `pebbledoc` assumes the standard domain to be the Python domain. Python is the
