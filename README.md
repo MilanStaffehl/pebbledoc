@@ -33,6 +33,7 @@
 - [About](#about)
 - [Installation & prerequisites](#installation--prerequisites)
 - [Usage](#usage)
+- [Safety](#safety)
 - [Configuration](#configuration)
 - [Supported RST syntax](#supported-rst-syntax)
 - [Examples](#examples)
@@ -225,6 +226,15 @@ from pebbledoc import parse_docstring, markdown_documentation, discover_public_m
 ```
 
 Run `pebbledoc --package pebbledoc` for a full API reference of what is available.
+
+
+## Safety
+
+When discovering members of your package, `pebbledoc` imports it using the `importlib` machinery, including submodules and sub-packages. This can cause import-time side effects to be executed, including undesired ones. Be aware of this when running `pebbledoc` on your code.
+
+> [!CAUTION]
+>
+> Never run `pebbledoc` on untrusted packages! During import, malicious code could be executed. Only ever run `pebbledoc` on code you trust: either because you trust the authors, or because you have verified it is safe to import.
 
 
 ## Configuration
