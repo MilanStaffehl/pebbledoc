@@ -62,7 +62,8 @@ under the following conditions:
 2. **Human accountability:** A named, identifiable human must take full
    personal and legal responsibility for the contribution, as if they had
    written it themselves. This includes accountability for quality,
-   functionality, completeness, and security risks.
+   functionality, completeness, and security risks, as well as the behavior of
+   any agents.
 3. **Informed consent:** The human involved must be aware of their role in the
    contribution process beforehand and must have read this document and the code
    of conduct. A human who reviews the code according to condition 1 but does
