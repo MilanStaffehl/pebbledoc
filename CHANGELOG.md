@@ -11,7 +11,7 @@ document, which is based on PEP440.
 
 ### Fixed
 
-- Removed incorrect Python 3.12 classifier from `pyproject.toml` (#?)
+- Removed incorrect Python 3.12 classifier from `pyproject.toml` ([#140](https://github.com/MilanStaffehl/pebbledoc/pull/140))
 
 ## [0.2.0] - 2026-09-05
 
