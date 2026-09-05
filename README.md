@@ -441,10 +441,18 @@ You can use this repository as a pre-commit hook. Add the following to your `.pr
     hooks:
       - id: pebbledoc
         name: Update docs (pebbledoc)
-        args: [--package=<package_name>, --config=pyproject.toml]  # replace with your package
+        args: [
+          --package=<package_name>,  # replace with your package
+          --config=pyproject.toml,
+          --source-directory=<source_dir>  # replace with your source directory
+        ]
         additional_dependencies: []  # replace with your dependencies
         stages: [pre-commit, pre-merge-commit]
 ```
+
+> [!NOTE]
+>
+> Note that pre-commit cannot install local packages, so you *must* specify a source directory from where `pebbledoc` can import your package in its current state. You also must specify all dependencies of your package with `additional_dependencies` for this reason.
 
 
 ## Contributing
