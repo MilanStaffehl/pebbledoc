@@ -1,6 +1,6 @@
 [project]
 name = "pebbledoc"
-version = "0.1.0"
+version = "0.2.0"
 description = "Lightweight API documentation generator for GitHub markdown."
 authors = [
     { name = "Milan Staffehl", email = "milan.staffehl@gmail.com" }

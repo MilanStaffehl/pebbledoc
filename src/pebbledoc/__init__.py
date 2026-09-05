@@ -18,7 +18,7 @@ from .parsing import parse_docstring
 from .roles import register_sphinx_reference_roles
 
 # metadata
-__version__ = "0.1.0"
+__version__ = "0.2.0"
 __author__ = "Milan Staffehl"
 __email__ = "milan.staffehl@gmail.com"
 __copyright__ = "(c) Milan Staffehl 2026"
