@@ -11,6 +11,7 @@ from unittest.mock import Mock
 
 import colorama
 import pytest
+from acceptance_util import assert_write_call
 from pytest_mock import MockerFixture
 
 from pebbledoc import cli_logic
@@ -21,56 +22,6 @@ import utils
 ERROR_PREFIX: Final[str] = (
     f"{colorama.Fore.RED}Error:{colorama.Style.RESET_ALL}"
 )
-
-
-@pytest.fixture
-def patch_open(mocker: MockerFixture) -> Mock:
-    """Patch opening files to intercept final write of MD document."""
-    patched_open = mocker.mock_open()
-    mocker.patch("pebbledoc.cli_logic.open", patched_open)
-    return patched_open
-
-
-@pytest.fixture
-def patch_config_discovery(mocker: MockerFixture) -> None:
-    """Prevent config file discovery from running."""
-    mocker.patch("pebbledoc.config._discover_config_file", return_value=None)
-
-
-@pytest.fixture
-def patch_module_all(mocker: MockerFixture) -> None:
-    """Path the stellarium_lite module to have no __all__."""
-    sys.path.append(str(Path(__file__).parent / "resources"))
-    package = importlib.import_module("stellarium_lite")
-    mocker.patch.object(package, "__all__", None)
-    sys.path.pop()
-
-
-def assert_write_call(
-    mock_write: Mock, output_file: str | None, expected: str
-) -> None:
-    """Check that the call to write contained the expected string."""
-    # check everything worked
-    if output_file is None:
-        output_file = "API.md"
-    mock_write.assert_called_once_with(Path(output_file).resolve(), "w")
-    handle = mock_write()
-    handle.write.assert_called_once()
-    assert handle.write.call_count == 1
-
-    # check contents
-    actual = handle.write.call_args[0][0]
-    if not actual == expected:
-        lines_actual = actual.splitlines(keepends=True)
-        lines_expected = expected.splitlines(keepends=True)
-        diff = difflib.unified_diff(
-            lines_expected, lines_actual, fromfile="expected", tofile="actual"
-        )
-        msg = (
-            f"Output was not identical to expected Markdown:\n\n"
-            f"{''.join(diff)}"
-        )
-        pytest.fail(msg)
 
 
 def assert_diff_matches(
