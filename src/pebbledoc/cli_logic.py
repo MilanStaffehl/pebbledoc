@@ -4,8 +4,9 @@ import argparse
 import contextlib
 import difflib
 import enum
+import re
 import sys
-from collections.abc import Iterator
+from collections.abc import Callable, Iterator
 from pathlib import Path
 from typing import Never
 
@@ -13,7 +14,11 @@ import colorama
 
 from . import documenting
 from .cli_parser import _build_parser
-from .config import build_config
+from .config import PebbledocConfig, build_config
+
+type DocsHandlerFunc = Callable[
+    [Path, Path | None, PebbledocConfig], tuple[str, str, str]
+]
 
 
 class _ErrorCodes(enum.IntEnum):
@@ -43,8 +48,33 @@ class _ErrorCodes(enum.IntEnum):
     EX_NO_ORIGIN = 7
     """The origin of a (sub-)package could not be found."""
 
+    EX_INVALID_TARGET_HEADER = 8
+    """The target header does not exist in the targeted file."""
+
     EX_DOCS_CHANGED = 255
     """Emitted when docs change and non-zero exit was requested by user."""
+
+
+class _PebbledocError(Exception):
+    """
+    Raised when pebbledoc encounters an exception during execution.
+
+    In addition to an exception message, the exception also holds the
+    exit code with which pebbledoc should exit when handling the event
+    that led to this exception.
+    """
+
+    def __init__(self, exit_code: _ErrorCodes, *args: object):
+        self.exit_code = exit_code
+        super().__init__(*args)
+
+    def __str__(self) -> str:
+        """Append cause to the message, if present."""
+        previous = self.__cause__
+        msg = super().__str__()
+        if previous:
+            msg += f": {str(previous)}"
+        return msg
 
 
 def _error(msg: str) -> None:
@@ -91,7 +121,10 @@ def _validate_source_directory(source_directory: str | None) -> Path | None:
     else:
         source_dir = source_directory
     if source_dir is not None and not source_dir.exists():
-        raise ValueError(f"Source directory {source_dir} does not exist")
+        raise _PebbledocError(
+            _ErrorCodes.EX_INVALID_PATH,
+            f"Source directory {source_dir} does not exist",
+        )
     return source_dir
 
 
@@ -111,9 +144,15 @@ def _validate_output_path(output_path: str) -> Path:
     """
     output = Path(output_path).resolve()
     if output.exists() and output.is_dir():
-        raise ValueError("Output must be a file, not a directory")
+        raise _PebbledocError(
+            _ErrorCodes.EX_INVALID_PATH,
+            "Output must be a file, not a directory",
+        )
     elif not output.parent.exists():
-        raise ValueError(f"Output directory {output.parent} does not exist")
+        raise _PebbledocError(
+            _ErrorCodes.EX_INVALID_PATH,
+            f"Output directory {output.parent} does not exist",
+        )
     return output
 
 
@@ -141,7 +180,7 @@ def _source_path_inserted_to_path(source_path: Path | None) -> Iterator[None]:
         sys.path.remove(str(source_path))
 
 
-def _read_existing_docs(output: Path) -> tuple[str, str]:
+def _read_existing_docs(output: Path) -> str:
     """
     Find and read an already existing docs file from a previous run.
 
@@ -159,11 +198,9 @@ def _read_existing_docs(output: Path) -> tuple[str, str]:
     if output.exists():
         with open(output, "r") as stream:
             old_content = stream.read()
-        old_file = output.name
     else:
         old_content = ""
-        old_file = "<none>"
-    return old_content, old_file
+    return old_content
 
 
 def _regular_exit(docs_unchanged: bool, emit_exit_code: bool) -> int:
@@ -181,6 +218,142 @@ def _regular_exit(docs_unchanged: bool, emit_exit_code: bool) -> int:
     if emit_exit_code and not docs_unchanged:
         return _ErrorCodes.EX_DOCS_CHANGED
     return _ErrorCodes.EX_SUCCESS
+
+
+def _handler_default(
+    output: Path,
+    source_dir: Path | None,
+    config: PebbledocConfig,
+) -> tuple[str, str, str]:
+    """
+    Handler for generating standalone documentation files.
+
+    This function handles generating a standalone documentation file for
+    the package and configuration provided. For standalone files, the
+    entire file content is managed by ``pebbledoc``, so this function
+    returns the whole file content for both the documentation string and
+    the final file content. Similarly, if a previous version of the doc
+    exists on file, this handler returns the whole content.
+
+    :param output: The path to the documentation file that will be
+        created and which might already exist from a previous run.
+    :param source_dir: The path to the source directory from where to
+        import the package, if it isn't already installed. Can be None
+        to signal that the package is already installed.
+    :param config: The configuration object, constructed from CLI args
+        and potentially discovered or provided config files.
+    :return: A tuple of three strings:
+
+        1. The content of the old documentation file (all of it), if an
+           older version exists. Otherwise, this will be an empty string.
+        2. The content of the newly generated documentation file (the
+           full file content), will be used in the diff check.
+        3. Same as 2; this is the content that will be written into the
+           file at the end.
+    """
+    try:
+        with _source_path_inserted_to_path(source_dir):
+            document_str = documenting.markdown_documentation(
+                config.package_name, config
+            )
+    except ImportError as prev_exc:
+        fatal_exc = _PebbledocError(
+            _ErrorCodes.EX_IMPORT_ERR,
+            f"Could not import package {config.package_name} or its "
+            f"dependencies",
+        )
+        raise fatal_exc from prev_exc
+    except FileNotFoundError as prev_exc:
+        fatal_exc = _PebbledocError(
+            _ErrorCodes.EX_NO_ORIGIN,
+            "One or more (sub-)packages could not be found",
+        )
+        raise fatal_exc from prev_exc
+
+    # check if the file would change
+    old_content = _read_existing_docs(output)
+
+    return old_content, document_str, document_str
+
+
+def _handler_targeted_header(
+    output: Path,
+    source_dir: Path | None,
+    config: PebbledocConfig,
+) -> tuple[str, str, str]:
+    """
+
+    :param output:
+    :param source_dir:
+    :param config:
+    :return:
+    """
+    # tell type checkers we are sure the header is not None
+    assert config.target_header is not None
+
+    # output file must already exist
+    if not output.exists():
+        raise _PebbledocError(
+            _ErrorCodes.EX_INVALID_PATH,
+            f"Targeted file {output} does not exist, can't insert documentation",
+        )
+
+    # get targeted file
+    old_content = _read_existing_docs(output)
+
+    # find the targeted header and check its level
+    header_pattern = re.compile(
+        r"^(#{1,6})[ \t]+" + re.escape(config.target_header) + r"[ \t]*$",
+        re.MULTILINE,
+    )
+    header_match = re.search(header_pattern, old_content)
+    if not header_match:
+        raise _PebbledocError(
+            _ErrorCodes.EX_INVALID_TARGET_HEADER,
+            f"The output file does not contain the target header "
+            f"'{config.target_header}'",
+        )
+    header_level = len(header_match.group(1))
+
+    # find the previous content
+    start = header_match.end()
+    next_header_pattern = re.compile(
+        r"^#{1," + str(header_level) + r"}[ \t]+.+$",
+        re.MULTILINE,
+    )
+    next_header_match = next_header_pattern.search(old_content, pos=start)
+    if not next_header_match:
+        end = len(old_content)
+    else:
+        end = next_header_match.start()
+    old_docs = old_content[start:end]
+
+    # generate the new documentation
+    additional_header_level = header_level - 1
+    try:
+        with _source_path_inserted_to_path(source_dir):
+            new_docs = documenting.markdown_documentation(
+                config.package_name, config, additional_header_level
+            )
+    except ImportError as prev_exc:
+        fatal_exc = _PebbledocError(
+            _ErrorCodes.EX_IMPORT_ERR,
+            f"Could not import package {config.package_name} or its "
+            f"dependencies",
+        )
+        raise fatal_exc from prev_exc
+    except FileNotFoundError as prev_exc:
+        fatal_exc = _PebbledocError(
+            _ErrorCodes.EX_NO_ORIGIN,
+            "One or more (sub-)packages could not be found",
+        )
+        raise fatal_exc from prev_exc
+
+    # build new document
+    head = old_content[:start].rstrip("\n")
+    tail = old_content[end:].rstrip("\n")
+    new_content = f"{head}\n\n{new_docs.rstrip('\n')}\n\n{tail}\n\n"
+    return old_docs, new_docs, new_content
 
 
 def _handle_args(args: argparse.Namespace) -> int:
@@ -219,31 +392,27 @@ def _handle_args(args: argparse.Namespace) -> int:
     try:
         output = _validate_output_path(config.output)
         source_dir = _validate_source_directory(config.source_directory)
-    except ValueError as exc_info:
+    except _PebbledocError as exc_info:
         _error(str(exc_info))
-        return _ErrorCodes.EX_INVALID_PATH
+        return exc_info.exit_code
 
-    # generate documentation
+    # get the new and old documentation, and the new file content
+    handler: DocsHandlerFunc
+    if config.target_header is not None:
+        handler = _handler_targeted_header
+    else:
+        handler = _handler_default
     try:
-        with _source_path_inserted_to_path(source_dir):
-            document_str = documenting.markdown_documentation(
-                args.package, config
-            )
-    except ImportError as exc_info:
-        _error(
-            f"Could not import package {args.package} or its dependencies: {exc_info}"
-        )
-        return _ErrorCodes.EX_IMPORT_ERR
-    except FileNotFoundError as exc_info:
-        _error(f"One or more (sub-)packages could not be found: {exc_info}")
-        return _ErrorCodes.EX_NO_ORIGIN
+        old_docs, new_docs, document_str = handler(output, source_dir, config)
+    except _PebbledocError as exc_info:
+        _error(str(exc_info))
+        return exc_info.exit_code
 
-    # check if the file would change
-    old_content, old_file = _read_existing_docs(output)
-    # ignore newlines at end of file (might be added/removed by linters)
-    old_content = old_content.rstrip("\n")
-    new_content = document_str.rstrip("\n")
-    docs_unchanged = old_content == new_content
+    # check if the documentation has changed; ignore newlines at end of
+    # file (might be added/removed by linters)
+    old_docs = old_docs.rstrip("\n")
+    new_docs_ = new_docs.rstrip("\n")  # do not alter actual string
+    docs_unchanged = old_docs == new_docs_
 
     # if no changes (except newlines at the end) occur, exit now
     if docs_unchanged:
@@ -251,9 +420,10 @@ def _handle_args(args: argparse.Namespace) -> int:
 
     # print diff, if requested
     if args.diff:
+        old_file = output.name if output.exists() else "<none>"
         diff = difflib.unified_diff(
-            old_content.splitlines(keepends=True),
-            new_content.splitlines(keepends=True),
+            old_docs.splitlines(keepends=True),
+            new_docs_.splitlines(keepends=True),
             fromfile=old_file,
             tofile=str(output.name),
         )

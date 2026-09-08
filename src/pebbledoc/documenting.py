@@ -10,6 +10,7 @@ from .inspect_runtime import Member, build_member_tree
 def markdown_documentation(
     package_name: str,
     config: PebbledocConfig,
+    additional_header_level: int = 0,
 ) -> str:
     """
     Create a documentation for the package of the given name.
@@ -24,17 +25,31 @@ def markdown_documentation(
     them builds a full API documentation, formatted as GitHub-flavored
     Markdown. The resulting string is returned.
 
+    Members have a default header level that will be used for their
+    section (e.g. h2 for modules). If the generated documentation will
+    be placed under an existing Markdown header, these headers might
+    need to be at higher header levels (for example, when using the
+    ``--target`` option of ``pebbledoc``). To shift all headers down
+    a number of n levels, set the ``additional_header_level`` parameter
+    to n.
+
     :param package_name: The name of the package as it should appear in
         the header of the document.
     :param config: A filled pebbledoc config object, detailing how to
         parse the found docstrings and how to arrange them into the final
         document.
+    :param additional_header_level: Additional header level to add to
+        the pre-configured default header levels for every generated
+        section. Mostly useful when inserting the resulting string into
+        an existing document.
     :return: A full API document for the package, formatted as GitHub-
         flavored Markdown, ready for use as a single-file documentation
         or insertion into a template.
     """
     # Build header
-    if config.document_title:
+    if config.target_header is not None:
+        header = ""
+    elif config.document_title:
         header = f"# {config.document_title}\n\n"
     else:
         header = f"# {package_name} documentation\n\n"
@@ -56,8 +71,9 @@ def markdown_documentation(
     # build and intro
     intro = ""
     if config.include_intro:
+        what = "document" if config.target_header is None else "section"
         intro += (
-            f"This document lists the full public API of the `{package_name}` "
+            f"This {what} lists the full public API of the `{package_name}` "
             f"package.\n\n"
         )
     if config.main_docstring_location == "pre":
@@ -65,7 +81,7 @@ def markdown_documentation(
         intro += "\n"
 
     # build TOC
-    if config.include_toc:
+    if config.include_toc and config.target_header is None:
         toc = "#### Table of contents\n"
         toc += _build_toc(root, config)
         toc += "\n\n"
@@ -76,7 +92,9 @@ def markdown_documentation(
         toc += "\n"
 
     # generate the main body of the docs
-    main_body = _document_member(root, config, valid_targets)
+    main_body = _document_member(
+        root, config, valid_targets, additional_header_level
+    )
 
     return f"{header}{intro}{toc}{main_body}"
 
@@ -161,6 +179,7 @@ def _document_member(
     member: Member,
     config: PebbledocConfig,
     valid_reference_targets: set[str] | None = None,
+    additional_header_level: int = 0,
 ) -> str:
     """
     Create the documentation section for the given member.
@@ -178,6 +197,10 @@ def _document_member(
         inline literals instead of links. When set to None, all
         references will be rendered as links, even if they end up leading
         to invalid targets. Defaults to None.
+    :param additional_header_level: If the members must be rendered with
+        a header level greater than their default level, this must set
+        the additional level each member section header receives. This
+        is meant primarily for targeting sections in existing documents.
     :return: Documentation section for ``member`` as a string, formatted
         as GitHub-flavored Markdown.
     """
@@ -193,7 +216,8 @@ def _document_member(
         targets = [".".join(parts[i:]) for i in range(1, len(parts))]
         for target in targets:
             snippet += f'<a name="{util.name_to_ref(target)}"></a>\n'
-        snippet += f"{'#' * member.header_level} "
+        header_level = min(member.header_level + additional_header_level, 6)
+        snippet += f"{'#' * header_level} "
         snippet += f"`{full_name}`\n\n"
 
     # Add a signature
@@ -215,7 +239,9 @@ def _document_member(
 
     # Add a back-to-top link, unless suppressed
     if config.include_back_to_top and not exclude_header:
-        if config.document_title:
+        if config.target_header is not None:
+            top_header = util.name_to_ref(config.target_header)
+        elif config.document_title:
             top_header = util.name_to_ref(config.document_title)
         else:
             top_header = util.name_to_ref(
@@ -226,6 +252,8 @@ def _document_member(
     # Recursively render children as well
     if member.children:
         for child in member.children:
-            snippet += _document_member(child, config, valid_reference_targets)
+            snippet += _document_member(
+                child, config, valid_reference_targets, additional_header_level
+            )
 
     return snippet

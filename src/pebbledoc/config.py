@@ -34,6 +34,7 @@ class PebbledocConfig:
     admonition_style: AdmonitionStyle = "mix"
     main_docstring_location: DocstringPosition = "default"
     document_title: str | None = None
+    target_header: str | None = None
 
     document_constants: bool = True
     include_intro: bool = True
@@ -120,6 +121,8 @@ def _update_for_cli_args(
         config.main_docstring_location = args.main_docstring
     if args.title is not None:
         config.document_title = args.title
+    if args.target is not None:
+        config.target_header = args.target
 
     # and finally, overwrite options, if given
     options = {

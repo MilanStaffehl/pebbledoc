@@ -11,7 +11,6 @@ from unittest.mock import Mock
 
 import colorama
 import pytest
-from acceptance_util import assert_write_call
 from pytest_mock import MockerFixture
 
 from pebbledoc import cli_logic
@@ -22,6 +21,33 @@ import utils
 ERROR_PREFIX: Final[str] = (
     f"{colorama.Fore.RED}Error:{colorama.Style.RESET_ALL}"
 )
+
+
+def assert_write_call(
+    mock_write: Mock, output_file: str | None, expected: str
+) -> None:
+    """Check that the call to write contained the expected string."""
+    # check everything worked
+    if output_file is None:
+        output_file = "API.md"
+    mock_write.assert_called_once_with(Path(output_file).resolve(), "w")
+    handle = mock_write()
+    handle.write.assert_called_once()
+    assert handle.write.call_count == 1
+
+    # check contents
+    actual = handle.write.call_args[0][0]
+    if not actual == expected:
+        lines_actual = actual.splitlines(keepends=True)
+        lines_expected = expected.splitlines(keepends=True)
+        diff = difflib.unified_diff(
+            lines_expected, lines_actual, fromfile="expected", tofile="actual"
+        )
+        msg = (
+            f"Output was not identical to expected Markdown:\n\n"
+            f"{''.join(diff)}"
+        )
+        pytest.fail(msg)
 
 
 def assert_diff_matches(
@@ -44,6 +70,17 @@ def assert_diff_matches(
     pattern = re.compile(r"^\s+\n", flags=re.MULTILINE)
     cleaned_diff = pattern.sub("\n", captured_diff)
     assert cleaned_diff == expected_diff
+
+
+# == FIXTURES ==========================================================
+
+
+@pytest.fixture
+def patch_open(mocker: MockerFixture) -> Mock:
+    """Patch opening files to intercept final write of MD document."""
+    patched_open = mocker.mock_open()
+    mocker.patch("pebbledoc.cli_logic.open", patched_open)
+    return patched_open
 
 
 # == TEST CASES ========================================================
