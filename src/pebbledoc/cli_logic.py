@@ -282,11 +282,36 @@ def _handler_targeted_header(
     config: PebbledocConfig,
 ) -> tuple[str, str, str]:
     """
+    Handler for inserting documentation under headers in output file.
 
-    :param output:
-    :param source_dir:
-    :param config:
-    :return:
+    This function handles inserting the documentation generated for the
+    package and configuration provided into the existing output file
+    under the specified target header. For targeted files, only the
+    targeted section is managed by ``pebbledoc``, so this function
+    returns only the old and new documentation section for the diff
+    check. However, the third return value is the entire new file, which
+    includes preceding and following sections as well.
+
+    If there is no existing output file or that file does not contain
+    the correct header, the function raises a ``_PebbledocError``
+    exception, which will cause ``pebbledoc`` to terminate.
+
+    :param output: The path to the documentation file that will be
+        created and which might already exist from a previous run.
+    :param source_dir: The path to the source directory from where to
+        import the package, if it isn't already installed. Can be None
+        to signal that the package is already installed.
+    :param config: The configuration object, constructed from CLI args
+        and potentially discovered or provided config files.
+    :return: A tuple of three strings:
+
+        1. The content of the old documentation section (only what is
+           found under the targeted header. Will be used in diff check.
+        2. The content of the newly generated documentation section (as
+           it will be inserted), which will be used in the diff check.
+        3. The full content of the updated target file, with the new
+           documentation inserted into the targeted section. Will be
+           written to file, but will not be used in diff check.
     """
     # tell type checkers we are sure the header is not None
     assert config.target_header is not None
