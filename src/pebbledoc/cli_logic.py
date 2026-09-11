@@ -351,7 +351,7 @@ def _handler_targeted_header(
         end = len(old_content)
     else:
         end = next_header_match.start()
-    old_docs = old_content[start:end]
+    old_docs = old_content[start:end].lstrip("\n")
 
     # generate the new documentation
     additional_header_level = header_level - 1
@@ -379,7 +379,7 @@ def _handler_targeted_header(
     tail = old_content[end:].rstrip("\n")
     margin = "\n\n" if end != len(old_content) else ""
     new_content = f"{head}\n\n{new_docs.rstrip('\n')}\n\n{tail}{margin}"
-    return old_docs.lstrip("\n"), new_docs, new_content
+    return old_docs, new_docs, new_content
 
 
 def _handle_args(args: argparse.Namespace) -> int:

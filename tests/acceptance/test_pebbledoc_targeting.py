@@ -68,7 +68,9 @@ def assert_diff_matches(
     # whitespaces before comparison:
     pattern = re.compile(r"^\s+\n", flags=re.MULTILINE)
     cleaned_diff = pattern.sub("\n", captured_diff)
-    assert cleaned_diff == expected_diff
+    # unfortunately our last diff has as context line a newline, which
+    # IDEs remove from the expected diff file, so we add it back in here:
+    assert cleaned_diff == expected_diff + "\n"
 
 
 # == TEST CASES ========================================================

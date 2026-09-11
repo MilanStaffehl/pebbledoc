@@ -27,4 +27,3 @@
 \x1b[32m+- `fields` (`list[str]`): A list of fields to load from the catalog. See the documentation for the respective catalog to find supported fields.\x1b[0m
 
  </details>
-\n
