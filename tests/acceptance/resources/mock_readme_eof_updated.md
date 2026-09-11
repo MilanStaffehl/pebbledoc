@@ -44,6 +44,28 @@ obs = Observation(object_name="M31", magnitude=3.4, tags=["galaxy", "autumn"])
 | `catalog`     | `CelestialObject`, `Star`, `load_catalog()`                      |
 | `observation` | `ObservableMixin`, `VariableStar`, `HybridObject`, `Observation` |
 
+## Development
+
+Run the test suite with:
+
+```bash
+pytest
+```
+
+## Caveats
+
+- [ ] No real astronomical data
+- [ ] No real math — formulas are illustrative only
+- [x] Exists purely to exercise a docstring parser
+
+See [`catalog.py`](./stellarium_lite/catalog.py) and
+[`observation.py`](./stellarium_lite/observation.py) for the actual API
+surface and their heavily-annotated docstrings.
+
+## License
+
+MIT; see `LICENSE` for details.
+
 ## Package Documentation
 
 ### `stellarium_lite`
@@ -109,26 +131,3 @@ $0^\circ \le \alpha < 360^\circ$ for right ascension.
 > :recycle: **Changed in version 0.3.0:** `ra` and `dec` are now stored in degrees instead of radians.
 
 <sup>[Back to top](#stellarium_lite-documentation)</sup>
-
-
-## Development
-
-Run the test suite with:
-
-```bash
-pytest
-```
-
-## Caveats
-
-- [ ] No real astronomical data
-- [ ] No real math — formulas are illustrative only
-- [x] Exists purely to exercise a docstring parser
-
-See [`catalog.py`](./stellarium_lite/catalog.py) and
-[`observation.py`](./stellarium_lite/observation.py) for the actual API
-surface and their heavily-annotated docstrings.
-
-## License
-
-MIT; see `LICENSE` for details.

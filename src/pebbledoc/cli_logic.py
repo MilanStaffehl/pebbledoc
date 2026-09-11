@@ -377,8 +377,9 @@ def _handler_targeted_header(
     # build new document
     head = old_content[:start].rstrip("\n")
     tail = old_content[end:].rstrip("\n")
-    new_content = f"{head}\n\n{new_docs.rstrip('\n')}\n\n{tail}\n\n"
-    return old_docs, new_docs, new_content
+    margin = "\n\n" if end != len(old_content) else ""
+    new_content = f"{head}\n\n{new_docs.rstrip('\n')}\n\n{tail}{margin}"
+    return old_docs.lstrip("\n"), new_docs, new_content
 
 
 def _handle_args(args: argparse.Namespace) -> int:

@@ -60,7 +60,7 @@ def assert_diff_matches(
 
     # Python escapes the backslashes of the ANSI sequences when we load
     # the expected diff from file, so we must decode the string again:
-    diff_file = Path(__file__).parent / "expected_diff.txt"
+    diff_file = Path(__file__).parent / "expected/diffs/expected_diff.txt"
     encoded = diff_file.read_text().encode("utf-8")
     expected_diff = codecs.escape_decode(encoded)[0].decode("utf-8")
     # unfortunately, newlines in the captured output contain whitespace,

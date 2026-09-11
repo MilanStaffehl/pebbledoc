@@ -1,0 +1,30 @@
+\x1b[31m--- mock_readme_diff.md\x1b[0m
+\x1b[32m+++ mock_readme_diff.md\x1b[0m
+\x1b[34m@@ -11,6 +11,9 @@\x1b[0m
+ > "My disappointment is immeasurable, and my day is ruined."
+ >
+ > -- Someone expecting a real halo loading package.
+\x1b[32m+\x1b[0m
+\x1b[32m+- **author:** Milan Staffehl\x1b[0m
+\x1b[32m+- **copyright:** 2026 Milan Staffehl\x1b[0m
+
+ <sup>[Back to top](#package-documentation)</sup>
+
+\x1b[34m@@ -36,7 +39,7 @@\x1b[0m
+ the supported halo catalogs must implement. You can add support for
+ your own catalog by implementing this abstract base class.
+
+\x1b[31m-> [!WARNING]\x1b[0m
+\x1b[32m+> [!CAUTION]\x1b[0m
+ >
+ > Any catalog from [`SUPPORTED_CATALOGS`](#supported_catalogs) that does not
+ > have an associated catalog subclass will cause importing the
+\x1b[34m@@ -93,7 +96,7 @@\x1b[0m
+ - `catalog_type` (`Literal['snapshot', 'merger tree']`): The type of catalog, i.e. the file structure of the catalog files.
+ - `path` (`str | os.PathLike`): The path to the catalog directory. Must contain the directory or source file for the chosen snapshot.
+ - `snapshot` (`int`): The snapshot to load.
+\x1b[31m-- `fields` (`list[str | None]`): A list of fields to load from the catalog. See the documentation for the respective catalog to find supported fields.\x1b[0m
+\x1b[32m+- `fields` (`list[str]`): A list of fields to load from the catalog. See the documentation for the respective catalog to find supported fields.\x1b[0m
+
+ </details>
+\n

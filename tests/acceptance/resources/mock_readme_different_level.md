@@ -79,4 +79,4 @@ surface and their heavily-annotated docstrings.
 
 ## License
 
-MIT — see `LICENSE` for details.
+MIT; see `LICENSE` for details.
