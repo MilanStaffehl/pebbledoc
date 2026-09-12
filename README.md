@@ -250,7 +250,7 @@ You can provide a persistent configuration to `pebbledoc` by creating a configur
 
 All files follow the same format; only the section header is different: For `pyproject.toml`, the section header must be `[tool.pebbledoc]`, while for dedicated configuration files, the section header must be `[pebbledoc]`.
 
-The example below shows a full configuration file, showing all available options with their respective default value (except for `package_name` and `source_directory`, which show example values).
+The example below shows a full configuration file, showing all available options with their respective default value (except for `package_name`, `source_directory` and `target_header`, which show example values).
 
 ```toml
 # pyproject.toml
