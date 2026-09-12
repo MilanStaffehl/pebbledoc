@@ -123,6 +123,15 @@ def _build_parser() -> argparse.ArgumentParser:
         default=None,
     )
     output_group.add_argument(
+        "--target",
+        help=(
+            "section header of the output file under which to insert the "
+            "documentation (requires file to have a content already)"
+        ),
+        metavar="",
+        default=None,
+    )
+    output_group.add_argument(
         "--diff",
         help=(
             "show changes with respect to existing file instead of writing "

@@ -23,29 +23,6 @@ ERROR_PREFIX: Final[str] = (
 )
 
 
-@pytest.fixture
-def patch_open(mocker: MockerFixture) -> Mock:
-    """Patch opening files to intercept final write of MD document."""
-    patched_open = mocker.mock_open()
-    mocker.patch("pebbledoc.cli_logic.open", patched_open)
-    return patched_open
-
-
-@pytest.fixture
-def patch_config_discovery(mocker: MockerFixture) -> None:
-    """Prevent config file discovery from running."""
-    mocker.patch("pebbledoc.config._discover_config_file", return_value=None)
-
-
-@pytest.fixture
-def patch_module_all(mocker: MockerFixture) -> None:
-    """Path the stellarium_lite module to have no __all__."""
-    sys.path.append(str(Path(__file__).parent / "resources"))
-    package = importlib.import_module("stellarium_lite")
-    mocker.patch.object(package, "__all__", None)
-    sys.path.pop()
-
-
 def assert_write_call(
     mock_write: Mock, output_file: str | None, expected: str
 ) -> None:
@@ -83,7 +60,7 @@ def assert_diff_matches(
 
     # Python escapes the backslashes of the ANSI sequences when we load
     # the expected diff from file, so we must decode the string again:
-    diff_file = Path(__file__).parent / "expected_diff.txt"
+    diff_file = Path(__file__).parent / "expected/diffs/expected_diff.txt"
     encoded = diff_file.read_text().encode("utf-8")
     expected_diff = codecs.escape_decode(encoded)[0].decode("utf-8")
     # unfortunately, newlines in the captured output contain whitespace,
@@ -93,6 +70,17 @@ def assert_diff_matches(
     pattern = re.compile(r"^\s+\n", flags=re.MULTILINE)
     cleaned_diff = pattern.sub("\n", captured_diff)
     assert cleaned_diff == expected_diff
+
+
+# == FIXTURES ==========================================================
+
+
+@pytest.fixture
+def patch_open(mocker: MockerFixture) -> Mock:
+    """Patch opening files to intercept final write of MD document."""
+    patched_open = mocker.mock_open()
+    mocker.patch("pebbledoc.cli_logic.open", patched_open)
+    return patched_open
 
 
 # == TEST CASES ========================================================

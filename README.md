@@ -169,6 +169,8 @@ source:
 
 output:
   -o, --output              name and filepath of the output file
+  --target                  section header of the output file under which to insert the documentation
+                            (requires file to have a content already)
   --diff                    show changes with respect to existing file instead of writing docs to file
   --exit-code               exit with non-zero exit code when documentation changes
 
@@ -212,10 +214,11 @@ The options in the "output" group can change the behavior of `pebbledoc`, which 
 
 - `--diff` causes `pebbledoc` to compare the newly generated documentation content with the old one. For this purpose, it loads the text from the existing file specified by `--output`. Any differences are then presented as colored output. If there is no difference, the command exits silently. In either case, no files are changed.
 - `--exit-code` instructs `pebbledoc` to exit with a non-zero exit code when the documentation changes compared to its previous state (i.e. compared to the contents of the file specified by `--output`). When this flag is used together with `--diff`, any difference will cause a non-zero exit code to be emitted, the difference is printed to the terminal, and no file is changed.
+- `--target` can be used to specify a section in an already existing Markdown file, for example a README, under which to insert the generated documentation. The entire content of the section (i.e. all content up to the next header of the same level) is replaced by the newly generated documentation. The documentation will receive no TOC and title in this case; the related options have no effect.
 
 > [!NOTE]
 >
-> In both cases, the comparison ignores trailing newline characters (`\n`) at the end of the file. This is because they are sometimes added or removed by linters, formatters, or IDEs.
+> The comparison for both the `--diff` and `--exit-code` options ignores trailing newline characters (`\n`) at the end of the file. This is because they are sometimes added or removed by linters, formatters, or IDEs.
 
 ### As a library
 
@@ -247,7 +250,7 @@ You can provide a persistent configuration to `pebbledoc` by creating a configur
 
 All files follow the same format; only the section header is different: For `pyproject.toml`, the section header must be `[tool.pebbledoc]`, while for dedicated configuration files, the section header must be `[pebbledoc]`.
 
-The example below shows a full configuration file, showing all available options with their respective default value (except for `package_name` and `source_directory`, which show example values).
+The example below shows a full configuration file, showing all available options with their respective default value (except for `package_name`, `source_directory` and `target_header`, which show example values).
 
 ```toml
 # pyproject.toml
@@ -260,6 +263,7 @@ exclude = []  # list of strings
 admonition_style = "mix"
 main_docstring_location = "default"
 document_title = "my_package - documentation"
+target_header = "Documentation Section"
 include_intro = true
 document_constants = true
 module_docstrings = true
@@ -285,6 +289,7 @@ The following table shows how the configuration options map to the command line 
 | `admonition_style`        | `--admonition-style`      | See [Admonitions](#admonitions) for details on each style     |
 | `main_docstring_location` | `--main-docstring`        | Only affects the docstring of the package's `__init__.py`     |
 | `document_title`          | `--title`                 | Overrides the default title derived from `package_name`       |
+| `target_header`           | `--target`                | Disables TOC and document title when set                      |
 | `include_intro`           | `--no-generic-intro`      | Config default: `true`                                        |
 | `document_constants`      | `--no-include-constants`  | Config default: `true`                                        |
 | `module_docstrings`       | `--no-module-docstrings`  | Config default: `true`                                        |

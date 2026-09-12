@@ -96,7 +96,7 @@ project-excludes = [
     "**/.[!/.]*/**",
 ]
 use-ignore-files = true
-search-path = ["src", "tests/acceptance/resources", "tests"]
+search-path = ["src", "tests/acceptance/resources", "tests", "tests/acceptance"]
 python-version = "3.13"
 
 [tool.pebbledoc]
