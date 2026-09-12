@@ -126,6 +126,7 @@ A good bug report includes:
 - Your `pebbledoc` and `docutils` version
 - Your OS
 - A description of what the bug is and how you discovered it
+- If there was one, the error message that you got
 
 Additionally, the following information helps us reproduce and fix the bug faster:
 
