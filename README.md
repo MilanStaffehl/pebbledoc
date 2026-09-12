@@ -141,7 +141,7 @@ pebbledoc --package my_package
 This creates a file `API.md` in the current working directory. From there, you can choose to configure `pebbledoc` to your liking using the options. Below is the full listing of command line options; you can display the same text by typing `pebbledoc --help`.
 
 ```
-usage: pebbledoc [-h] [--version] -p  [-s ] [-x member [member ...]] [--config-file ] [-o ] [--diff]
+usage: pebbledoc [-h] [--version] [-p ] [-s ] [-x member [member ...]] [--config-file ] [-o ] [--diff]
                  [--exit-code] [--admonition-style {classic,mix,github,map}]
                  [--main-docstring {default,pre,post,omit}] [--title ] [--no-generic-intro]
                  [--no-module-docstring] [--no-include-constants] [--no-toc] [--no-back-to-top]
@@ -356,11 +356,13 @@ Alternatively, you can just run `pebbledoc` on itself to get a quick example of 
 
 ## Integration
 
-To keep your documentation in sync with your actual code, it is recommended to run `pebbledoc` automatically in regular intervals. This can be part of your CI, or your development workflow. Below are instructions on how to add `pebbledoc` to your GitHub actions. These examples use `uv`. You might have to update them for your package manager of choice.
+To keep your documentation in sync with your actual code, it is recommended to run `pebbledoc` automatically in regular intervals. This can be part of your CI, or your development workflow. Below are instructions on how to add `pebbledoc` to your GitHub actions or pre-commit. These examples use `uv`. You might have to update them for your package manager of choice.
 
 > [!NOTE]
 >
 > These examples assume that `pebbledoc` is listed in your development dependencies, and that it is therefore automatically installed with your project. If this is not the case, you have to install it separately in an extra step.
+>
+> The examples also assume that your entire preferred configuration, *including* `package_name`, is placed inside the `pyproject.toml` of your project.
 
 ### GitHub Actions: update docs
 
@@ -392,7 +394,7 @@ jobs:
         run: uv sync --locked --all-extras --dev
 
       - name: Run pebbledoc
-        run: uv run pebbledoc --config-file pyproject.toml --package <package_name>
+        run: uv run pebbledoc --config-file pyproject.toml
 
       - name: Commit and push changes
         run: |
@@ -433,7 +435,7 @@ jobs:
 
       - name: Check docs with pebbledoc
         run: |
-          uv run pebbledoc --config-file pyproject.toml --package <package_name> --diff --exit-code
+          uv run pebbledoc --config-file pyproject.toml --diff --exit-code
 ```
 
 ### pre-commit: update docs
@@ -447,8 +449,7 @@ You can use this repository as a pre-commit hook. Add the following to your `.pr
       - id: pebbledoc
         name: Update docs (pebbledoc)
         args: [
-          --package=<package_name>,  # replace with your package
-          --config=pyproject.toml,
+          --config=pyproject.toml,  # must include package name
           --source-directory=<source_dir>  # replace with your source directory
         ]
         additional_dependencies: []  # replace with your dependencies
