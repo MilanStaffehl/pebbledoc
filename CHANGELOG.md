@@ -10,6 +10,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 - Option `--target` to allow inserting generated documentation into an existing file ([#142](https://github.com/MilanStaffehl/pebbledoc/pull/142))
 
+### Changed
+
+- CLI option `--package` is now optional, package can be specified in config file; missing package name will lead to an error ([#145](https://github.com/MilanStaffehl/pebbledoc/pull/145))
+
 ### Fixed
 
 - Removed incorrect Python 3.12 classifier from `pyproject.toml` ([#140](https://github.com/MilanStaffehl/pebbledoc/pull/140))

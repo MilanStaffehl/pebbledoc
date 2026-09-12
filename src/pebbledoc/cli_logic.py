@@ -414,6 +414,14 @@ def _handle_args(args: argparse.Namespace) -> int:
         _error(f"Could not locate config file: {exc_info}")
         return _ErrorCodes.EX_MISSING_CONFIG
 
+    # check that a package name was provided
+    if not config.package_name:
+        _error(
+            "No package to document was specified - use the `--package` "
+            "option to specify a package"
+        )
+        return _ErrorCodes.EX_BAD_ARGS  # equivalent to a missing argument
+
     # check that the given output and source dir are valid
     try:
         output = _validate_output_path(config.output)
