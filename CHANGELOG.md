@@ -14,6 +14,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 - Removed incorrect Python 3.12 classifier from `pyproject.toml` ([#140](https://github.com/MilanStaffehl/pebbledoc/pull/140))
 - All uncaught exceptions are now handled and properly formatted as an error message ([#143](https://github.com/MilanStaffehl/pebbledoc/pull/143))
+- Fixed package name from config file not being overridden by command line argument ([#144](https://github.com/MilanStaffehl/pebbledoc/pull/144))
 
 ## [0.2.0] - 2026-09-05
 
