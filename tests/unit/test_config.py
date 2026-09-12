@@ -303,6 +303,31 @@ def test_build_config_pebbledoc_cli_override(mocker: MockerFixture) -> None:
     mock_open.assert_called_once_with(Path("pebbledoc.toml").resolve(), "rb")
 
 
+def test_build_config_cli_override_of_project_name(
+    mocker: MockerFixture,
+) -> None:
+    """Test that CLI args can override package name in file configs."""
+    mock_pyproject = (
+        b"[pebbledoc]\n"
+        b'package_name = "test_package"\n'
+        b'source_directory = "~/pylibs/my_package"\n'
+    )
+    m = mocker.mock_open(read_data=mock_pyproject)
+    mock_open = mocker.patch("pebbledoc.config.open", m)
+    # ensure that the file "exists"
+    mocker.patch("pathlib.Path.exists", return_value=True)
+    mocker.patch("pathlib.Path.is_file", return_value=True)
+
+    namespace = utils.prepare_namespace(package="some_other_package")
+    output = cli_logic.build_config(namespace)
+    assert_config(
+        output,
+        package="some_other_package",
+        source_directory="~/pylibs/my_package",
+    )
+    mock_open.assert_called_once_with(Path("pebbledoc.toml").resolve(), "rb")
+
+
 def test_build_config_missing_file(mocker: MockerFixture) -> None:
     """Test building a config when the given config file does not exist."""
     mock_open = mocker.patch("pebbledoc.config.open")

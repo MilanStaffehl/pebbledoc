@@ -109,6 +109,8 @@ def _update_for_cli_args(
     :return: The config, with all explicitly provided arguments replaced.
     """
     # overwrite with CLI arguments, if given:
+    if args.package is not None:
+        config.package_name = args.package
     if args.source_directory is not None:
         config.source_directory = args.source_directory
     if args.output is not None:
