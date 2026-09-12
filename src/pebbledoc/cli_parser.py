@@ -84,7 +84,7 @@ def _build_parser() -> argparse.ArgumentParser:
         "--package",
         help="name of the package to document",
         metavar="",
-        required=True,
+        default="",  # config does not allow None
     )
     source_group.add_argument(
         "-s",

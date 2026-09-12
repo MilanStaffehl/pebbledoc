@@ -842,6 +842,25 @@ def test_pebbledoc_no_changes_to_previous_file(
 # == TESTS FOR INVALID INPUTS ==========================================
 
 
+def test_pebbledoc_missing_package_name(
+    patch_config_discovery: None, capsys: pytest.CaptureFixture
+) -> None:
+    """Test the behavior when the user gave no package name."""
+    namespace = utils.prepare_namespace(
+        package="",  # user gave none
+        source_directory=str(Path(__file__).parent / "resources"),
+    )
+    exit_code = cli_logic._handle_args(namespace)
+
+    out = capsys.readouterr()
+    expected_error = (
+        f"{ERROR_PREFIX} No package to document was specified - use the "
+        f"`--package` option to specify a package\n"
+    )
+    assert out.err == expected_error
+    assert exit_code == cli_logic._ErrorCodes.EX_BAD_ARGS
+
+
 def test_pebbledoc_invalid_output_file(
     patch_config_discovery: None, capsys: pytest.CaptureFixture
 ) -> None:
