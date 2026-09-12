@@ -470,7 +470,11 @@ def _handle_args(args: argparse.Namespace) -> int:
 
 def main() -> Never:
     """Entry point for pebbledoc as a command-line tool."""
-    colorama.just_fix_windows_console()
-    parser = _build_parser()
-    args = parser.parse_args()
-    sys.exit(_handle_args(args))
+    try:
+        colorama.just_fix_windows_console()
+        parser = _build_parser()
+        args = parser.parse_args()
+        sys.exit(_handle_args(args))
+    except Exception as exc_info:
+        _error(f"Encountered an unexpected error: {exc_info}")
+        sys.exit(_ErrorCodes.EX_GENERIC_ERROR)

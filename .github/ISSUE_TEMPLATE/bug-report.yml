@@ -36,6 +36,14 @@ body:
         you expect to happen?
       placeholder: Tell us how you encountered the bug
 
+  - type: input
+    id: error-message
+    validations:
+      required: false
+    attributes:
+      label: Error message
+      description: If there was an error message, copy and paste it here.
+
   - type: textarea
     id: reproduce-example
     attributes:
