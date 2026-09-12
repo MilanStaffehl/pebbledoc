@@ -28,6 +28,7 @@ def assert_config(
     admonition_style: str = "mix",
     main_docstring_location: str = "default",
     document_title: str | None = None,
+    target_header: str | None = None,
     document_constants: bool = True,
     include_intro: bool = True,
     module_docstrings: bool = True,
@@ -49,6 +50,7 @@ def assert_config(
     assert cfg.admonition_style == admonition_style
     assert cfg.main_docstring_location == main_docstring_location
     assert cfg.document_title == document_title
+    assert cfg.target_header == target_header
     assert cfg.document_constants is document_constants
     assert cfg.include_intro is include_intro
     assert cfg.module_docstrings is module_docstrings
@@ -78,6 +80,7 @@ def test_build_config_max_diff(patch_config_file_discovery: None) -> None:
         admonition_style="github",
         main_docstring="pre",
         title="My custom title",
+        target="Some section",
         no_module_docstrings=True,
         no_generic_intro=True,
         no_include_constants=True,
@@ -99,6 +102,7 @@ def test_build_config_max_diff(patch_config_file_discovery: None) -> None:
         admonition_style="github",
         main_docstring_location="pre",
         document_title="My custom title",
+        target_header="Some section",
         module_docstrings=False,
         include_intro=False,
         document_constants=False,
@@ -178,6 +182,7 @@ def test_build_config_pebbledoc_config(mocker: MockerFixture) -> None:
         b'package_name = "test_package"\n'
         b'source_directory = "~/pylibs/my_package"\n'
         b'exclude = ["my_func, MyClass"]\n'
+        b'target_header = "Some section"\n'
         b'admonition_style = "classic"\n'
         b"include_back_to_top = false\n"
         b"include_toc = false\n"
@@ -197,6 +202,7 @@ def test_build_config_pebbledoc_config(mocker: MockerFixture) -> None:
         package="test_package",
         source_directory="~/pylibs/my_package",
         exclude=["my_func, MyClass"],
+        target_header="Some section",
         admonition_style="classic",
         include_back_to_top=False,
         include_toc=False,
