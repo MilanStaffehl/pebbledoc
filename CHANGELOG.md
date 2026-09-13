@@ -13,6 +13,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 ### Changed
 
 - CLI option `--package` is now optional, package can be specified in config file; missing package name will lead to an error ([#145](https://github.com/MilanStaffehl/pebbledoc/pull/145))
+- Help text of the CLI now contains metavars in the usage section and options without shorthand are indented ([#146](https://github.com/MilanStaffehl/pebbledoc/pull/146))
 
 ### Fixed
 

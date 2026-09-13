@@ -52,6 +52,23 @@ class PebbledocHelpTextFormatter(argparse.HelpFormatter):
             wrapped += textwrap.wrap(line, width, subsequent_indent=indent)
         return wrapped
 
+    def _format_action_invocation(self, action):
+        if not action.option_strings:
+            default = self._get_default_metavar_for_positional(action)
+            return " ".join(self._metavar_formatter(action, default)(1))
+
+        # do not show metavar, and indent options with no shorthand
+        if len(action.option_strings) == 1:
+            option = action.option_strings[0]
+            if option.startswith("--no-"):
+                return option
+            elif option.startswith("--"):
+                return f"    {option}"
+            else:
+                return option
+        else:
+            return ", ".join(action.option_strings)
+
 
 def _build_parser() -> argparse.ArgumentParser:
     """
@@ -83,7 +100,7 @@ def _build_parser() -> argparse.ArgumentParser:
         "-p",
         "--package",
         help="name of the package to document",
-        metavar="",
+        metavar="PACKAGE",
         default="",  # config does not allow None
     )
     source_group.add_argument(
@@ -93,7 +110,7 @@ def _build_parser() -> argparse.ArgumentParser:
             "source directory of the package; must be specified if the "
             "package is not installed in the current environment"
         ),
-        metavar="",
+        metavar="DIR",
         default=None,
     )
     source_group.add_argument(
@@ -103,14 +120,14 @@ def _build_parser() -> argparse.ArgumentParser:
             "names of members to exclude from the documentation, separated "
             "by whitespace"
         ),
-        metavar="member",
+        metavar="MEMBER",
         nargs="+",
         default=None,
     )
     source_group.add_argument(
         "--config-file",
         help="file containing pebbledoc configuration instructions, optional",
-        metavar="",
+        metavar="FILE",
         default=None,
     )
 
@@ -119,7 +136,7 @@ def _build_parser() -> argparse.ArgumentParser:
         "-o",
         "--output",
         help="name and filepath of the output file",
-        metavar="",
+        metavar="FILE",
         default=None,
     )
     output_group.add_argument(
@@ -128,7 +145,7 @@ def _build_parser() -> argparse.ArgumentParser:
             "section header of the output file under which to insert the "
             "documentation (requires file to have a content already)"
         ),
-        metavar="",
+        metavar="HEADER",
         default=None,
     )
     output_group.add_argument(
@@ -178,7 +195,7 @@ def _build_parser() -> argparse.ArgumentParser:
     rendering_group.add_argument(
         "--title",
         help="set the title for the document (i.e. its main header)",
-        metavar="",
+        metavar="TITLE",
         default=None,
     )
 
