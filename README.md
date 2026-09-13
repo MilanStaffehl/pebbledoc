@@ -141,10 +141,11 @@ pebbledoc --package my_package
 This creates a file `API.md` in the current working directory. From there, you can choose to configure `pebbledoc` to your liking using the options. Below is the full listing of command line options; you can display the same text by typing `pebbledoc --help`.
 
 ```
-usage: pebbledoc [-h] [--version] [-p ] [-s ] [-x member [member ...]] [--config-file ] [-o ] [--diff]
-                 [--exit-code] [--admonition-style {classic,mix,github,map}]
-                 [--main-docstring {default,pre,post,omit}] [--title ] [--no-generic-intro]
-                 [--no-module-docstring] [--no-include-constants] [--no-toc] [--no-back-to-top]
+usage: pebbledoc [-h] [--version] [-p PACKAGE] [-s DIR] [-x MEMBER [MEMBER ...]] [--config-file FILE]
+                 [-o FILE] [--target HEADER] [--diff] [--exit-code]
+                 [--admonition-style {classic,mix,github,map}]
+                 [--main-docstring {default,pre,post,omit}] [--title TITLE] [--no-generic-intro]
+                 [--no-module-docstrings] [--no-include-constants] [--no-toc] [--no-back-to-top]
                  [--no-main-module-header] [--no-collapsible-params] [--no-references]
                  [--no-full-toc-name] [--no-preserve-linewraps]
 
@@ -156,54 +157,51 @@ pebbledoc, or you must specify its source directory when using pebbledoc. Either
 dependencies must be installed.
 
 options:
-  -h, --help                show this help message and exit
-  --version                 show program's version number and exit
+  -h, --help               show this help message and exit
+      --version            show program's version number and exit
 
 source:
-  -p, --package             name of the package to document
-  -s, --source-directory    source directory of the package; must be specified if the package is not
-                            installed in the current environment
-  -x, --exclude member [member ...]
-                            names of members to exclude from the documentation, separated by whitespace
-  --config-file             file containing pebbledoc configuration instructions, optional
+  -p, --package            name of the package to document
+  -s, --source-directory   source directory of the package; must be specified if the package is not
+                           installed in the current environment
+  -x, --exclude            names of members to exclude from the documentation, separated by whitespace
+      --config-file        file containing pebbledoc configuration instructions, optional
 
 output:
-  -o, --output              name and filepath of the output file
-  --target                  section header of the output file under which to insert the documentation
-                            (requires file to have a content already)
-  --diff                    show changes with respect to existing file instead of writing docs to file
-  --exit-code               exit with non-zero exit code when documentation changes
+  -o, --output             name and filepath of the output file
+      --target             section header of the output file under which to insert the documentation
+                           (requires file to have a content already)
+      --diff               show changes with respect to existing file instead of writing docs to file
+      --exit-code          exit with non-zero exit code when documentation changes
 
 rendering:
-  --admonition-style {classic,mix,github,map}
-                            rendering style for admonitions:
-                            - classic: render all admonitions as block quotes with headers in bold type
-                            - mix: render admonitions supported by GitHub in GitHub style, all others
-                              in classic style
-                            - github: render all admonitions in GitHub style, as block quotes with
-                              headers of the form [!TYPE]
-                            - map: render all admonitions in GitHub style, map unsupported admonitions
-                              to the closest supported type
-  --main-docstring {default,pre,post,omit}
-                            position for the main docstring of the package:
-                            - default: place the package docstring in its dedicated section (default)
-                            - pre: places the docstring before the table of contents
-                            - post: places the docstring after the table of contents
-                            - omit: omits the main docstring entirely
-  --title                   set the title for the document (i.e. its main header)
+      --admonition-style   rendering style for admonitions:
+                           - classic: render all admonitions as block quotes with headers in bold type
+                           - mix: render admonitions supported by GitHub in GitHub style, all others in
+                             classic style
+                           - github: render all admonitions in GitHub style, as block quotes with
+                             headers of the form [!TYPE]
+                           - map: render all admonitions in GitHub style, map unsupported admonitions
+                             to the closest supported type
+      --main-docstring     position for the main docstring of the package:
+                           - default: place the package docstring in its dedicated section (default)
+                           - pre: places the docstring before the table of contents
+                           - post: places the docstring after the table of contents
+                           - omit: omits the main docstring entirely
+      --title              set the title for the document (i.e. its main header)
 
 formatting:
-  --no-generic-intro        omit the generic introduction after the main header
-  --no-module-docstrings    omit module-level docstrings for submodules and sub-packages
-  --no-include-constants    omit constants defined as module-level globals
-  --no-toc                  omit the table of contents at the beginning of the file
-  --no-back-to-top          omit the 'back to top' links at the end of each section
-  --no-main-module-header   omit the h2 header for the main module
-  --no-collapsible-params   render parameter info field lists as static lists instead of collapsible
-                            sections
-  --no-references           do not turn Sphinx-style references into hyperlinks
-  --no-full-toc-name        use only shortened member names in table of contents
-  --no-preserve-linewraps   remove stylistic line wraps (singular line breaks) in texts
+  --no-generic-intro       omit the generic introduction after the main header
+  --no-module-docstrings   omit module-level docstrings for sub-modules and sub-packages
+  --no-include-constants   omit constants defined as module-level globals
+  --no-toc                 omit the table of contents at the beginning of the file
+  --no-back-to-top         omit the 'back to top' links at the end of each section
+  --no-main-module-header  omit the h2 header for the main module
+  --no-collapsible-params  render parameter info field lists as static lists instead of collapsible
+                           sections
+  --no-references          do not turn Sphinx-style references into hyperlinks
+  --no-full-toc-name       use only shortened member names in table of contents
+  --no-preserve-linewraps  remove stylistic line wraps (singular line breaks) in texts
 ```
 
 For a more in-depth description of the configuration options, see the section on [configuration options](#options) below.
