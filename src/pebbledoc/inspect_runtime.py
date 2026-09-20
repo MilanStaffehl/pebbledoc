@@ -99,8 +99,90 @@ def build_member_tree(package: str, config: PebbledocConfig) -> Member:
         nodes filled, according to its public members.
     """
     root_module = importlib.import_module(package)
-    root = _member_module(package, root_module, config, package)
+    root = build_member_node(package, root_module, "", None, config)
+    if root is None:
+        raise ImportError(f"Could not import {package}")
     return root
+
+
+def build_member_node(  # noqa: C901
+    name: str,
+    obj: Any,
+    parent_name: str,
+    parent_obj: Any | None,
+    config: PebbledocConfig,
+) -> Member | None:
+    """
+    Build a :class:`Member` node for an arbitrary object.
+
+    The function takes a Python object and creates a :class:`Member`
+    node holding all information required to build a documentation
+    section. If the member is excluded from the documentation for any
+    reason (i.e. constants are excluded, or the user has explicitly
+    excluded the member), the function returns None instead.
+
+    Generally, the function differentiates between the following kinds
+    of members: modules, classes, class variables, class properties,
+    methods (with recognition of between normal methods, static methods,
+    class methods, and abstract methods), functions, and constants.
+
+    :param name: Name of the member.
+    :param obj: The member object itself.
+    :param parent_name: The full name of the parent member. If the
+        object is the top-level package of the project to document,
+        set to an empty string.
+    :param parent_obj: The parent object itself. If the object is the
+        top-level package of the project to document, set to None.
+    :param config: The ``pebbledoc`` config object.
+    :return: A :class:`Member` object or None if the member is excluded
+        from the documentation.
+    """
+    all_names = util.all_qualified_names(name, parent_name)
+    if any(n in config.exclude for n in all_names):
+        return None
+
+    parent_is_class = inspect.isclass(parent_obj)
+
+    if parent_obj is None:
+        annotations_dict = {}
+        kind = None
+    else:
+        annotations_dict = inspect.get_annotations(parent_obj)
+        kind = parent_obj.__dict__.get(name, None)
+    if is_dataclass(parent_obj):
+        fields_set = {f.name for f in fields(parent_obj)}
+    else:
+        fields_set = set()
+
+    if not parent_is_class and inspect.isfunction(obj):
+        return _member_function(name, obj, parent_name)
+    elif inspect.isclass(obj):
+        return _member_class(name, obj, parent_name, config)
+    elif inspect.ismodule(obj):
+        return _member_module(name, obj, config, parent_name)
+    elif inspect.isroutine(obj):
+        if isinstance(kind, staticmethod):
+            decorator = "staticmethod"
+        elif isinstance(kind, classmethod):
+            decorator = "classmethod"
+        elif getattr(kind, "__isabstractmethod__", False):
+            decorator = "abstractmethod"
+        else:
+            decorator = None
+        return _member_method(name, obj, parent_name, decorator)
+    elif isinstance(kind, property):
+        return _member_property(name, obj, parent_name)
+    elif name in fields_set:
+        return None
+    else:
+        annotation = annotations_dict.get(name, None)
+        if annotation is not None and not isinstance(annotation, str):
+            annotation = inspect.formatannotation(annotation, parent_name)
+        if parent_is_class:
+            return _member_classvar(name, obj, parent_name, annotation)
+        if not config.document_constants:
+            return None  # skip constants
+        return _member_constant(name, obj, parent_name, annotation)
 
 
 def _signature_str(
@@ -406,48 +488,17 @@ def _member_class(
     sig += f"{name}({parents})"
     doc = inspect.getdoc(klass) or ""
 
-    # find dataclass fields if the class is a dataclass
-    if is_dataclass(klass):
-        fields_set = {f.name for f in fields(klass)}
-    else:
-        fields_set = set()
-
     # find all public members of the class
     class_members = [m for m in klass.__dict__.keys() if not m.startswith("_")]
-    annotations_dict = inspect.get_annotations(klass)
     children = []
     new_parent = full_qualified_name(name, parent)
     for child_name in class_members:
         obj = getattr(klass, child_name)
-        child_kind = klass.__dict__[child_name]
-        all_names = util.all_qualified_names(child_name, new_parent)
-        if any(name in config.exclude for name in all_names):
-            continue  # member was explicitly excluded
-        if inspect.isroutine(obj):
-            if isinstance(child_kind, staticmethod):
-                decorator = "staticmethod"
-            elif isinstance(child_kind, classmethod):
-                decorator = "classmethod"
-            elif getattr(child_kind, "__isabstractmethod__", False):
-                decorator = "abstractmethod"
-            else:
-                decorator = None
-            children.append(
-                _member_method(child_name, obj, new_parent, decorator)
-            )
-        elif isinstance(child_kind, property):
-            children.append(_member_property(child_name, obj, new_parent))
-        elif inspect.isclass(obj):
-            children.append(_member_class(child_name, obj, new_parent, config))
-        elif child_name in fields_set:
-            continue  # we do not document fields with defaults
-        else:
-            annotation = annotations_dict.get(child_name, None)
-            if annotation is not None and not isinstance(annotation, str):
-                annotation = inspect.formatannotation(annotation)
-            children.append(
-                _member_classvar(child_name, obj, new_parent, annotation)
-            )
+        child_node = build_member_node(
+            child_name, obj, new_parent, klass, config
+        )
+        if child_node is not None:
+            children.append(child_node)
 
     # construct the node
     node = Member(
@@ -466,7 +517,6 @@ def _member_module(
     name: str,
     module: ModuleType,
     config: PebbledocConfig,
-    library_name: str,
     parent: str = "",
 ) -> Member:
     """
@@ -477,9 +527,6 @@ def _member_module(
     :param name: Name of the module.
     :param module: The module object itself.
     :param config: The pebbledoc config object.
-    :param library_name: The top level package under which the current
-        module exists, i.e. the name of the project that is being
-        documented.
     :param parent: The name of the parent module, or an empty string
         if there is no parent module.
     :return: A :class:`Member` node for the module, filled with all
@@ -493,34 +540,18 @@ def _member_module(
     # find children, create their nodes
     children = []
     sub_modules = []
-    annotations_dict = inspect.get_annotations(module)
     new_parent = full_qualified_name(name, parent)
     for member_name in public_members:
         member = getattr(module, member_name)
-        all_names = util.all_qualified_names(member_name, new_parent)
-        if any(n in config.exclude for n in all_names):
-            continue  # member was explicitly excluded
-        if inspect.isfunction(member):
-            children.append(_member_function(member_name, member, new_parent))
-        elif inspect.isclass(member):
-            children.append(
-                _member_class(member_name, member, new_parent, config)
-            )
+        child_node = build_member_node(
+            member_name, member, new_parent, module, config
+        )
+        if child_node is None:
+            continue
         elif inspect.ismodule(member):
-            sub_modules.append(
-                _member_module(
-                    member_name, member, config, library_name, new_parent
-                )
-            )
+            sub_modules.append(child_node)
         else:
-            if not config.document_constants:
-                continue  # skip constants
-            annotation = annotations_dict.get(member_name, None)
-            if annotation is not None and not isinstance(annotation, str):
-                annotation = inspect.formatannotation(annotation, new_parent)
-            children.append(
-                _member_constant(member_name, member, new_parent, annotation)
-            )
+            children.append(child_node)
 
     # create module member node
     node = Member(

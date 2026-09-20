@@ -609,12 +609,15 @@ def check_class_abstract_base_class(node: inspect_runtime.Member) -> None:
 
 def test_member_constant_with_docstring(mock_module: ModuleType) -> None:
     """Test the function for a member with a constant value."""
-    output = inspect_runtime._member_constant(
+    test_config = config.PebbledocConfig()
+    output = inspect_runtime.build_member_node(
         "MOCK_CONSTANT",
         mock_module.MOCK_CONSTANT,
         "mock_module",
-        "Final[float]",
+        mock_module,
+        test_config,
     )
+    assert output is not None
     check_constant_mock_constant(output)
 
 
@@ -633,9 +636,15 @@ def test_member_constant_no_annotation(mock_module: ModuleType) -> None:
 
 def test_member_constant_no_docstring(mock_module: ModuleType) -> None:
     """Test the function for a member with a constant value."""
-    output = inspect_runtime._member_constant(
-        "UNDOCUMENTED", mock_module.UNDOCUMENTED, "mock_module", "Final[bool]"
+    test_config = config.PebbledocConfig()
+    output = inspect_runtime.build_member_node(
+        "UNDOCUMENTED",
+        mock_module.UNDOCUMENTED,
+        "mock_module",
+        mock_module,
+        test_config,
     )
+    assert output is not None
     check_constant_undocumented(output)
 
 
@@ -652,7 +661,7 @@ def test_member_constant_string_types() -> None:
     assert output.header_level == 3
 
 
-def test_member_constant_string_literal_types(mock_module) -> None:
+def test_member_constant_string_literal_types() -> None:
     """Test that members of type string literal have correct signature."""
     my_const: Literal["abc", "xyz"] = "abc"
     output = inspect_runtime._member_constant(
@@ -668,109 +677,113 @@ def test_member_constant_string_literal_types(mock_module) -> None:
 
 def test_member_function(mock_module: ModuleType) -> None:
     """Test the function for a member function."""
-    output = inspect_runtime._member_function(
-        "mock_function", mock_module.mock_function, "mock_module"
+    test_config = config.PebbledocConfig()
+    output = inspect_runtime.build_member_node(
+        "mock_function",
+        mock_module.mock_function,
+        "mock_module",
+        mock_module,
+        test_config,
     )
+    assert output is not None
     check_function_mock_function(output)
 
 
 def test_member_function_custom_types(mock_module: ModuleType) -> None:
     """Test the function for a member function with non-builtin types."""
-    output = inspect_runtime._member_function(
+    test_config = config.PebbledocConfig()
+    output = inspect_runtime.build_member_node(
         "function_with_custom_type",
         mock_module.function_with_custom_type,
         "mock_module",
+        mock_module,
+        test_config,
     )
+    assert output is not None
     check_function_function_with_custom_type(output)
 
 
 def test_member_method_basic(mock_module: ModuleType) -> None:
     """Test the function for a method."""
-    output = inspect_runtime._member_method(
+    test_config = config.PebbledocConfig()
+    output = inspect_runtime.build_member_node(
         "public_method",
         mock_module.MockClass.public_method,
         "mock_module.MockClass",
-        None,
+        mock_module.MockClass,
+        test_config,
     )
+    assert output is not None
     check_method_public_method(output)
-
-
-def test_member_method_decorated(mock_module: ModuleType) -> None:
-    """Test the function for a decorated method."""
-    output = inspect_runtime._member_method(
-        "public_method",
-        mock_module.MockClass.public_method,
-        "mock_module.MockClass",
-        "decorator",
-    )
-    assert output.name == "public_method"
-    assert output.parent == "mock_module.MockClass"
-    assert output.kind == "method"
-    assert output.signature == (
-        "@decorator\nMockClass.public_method(self, param_c: bool, "
-        "optional: str | None = None) -> int"
-    )
-    assert output.raw_docstring == (
-        "Public method docstring.\n\n"
-        ":param param_c: Parameter C.\n"
-        ":param optional: Optional parameter.\n"
-        ":return: An integer."
-    )
-    assert output.header_level == 4
 
 
 def test_member_method_classmethod(mock_module: ModuleType) -> None:
     """Test the function for a class method."""
-    output = inspect_runtime._member_method(
+    test_config = config.PebbledocConfig()
+    output = inspect_runtime.build_member_node(
         "class_method",
         mock_module.MockClass.class_method,
         "mock_module.MockClass",
-        "classmethod",
+        mock_module.MockClass,
+        test_config,
     )
+    assert output is not None
     check_method_class_method(output)
 
 
 def test_member_method_staticmethod(mock_module: ModuleType) -> None:
     """Test the function for a static method."""
-    output = inspect_runtime._member_method(
+    test_config = config.PebbledocConfig()
+    output = inspect_runtime.build_member_node(
         "static_method",
         mock_module.MockClass.static_method,
         "mock_module.MockClass",
-        "staticmethod",
+        mock_module.MockClass,
+        test_config,
     )
+    assert output is not None
     check_method_static_method(output)
 
 
 def test_member_method_abstractmethod(mock_module: ModuleType) -> None:
     """Test the function for a abstract method."""
-    output = inspect_runtime._member_method(
+    test_config = config.PebbledocConfig()
+    output = inspect_runtime.build_member_node(
         "abstract_method",
         mock_module.MockAbstractClass.abstract_method,
         "mock_module.MockAbstractClass",
-        "abstractmethod",
+        mock_module.MockAbstractClass,
+        test_config,
     )
+    assert output is not None
     check_method_abstract_method(output)
 
 
 def test_member_classvar(mock_module: ModuleType) -> None:
     """Test the function for a classvar."""
-    output = inspect_runtime._member_classvar(
+    test_config = config.PebbledocConfig()
+    output = inspect_runtime.build_member_node(
         "class_var",
         mock_module.MockClass.class_var,
         "mock_module.MockClass",
-        "ClassVar[str]",
+        mock_module.MockClass,
+        test_config,
     )
+    assert output is not None
     check_classvar_class_var(output)
 
 
 def test_member_classvar_no_docs(mock_module: ModuleType) -> None:
     """Test the function for a classvar without docstring."""
-    output = inspect_runtime._member_classvar(
+    test_config = config.PebbledocConfig()
+    output = inspect_runtime.build_member_node(
         "undocumented",
         mock_module.MockClass.undocumented,
         "mock_module.MockClass",
-        "ClassVar[bool]",
+        mock_module.MockClass,
+        test_config,
     )
+    assert output is not None
     check_classvar_undocumented(output)
 
 
@@ -800,20 +813,29 @@ def test_member_classvar_incomplete_annotation(
 
 def test_member_property(mock_module: ModuleType) -> None:
     """Test the function for a property."""
-    output = inspect_runtime._member_property(
+    test_config = config.PebbledocConfig()
+    output = inspect_runtime.build_member_node(
         "property_editable",
         mock_module.MockClass.property_editable,
         "mock_module.MockClass",
+        mock_module.MockClass,
+        test_config,
     )
+    assert output is not None
     check_property_property_editable(output)
 
 
 def test_member_class_normal(mock_module: ModuleType) -> None:
     """Test the function for a class."""
     test_config = config.PebbledocConfig()
-    output = inspect_runtime._member_class(
-        "MockClass", mock_module.MockClass, "mock_module", test_config
+    output = inspect_runtime.build_member_node(
+        "MockClass",
+        mock_module.MockClass,
+        "mock_module",
+        mock_module,
+        test_config,
     )
+    assert output is not None
     check_class_mock_class(output)
 
 
@@ -821,72 +843,94 @@ def test_member_class_exclude(mock_module: ModuleType) -> None:
     """Test the function for a class with members excluded."""
     exclude = ["property_readonly", "static_method"]
     test_config = config.PebbledocConfig(exclude=exclude)
-    output = inspect_runtime._member_class(
-        "MockClass", mock_module.MockClass, "mock_module", test_config
+    output = inspect_runtime.build_member_node(
+        "MockClass",
+        mock_module.MockClass,
+        "mock_module",
+        mock_module,
+        test_config,
     )
+    assert output is not None
     check_class_mock_class_exclude(output)
 
 
 def test_member_class_inheritance(mock_module: ModuleType) -> None:
     """Test the function for a class with a parent class."""
     test_config = config.PebbledocConfig()
-    output = inspect_runtime._member_class(
-        "ChildClass", mock_module.ChildClass, "mock_module", test_config
+    output = inspect_runtime.build_member_node(
+        "ChildClass",
+        mock_module.ChildClass,
+        "mock_module",
+        mock_module,
+        test_config,
     )
+    assert output is not None
     check_class_child_class(output)
 
 
 def test_member_class_inheritance_chain(mock_module: ModuleType) -> None:
     """Test the function for a class further down an inheritance chain."""
     test_config = config.PebbledocConfig()
-    output = inspect_runtime._member_class(
+    output = inspect_runtime.build_member_node(
         "GrandchildClass",
         mock_module.GrandchildClass,
         "mock_module",
+        mock_module,
         test_config,
     )
+    assert output is not None
     check_class_grandchild_class(output)
 
 
 def test_member_class_multiple_inheritance(mock_module: ModuleType) -> None:
     """Test the function for a class with multiple parents."""
     test_config = config.PebbledocConfig()
-    output = inspect_runtime._member_class(
+    output = inspect_runtime.build_member_node(
         "MultipleParents",
         mock_module.MultipleParents,
         "mock_module",
+        mock_module,
         test_config,
     )
+    assert output is not None
     check_class_multiple_parents(output)
 
 
 def test_member_class_dataclass(mock_module: ModuleType) -> None:
     """Test the function for a dataclass."""
     test_config = config.PebbledocConfig()
-    output = inspect_runtime._member_class(
-        "MockDataclass", mock_module.MockDataclass, "mock_module", test_config
+    output = inspect_runtime.build_member_node(
+        "MockDataclass",
+        mock_module.MockDataclass,
+        "mock_module",
+        mock_module,
+        test_config,
     )
+    assert output is not None
     check_class_mock_dataclass(output)
 
 
 def test_member_class_abstract_base_class(mock_module: ModuleType) -> None:
     """Test the function for a abstract base class."""
     test_config = config.PebbledocConfig()
-    output = inspect_runtime._member_class(
+    output = inspect_runtime.build_member_node(
         "MockAbstractClass",
         mock_module.MockAbstractClass,
         "mock_module",
+        mock_module,
         test_config,
     )
+    assert output is not None
     check_class_abstract_base_class(output)
 
 
 def test_member_module(mock_module: ModuleType) -> None:
     """Test the function for a module."""
-    test_config = config.PebbledocConfig()
-    output = inspect_runtime._member_module(
-        "mock_module", mock_module, test_config, "mock_module", ""
+    test_config = config.PebbledocConfig(package_name="mock_module")
+    output = inspect_runtime.build_member_node(
+        "mock_module", mock_module, "", None, test_config
     )
+    assert output is not None
     assert output.name == "mock_module"
     assert output.parent == ""
     assert output.kind == "module"
@@ -921,10 +965,11 @@ def test_member_module(mock_module: ModuleType) -> None:
 
 def test_member_module_parent(mock_module: ModuleType) -> None:
     """Test the function for a module with a parent."""
-    test_config = config.PebbledocConfig()
-    output = inspect_runtime._member_module(
-        "mock_module", mock_module, test_config, "mock_module", "parent"
+    test_config = config.PebbledocConfig(package_name="mock_module")
+    output = inspect_runtime.build_member_node(
+        "mock_module", mock_module, "parent", None, test_config
     )
+    assert output is not None
     assert output.name == "mock_module"
     assert output.parent == "parent"
     assert output.kind == "module"
@@ -938,10 +983,13 @@ def test_member_module_parent(mock_module: ModuleType) -> None:
 
 def test_member_module_no_constants(mock_module: ModuleType) -> None:
     """Test the function for a module."""
-    test_config = config.PebbledocConfig(document_constants=False)
-    output = inspect_runtime._member_module(
-        "mock_module", mock_module, test_config, "mock_module", ""
+    test_config = config.PebbledocConfig(
+        package_name="mock_module", document_constants=False
     )
+    output = inspect_runtime.build_member_node(
+        "mock_module", mock_module, "", None, test_config
+    )
+    assert output is not None
     assert output.name == "mock_module"
     assert output.parent == ""
     assert output.kind == "module"
@@ -980,10 +1028,13 @@ def test_member_module_exclude(mock_module: ModuleType) -> None:
         "static_method",
         "AnotherParent",
     ]
-    test_config = config.PebbledocConfig(exclude=exclude)
-    output = inspect_runtime._member_module(
-        "mock_module", mock_module, test_config, "mock_module", ""
+    test_config = config.PebbledocConfig(
+        package_name="mock_module", exclude=exclude
     )
+    output = inspect_runtime.build_member_node(
+        "mock_module", mock_module, "", None, test_config
+    )
+    assert output is not None
     assert output.name == "mock_module"
     assert output.parent == ""
     assert output.kind == "module"
@@ -1014,10 +1065,13 @@ def test_member_module_exclude_full_name(mock_module: ModuleType) -> None:
         "mock_module.MockClass.static_method",
         "mock_module.AnotherParent",
     ]
-    test_config = config.PebbledocConfig(exclude=exclude)
-    output = inspect_runtime._member_module(
-        "mock_module", mock_module, test_config, "mock_module", ""
+    test_config = config.PebbledocConfig(
+        package_name="mock_module", exclude=exclude
     )
+    output = inspect_runtime.build_member_node(
+        "mock_module", mock_module, "", None, test_config
+    )
+    assert output is not None
     assert output.name == "mock_module"
     assert output.parent == ""
     assert output.kind == "module"
