@@ -11,6 +11,7 @@ GitHub-flavored Markdown.
 from __future__ import annotations
 
 import ast
+import functools
 import importlib
 import inspect
 from collections.abc import Callable
@@ -99,18 +100,16 @@ def build_member_tree(package: str, config: PebbledocConfig) -> Member:
         nodes filled, according to its public members.
     """
     root_module = importlib.import_module(package)
-    root = build_member_node(package, root_module, "", None, config)
+    root = build_member_node(root_module, config, package)
     if root is None:
         raise ImportError(f"Could not import {package}")
     return root
 
 
 def build_member_node(  # noqa: C901
-    name: str,
-    obj: Any,
-    parent_name: str,
-    parent_obj: Any | None,
+    package: ModuleType,
     config: PebbledocConfig,
+    full_name: str,
 ) -> Member | None:
     """
     Build a :class:`Member` node for an arbitrary object.
@@ -126,17 +125,27 @@ def build_member_node(  # noqa: C901
     methods (with recognition of between normal methods, static methods,
     class methods, and abstract methods), functions, and constants.
 
-    :param name: Name of the member.
-    :param obj: The member object itself.
-    :param parent_name: The full name of the parent member. If the
-        object is the top-level package of the project to document,
-        set to an empty string.
-    :param parent_obj: The parent object itself. If the object is the
-        top-level package of the project to document, set to None.
+    :param package: The imported package containing the member whose
+        node to build.
     :param config: The ``pebbledoc`` config object.
+    :param full_name: The full qualified name of the member, including
+        the package name as the first particle. Example:
+        ``my_package.my_module.my_class.my_method``.
+    :raises AttributeError: If the name does not point to an existing
+        member in the package.
     :return: A :class:`Member` object or None if the member is excluded
         from the documentation.
     """
+    if "." not in full_name:
+        parent_name, name = "", full_name
+        parent_obj = None
+        obj = package
+    else:
+        parent_name, name = full_name.rsplit(".", maxsplit=1)
+        parent_path = parent_name.split(".")
+        parent_obj = functools.reduce(getattr, parent_path[1:], package)
+        obj = getattr(parent_obj, name)
+
     all_names = util.all_qualified_names(name, parent_name)
     if any(n in config.exclude for n in all_names):
         return None
@@ -157,9 +166,9 @@ def build_member_node(  # noqa: C901
     if not parent_is_class and inspect.isfunction(obj):
         return _member_function(name, obj, parent_name)
     elif inspect.isclass(obj):
-        return _member_class(name, obj, parent_name, config)
+        return _member_class(name, obj, parent_name, config, package)
     elif inspect.ismodule(obj):
-        return _member_module(name, obj, config, parent_name)
+        return _member_module(name, obj, config, parent_name, package)
     elif inspect.isroutine(obj):
         if isinstance(kind, staticmethod):
             decorator = "staticmethod"
@@ -466,7 +475,11 @@ def _member_classvar(
 
 
 def _member_class(
-    name: str, klass: type, parent: str, config: PebbledocConfig
+    name: str,
+    klass: type,
+    parent: str,
+    config: PebbledocConfig,
+    root: ModuleType,
 ) -> Member:
     """
     Create a :class:`Member` node for a class.
@@ -477,6 +490,7 @@ def _member_class(
     :param klass: The class object itself.
     :param parent: The name of the parent module or class.
     :param config: The PebbledocConfig, needed for its exclusion list.
+    :param root: The root module of the project that is being documented.
     :return: A :class:`Member` node for the class, filled with all
         relevant data.
     """
@@ -493,10 +507,8 @@ def _member_class(
     children = []
     new_parent = full_qualified_name(name, parent)
     for child_name in class_members:
-        obj = getattr(klass, child_name)
-        child_node = build_member_node(
-            child_name, obj, new_parent, klass, config
-        )
+        full_name = full_qualified_name(child_name, new_parent)
+        child_node = build_member_node(root, config, full_name)
         if child_node is not None:
             children.append(child_node)
 
@@ -518,6 +530,7 @@ def _member_module(
     module: ModuleType,
     config: PebbledocConfig,
     parent: str = "",
+    root: ModuleType | None = None,
 ) -> Member:
     """
     Create a :class:`Member` node for a module.
@@ -529,6 +542,7 @@ def _member_module(
     :param config: The pebbledoc config object.
     :param parent: The name of the parent module, or an empty string
         if there is no parent module.
+    :param root: The root module of the project that is being documented.
     :return: A :class:`Member` node for the module, filled with all
         relevant data.
     """
@@ -537,15 +551,18 @@ def _member_module(
     # find all public members of the module
     public_members = discover_public_members(module)
 
+    # if no root was provided, assume the module itself is the root
+    if root is None:
+        root = module
+
     # find children, create their nodes
     children = []
     sub_modules = []
     new_parent = full_qualified_name(name, parent)
     for member_name in public_members:
+        full_name = full_qualified_name(member_name, new_parent)
+        child_node = build_member_node(root, config, full_name)
         member = getattr(module, member_name)
-        child_node = build_member_node(
-            member_name, member, new_parent, module, config
-        )
         if child_node is None:
             continue
         elif inspect.ismodule(member):
