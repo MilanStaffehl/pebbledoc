@@ -63,7 +63,7 @@ def assert_diff_matches(
     cleaned_diff = pattern.sub("\n", captured_diff)
     # unfortunately our last diff has as context line a newline, which
     # IDEs remove from the expected diff file, so we add it back in here:
-    assert cleaned_diff == expected_diff + "\n"
+    assert cleaned_diff == expected_diff
 
 
 # == TEST CASES ========================================================
