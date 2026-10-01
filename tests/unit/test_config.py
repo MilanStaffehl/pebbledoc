@@ -25,6 +25,7 @@ def assert_config(
     source_directory: str | None = None,
     output: str = "API.md",
     exclude: list[str] | None = None,
+    template: str | None = None,
     admonition_style: str = "mix",
     main_docstring_location: str = "default",
     document_title: str | None = None,
@@ -47,6 +48,7 @@ def assert_config(
     assert cfg.source_directory == source_directory
     assert cfg.output == output
     assert cfg.exclude == exclude
+    assert cfg.template == template
     assert cfg.admonition_style == admonition_style
     assert cfg.main_docstring_location == main_docstring_location
     assert cfg.document_title == document_title
@@ -77,6 +79,7 @@ def test_build_config_max_diff(patch_config_file_discovery: None) -> None:
         source_directory="~/pylibs/my_package",
         output="~/Documents/docs/DOCUMENTATION.md",
         exclude=["my_func, MyClass"],
+        template="my_template.md",
         admonition_style="github",
         main_docstring="pre",
         title="My custom title",
@@ -99,6 +102,7 @@ def test_build_config_max_diff(patch_config_file_discovery: None) -> None:
         source_directory="~/pylibs/my_package",
         output="~/Documents/docs/DOCUMENTATION.md",
         exclude=["my_func, MyClass"],
+        template="my_template.md",
         admonition_style="github",
         main_docstring_location="pre",
         document_title="My custom title",

@@ -90,6 +90,7 @@ source = { editable = "." }
 dependencies = [
     { name = "colorama" },
     { name = "docutils" },
+    { name = "pyyaml" },
 ]
 
 [package.dev-dependencies]
@@ -104,6 +105,7 @@ dev = [
 requires-dist = [
     { name = "colorama", specifier = ">=0.4.6" },
     { name = "docutils", specifier = ">=0.23" },
+    { name = "pyyaml", specifier = ">=6.0.3" },
 ]
 
 [package.metadata.requires-dev]

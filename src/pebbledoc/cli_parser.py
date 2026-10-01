@@ -130,6 +130,12 @@ def _build_parser() -> argparse.ArgumentParser:
         metavar="FILE",
         default=None,
     )
+    source_group.add_argument(
+        "--template",
+        help="optional template file from which to build the documentation",
+        metavar="FILE",
+        default=None,
+    )
 
     output_group = parser.add_argument_group(title="output")
     output_group.add_argument(

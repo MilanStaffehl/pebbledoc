@@ -471,6 +471,17 @@ def check_class_mock_class(node: inspect_runtime.Member) -> None:
     check_method_static_method(node.children[6])
 
 
+def check_class_mock_class_no_children(node: inspect_runtime.Member) -> None:
+    """Check node when children are excluded."""
+    assert node.name == "MockClass"
+    assert node.parent == "mock_module"
+    assert node.kind == "class"
+    assert node.signature == "MockClass(object)"
+    assert node.raw_docstring == "Mock class docstring."
+    assert node.header_level == 3
+    assert len(node.children) == 0
+
+
 def check_class_mock_class_exclude(node: inspect_runtime.Member) -> None:
     """Check node with members excluded."""
     assert node.name == "MockClass"
@@ -815,6 +826,19 @@ def test_member_class_normal(mock_module: ModuleType) -> None:
     check_class_mock_class(output)
 
 
+def test_member_class_no_children(mock_module: ModuleType) -> None:
+    """Test the function for a class when excluding children."""
+    test_config = config.PebbledocConfig()
+    output = inspect_runtime.build_member_node(
+        mock_module,
+        test_config,
+        "mock_module.MockClass",
+        include_children=False,
+    )
+    assert output is not None
+    check_class_mock_class_no_children(output)
+
+
 def test_member_class_exclude(mock_module: ModuleType) -> None:
     """Test the function for a class with members excluded."""
     exclude = ["property_readonly", "static_method"]
@@ -925,6 +949,22 @@ def test_member_module(mock_module: ModuleType) -> None:
     assert node.raw_docstring == "Another parent class docstring."
     assert node.header_level == 3
     assert len(node.children) == 0
+
+
+def test_member_module_no_children(mock_module: ModuleType) -> None:
+    """Test the function for a module while excluding children."""
+    test_config = config.PebbledocConfig(package_name="mock_module")
+    output = inspect_runtime.build_member_node(
+        mock_module, test_config, "mock_module", include_children=False
+    )
+    assert output is not None
+    assert output.name == "mock_module"
+    assert output.parent == ""
+    assert output.kind == "module"
+    assert output.signature == ""
+    assert output.raw_docstring == "Mock module docstring."
+    assert output.header_level == 2
+    assert len(output.children) == 0
 
 
 def test_member_module_no_constants(mock_module: ModuleType) -> None:

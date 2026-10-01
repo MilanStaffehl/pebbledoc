@@ -72,17 +72,6 @@ def assert_diff_matches(
     assert cleaned_diff == expected_diff
 
 
-# == FIXTURES ==========================================================
-
-
-@pytest.fixture
-def patch_open(mocker: MockerFixture) -> Mock:
-    """Patch opening files to intercept final write of MD document."""
-    patched_open = mocker.mock_open()
-    mocker.patch("pebbledoc.cli_logic.open", patched_open)
-    return patched_open
-
-
 # == TEST CASES ========================================================
 
 

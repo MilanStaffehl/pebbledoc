@@ -25,6 +25,14 @@ from .config import PebbledocConfig
 from .util import full_qualified_name
 
 
+class OriginNotFoundError(LookupError):
+    """
+    Raised when the origin of a module cannot be determined.
+    """
+
+    pass
+
+
 @dataclass
 class Member:
     """Dataclass to represent a documented member of a package."""
@@ -86,7 +94,12 @@ def discover_public_members(module: ModuleType) -> list[str]:
     return public_members
 
 
-def build_member_tree(package: str, config: PebbledocConfig) -> Member:
+def build_member_tree(
+    package: str,
+    config: PebbledocConfig,
+    full_name: str | None = None,
+    include_children: bool = True,
+) -> Member | None:
     """
     Construct a member tree of a package by importing it.
 
@@ -96,20 +109,25 @@ def build_member_tree(package: str, config: PebbledocConfig) -> Member:
 
     :param package: The name of the package. The package must be importable.
     :param config: The pebbledoc config object.
+    :param full_name: The full qualified name of the member, including
+        the root package. If the root package is to be inspected, this
+        can be left as None.
+    :param include_children: Whether to include children or not. Defaults
+        to True.
     :return: A :class:`Member` object for the package with its children
         nodes filled, according to its public members.
     """
+    if full_name is None:
+        full_name = package
     root_module = importlib.import_module(package)
-    root = build_member_node(root_module, config, package)
-    if root is None:
-        raise ImportError(f"Could not import {package}")
-    return root
+    return build_member_node(root_module, config, full_name, include_children)
 
 
 def build_member_node(  # noqa: C901
     package: ModuleType,
     config: PebbledocConfig,
     full_name: str,
+    include_children: bool = True,
 ) -> Member | None:
     """
     Build a :class:`Member` node for an arbitrary object.
@@ -131,6 +149,8 @@ def build_member_node(  # noqa: C901
     :param full_name: The full qualified name of the member, including
         the package name as the first particle. Example:
         ``my_package.my_module.my_class.my_method``.
+    :param include_children: Whether to include children or not.
+        Defaults to True.
     :raises AttributeError: If the name does not point to an existing
         member in the package.
     :return: A :class:`Member` object or None if the member is excluded
@@ -166,9 +186,13 @@ def build_member_node(  # noqa: C901
     if not parent_is_class and inspect.isfunction(obj):
         return _member_function(name, obj, parent_name)
     elif inspect.isclass(obj):
-        return _member_class(name, obj, parent_name, config, package)
+        return _member_class(
+            name, obj, parent_name, config, package, include_children
+        )
     elif inspect.ismodule(obj):
-        return _member_module(name, obj, config, parent_name, package)
+        return _member_module(
+            name, obj, config, parent_name, package, include_children
+        )
     elif inspect.isroutine(obj):
         if isinstance(kind, staticmethod):
             decorator = "staticmethod"
@@ -293,7 +317,7 @@ def _explicitly_reexported(package: ModuleType) -> list[str]:
     if init_file is None:
         init_file = package.__file__
     if init_file is None:
-        raise FileNotFoundError(
+        raise OriginNotFoundError(
             f"Unable to find origin of module {package.__name__}"
         )
 
@@ -480,6 +504,7 @@ def _member_class(
     parent: str,
     config: PebbledocConfig,
     root: ModuleType,
+    include_children: bool = True,
 ) -> Member:
     """
     Create a :class:`Member` node for a class.
@@ -491,6 +516,7 @@ def _member_class(
     :param parent: The name of the parent module or class.
     :param config: The PebbledocConfig, needed for its exclusion list.
     :param root: The root module of the project that is being documented.
+    :param include_children: Whether to include children members.
     :return: A :class:`Member` node for the class, filled with all
         relevant data.
     """
@@ -502,6 +528,18 @@ def _member_class(
     sig += f"{name}({parents})"
     doc = inspect.getdoc(klass) or ""
 
+    node = Member(
+        name=name,
+        parent=parent,
+        kind=kind,
+        signature=sig,
+        raw_docstring=doc,
+        header_level=3,
+        children=[],
+    )
+    if not include_children:
+        return node
+
     # find all public members of the class
     class_members = [m for m in klass.__dict__.keys() if not m.startswith("_")]
     children = []
@@ -512,16 +550,8 @@ def _member_class(
         if child_node is not None:
             children.append(child_node)
 
-    # construct the node
-    node = Member(
-        name=name,
-        parent=parent,
-        kind=kind,
-        signature=sig,
-        raw_docstring=doc,
-        header_level=3,
-        children=children,
-    )
+    # update the node
+    node.children = children
     return node
 
 
@@ -531,6 +561,7 @@ def _member_module(
     config: PebbledocConfig,
     parent: str = "",
     root: ModuleType | None = None,
+    include_children: bool = True,
 ) -> Member:
     """
     Create a :class:`Member` node for a module.
@@ -543,10 +574,22 @@ def _member_module(
     :param parent: The name of the parent module, or an empty string
         if there is no parent module.
     :param root: The root module of the project that is being documented.
+    :param include_children: Whether to include children members.
     :return: A :class:`Member` node for the module, filled with all
         relevant data.
     """
     doc = inspect.getdoc(module) or ""
+    node = Member(
+        name=name,
+        parent=parent,
+        kind="module",
+        signature="",  # modules get no signature section
+        raw_docstring=doc,
+        header_level=2,  # modules always have h2 header
+        children=[],
+    )
+    if not include_children:
+        return node
 
     # find all public members of the module
     public_members = discover_public_members(module)
@@ -570,14 +613,6 @@ def _member_module(
         else:
             children.append(child_node)
 
-    # create module member node
-    node = Member(
-        name=name,
-        parent=parent,
-        kind="module",
-        signature="",  # modules get no signature section
-        raw_docstring=doc,
-        header_level=2,  # modules always have h2 header
-        children=children + sub_modules,  # submodules follow other members
-    )
+    # update module member node
+    node.children = children + sub_modules  # submodules follow other members
     return node

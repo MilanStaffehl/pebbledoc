@@ -31,6 +31,7 @@ class PebbledocConfig:
     source_directory: str | None = None
     output: str = "API.md"
     exclude: list[str] = field(default_factory=list)
+    template: str | None = None
     admonition_style: AdmonitionStyle = "mix"
     main_docstring_location: DocstringPosition = "default"
     document_title: str | None = None
@@ -117,6 +118,8 @@ def _update_for_cli_args(
         config.output = args.output
     if args.exclude is not None:
         config.exclude = args.exclude
+    if args.template is not None:
+        config.template = args.template
     if args.admonition_style is not None:
         config.admonition_style = args.admonition_style
     if args.main_docstring is not None:

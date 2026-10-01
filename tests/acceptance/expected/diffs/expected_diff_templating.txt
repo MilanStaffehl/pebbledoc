@@ -1,0 +1,26 @@
+\x1b[31m--- mock_template_diff.md\x1b[0m
+\x1b[32m+++ mock_template_diff.md\x1b[0m
+\x1b[34m@@ -37,13 +37,13 @@\x1b[0m
+
+ 1. Messier
+ 2. NGC
+\x1b[32m+3. IC\x1b[0m
+
+ Within each catalog, objects are grouped as:
+
+ - Galaxies
+   - Spiral
+   - Elliptical
+\x1b[31m-  - Irregulars\x1b[0m
+ - Nebulae
+ - Star clusters
+
+\x1b[34m@@ -271,6 +271,8 @@\x1b[0m
+
+ 1. Must-see targets
+ 2. Nice-to-have targets
+\x1b[32m+   1. Bright nice-to-haves\x1b[0m
+\x1b[32m+   2. Faint nice-to-haves\x1b[0m
+ 3. Filler targets
+
+ Numbering can also resume mid-sequence when appending to an existing

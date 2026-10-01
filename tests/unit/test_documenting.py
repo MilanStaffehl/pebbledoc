@@ -259,9 +259,157 @@ def test_document_member_header_level(patch_parse_docstring: Mock) -> None:
         patch_parse_docstring.reset_mock()
 
 
+def test_document_member_additional_header_level(
+    patch_parse_docstring: Mock,
+) -> None:
+    """Test the function when providing additonal header levels."""
+
+    test_config = config.PebbledocConfig(package_name="parent")
+    test_docstring = "This is a test docstring."
+    test_member = inspect_runtime.Member(
+        name="test_member",
+        parent="parent",
+        kind="test_kind",
+        signature="test_member = pytest.mock.Mock()",
+        raw_docstring=test_docstring,
+        header_level=2,
+    )
+    for lvl in range(1, 4):
+        output = documenting._document_member(
+            test_member, test_config, additional_header_level=lvl
+        )
+        header_prefix = "#" * (2 + lvl)
+        expected = (
+            '<a name="test_member"></a>\n'
+            f"{header_prefix} `parent.test_member`\n\n"
+            "```Python\n"
+            "test_member = pytest.mock.Mock()\n"
+            "```\n\n"
+            "This is a test docstring.\n\n"
+            "<sup>[Back to top](#parent-documentation)</sup>\n\n"
+        )
+        assert output == expected
+        patch_parse_docstring.assert_called_once_with(
+            test_docstring, test_config, None
+        )
+        patch_parse_docstring.reset_mock()
+
+
+def test_document_member_provided_header_level(
+    patch_parse_docstring: Mock,
+) -> None:
+    """Test the function when providing a fixed header level."""
+    test_config = config.PebbledocConfig(package_name="parent")
+    child = inspect_runtime.Member(
+        name="child",
+        parent="parent.test_member",
+        kind="test_kind",
+        signature="test_member = pytest.mock.Mock()",
+        raw_docstring="This is the child's docstring.\n\n",
+        header_level=6,
+    )
+    test_member = inspect_runtime.Member(
+        name="test_member",
+        parent="parent",
+        kind="test_kind",
+        signature="test_member = pytest.mock.Mock()",
+        raw_docstring="This is a test docstring.",
+        header_level=2,
+        children=[child],
+    )
+
+    output = documenting._document_member(
+        test_member, test_config, header_level=4
+    )
+    expected = (
+        '<a name="test_member"></a>\n'
+        "#### `parent.test_member`\n\n"
+        "```Python\n"
+        "test_member = pytest.mock.Mock()\n"
+        "```\n\n"
+        "This is a test docstring.\n\n"
+        "<sup>[Back to top](#parent-documentation)</sup>\n\n"
+        '<a name="test_memberchild"></a>\n'
+        '<a name="child"></a>\n'
+        "##### `parent.test_member.child`\n\n"
+        "```Python\n"
+        "test_member = pytest.mock.Mock()\n"
+        "```\n\n"
+        "This is the child's docstring.\n\n"
+        "<sup>[Back to top](#parent-documentation)</sup>\n\n"
+    )
+    assert output == expected
+    assert patch_parse_docstring.call_count == 2
+    assert patch_parse_docstring.call_args_list[0].args[0] == (
+        "This is a test docstring."
+    )
+    assert patch_parse_docstring.call_args_list[1].args[0] == (
+        "This is the child's docstring.\n\n"
+    )
+
+
+def test_document_member_additional_header_level_with_fixed_level(
+    patch_parse_docstring: Mock,
+) -> None:
+    """Test using a fixed header level with an additional header level."""
+
+    test_config = config.PebbledocConfig(package_name="parent")
+    child = inspect_runtime.Member(
+        name="child",
+        parent="parent.test_member",
+        kind="test_kind",
+        signature="test_member = pytest.mock.Mock()",
+        raw_docstring="This is the child's docstring.\n\n",
+        header_level=6,
+    )
+    test_member = inspect_runtime.Member(
+        name="test_member",
+        parent="parent",
+        kind="test_kind",
+        signature="test_member = pytest.mock.Mock()",
+        raw_docstring="This is a test docstring.",
+        header_level=2,
+        children=[child],
+    )
+    for lvl in range(1, 3):
+        output = documenting._document_member(
+            test_member,
+            test_config,
+            header_level=3,
+            additional_header_level=lvl,
+        )
+        header_prefix = "#" * min(3 + lvl, 6)
+        child_header_prefix = "#" * min(4 + lvl, 6)
+        expected = (
+            '<a name="test_member"></a>\n'
+            f"{header_prefix} `parent.test_member`\n\n"
+            "```Python\n"
+            "test_member = pytest.mock.Mock()\n"
+            "```\n\n"
+            "This is a test docstring.\n\n"
+            "<sup>[Back to top](#parent-documentation)</sup>\n\n"
+            '<a name="test_memberchild"></a>\n'
+            '<a name="child"></a>\n'
+            f"{child_header_prefix} `parent.test_member.child`\n\n"
+            "```Python\n"
+            "test_member = pytest.mock.Mock()\n"
+            "```\n\n"
+            "This is the child's docstring.\n\n"
+            "<sup>[Back to top](#parent-documentation)</sup>\n\n"
+        )
+        assert output == expected
+        assert patch_parse_docstring.call_count == 2
+        assert patch_parse_docstring.call_args_list[0].args[0] == (
+            "This is a test docstring."
+        )
+        assert patch_parse_docstring.call_args_list[1].args[0] == (
+            "This is the child's docstring.\n\n"
+        )
+        patch_parse_docstring.reset_mock()
+
+
 def test_document_member_children(patch_parse_docstring: Mock) -> None:
     """Test the function for a member with children."""
-
     test_config = config.PebbledocConfig(package_name="parent")
     child_one = inspect_runtime.Member(
         name="child_one",
