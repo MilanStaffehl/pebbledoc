@@ -1,6 +1,13 @@
 """Utilities for testing."""
 
 import argparse
+from typing import Final
+
+import colorama
+
+ERROR_PREFIX: Final[str] = (
+    f"{colorama.Fore.RED}Error:{colorama.Style.RESET_ALL}"
+)
 
 
 def prepare_namespace(

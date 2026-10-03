@@ -334,6 +334,12 @@ def _handler_template(
             "Unable to parse template",
         )
         raise fatal_exc from prev_exc
+    except AttributeError as prev_exc:
+        fatal_exc = _PebbledocError(
+            _ErrorCodes.EX_IMPORT_ERR,
+            "Invalid member name in template",
+        )
+        raise fatal_exc from prev_exc
 
     # check if the file would change
     old_content = _read_existing_docs(output)

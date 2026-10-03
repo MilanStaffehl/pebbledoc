@@ -226,6 +226,49 @@ def test_pebbledoc_templating_and_targeting(
     assert exit_code == cli_logic._ErrorCodes.EX_BAD_ARGS
 
 
+_INVALID_NAMES_TUPLE = (
+    (
+        "a",
+        "Member name 'stellariumlite' does not match package name 'stellarium_lite'.",
+    ),
+    ("b", "module 'stellarium_lite' has no attribute 'lod_catalogs'"),
+    ("c", "module 'stellarium_lite' has no attribute 'observables'"),
+)
+
+
+@pytest.mark.parametrize("params", _INVALID_NAMES_TUPLE)
+def test_pebbledoc_templating_invalid_member_name(
+    params: tuple[str, str],
+    patch_open: Mock,
+    patch_config_discovery: None,
+    capsys: pytest.CaptureFixture,
+) -> None:
+    """Test behavior when an invalid member name is requested in a directive."""
+    sfx, expected_msg = params
+    template_file = (
+        Path(__file__).parent
+        / "resources"
+        / f"mock_template_invalid_name_{sfx}.md"
+    )
+
+    # create a run config and execute the code
+    namespace = utils.prepare_namespace(
+        source_directory=str(Path(__file__).parent / "resources"),
+        template=str(template_file),
+    )
+    exit_code = cli_logic._handle_args(namespace)
+
+    out = capsys.readouterr()
+    # fmt: off
+    expected_error = (
+        f"{utils.ERROR_PREFIX} Invalid member name in template: {expected_msg}\n"
+    )
+    # fmt: on
+    assert out.err == expected_error
+    patch_open.assert_not_called()
+    assert exit_code == cli_logic._ErrorCodes.EX_IMPORT_ERR
+
+
 # == DIFF TEST CASES ===================================================
 
 

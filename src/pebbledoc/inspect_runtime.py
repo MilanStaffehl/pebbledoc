@@ -114,11 +114,18 @@ def build_member_tree(
         can be left as None.
     :param include_children: Whether to include children or not. Defaults
         to True.
+    :raises AttributeError: If the name does not point to an existing
+        member of the package.
     :return: A :class:`Member` object for the package with its children
-        nodes filled, according to its public members.
+        nodes filled, according to its public members. If the member is
+        excluded in the config object, the function returns None instead.
     """
     if full_name is None:
         full_name = package
+    if "." not in full_name and full_name != package:
+        raise AttributeError(
+            f"Member name '{full_name}' does not match package name '{package}'."
+        )
     root_module = importlib.import_module(package)
     return build_member_node(root_module, config, full_name, include_children)
 

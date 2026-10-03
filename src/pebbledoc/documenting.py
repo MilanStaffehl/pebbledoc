@@ -204,16 +204,13 @@ def markdown_documentation_from_template(
     docs: dict[str, str] = {}
     for insertion in insertions:
         name = insertion.member_name
-        if "heading_level" in insertion.options:
-            header_level = insertion.options["heading_level"]
+        if name not in members:
+            docs[name] = ""
         else:
-            header_level = None
-        if name in members:
+            header_level = insertion.options.get("heading_level")
             docs[name] = _document_member(
                 members[name], config, valid_targets, header_level
             )
-        else:
-            docs[name] = ""
 
     return replace_template_directives(template, insertions, docs)
 

@@ -238,9 +238,7 @@ The example above shows all relevant details:
   - The `heading_level` is an integer that sets the level of the header that the member section will have. If the member has child members, their heading level is `heading_level + 1`. When not given, a default level based on the type of member is used (the same level that `pebbledoc` uses for standalone documents).
   - The `include_members` is a boolean that decides whether children of the member (methods, class variables, etc.) will also be included in the documentation. When not given, this defaults to `true`.
 
-Since all other options are ignored, already existing documents using the `mkdocstrings` format might work as a template file out-of-the-box. If a directive points to a member that cannot be found, the following warning is inserted in its place:
-
-> :exclamation: **ERROR:** Unable to insert documentation for `my_package.MyClass`.
+Since all other options are ignored, already existing documents using the `mkdocstrings` format might work as a template file out-of-the-box.
 
 To use a template file, use the `--template` option in the CLI:
 

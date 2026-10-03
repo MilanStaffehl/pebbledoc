@@ -88,8 +88,8 @@ def replace_template_directives(
     for directive in sorted(directives, key=lambda d: d.start, reverse=True):
         if directive.member_name not in replacements:
             doc = (
-                "> :bangbang: *TEMPLATE ERROR:* Failed to insert documentation "
-                f"for member {directive.member_name}."
+                "> :exclamation: **TEMPLATE ERROR:** Failed to insert "
+                f"documentation for `{directive.member_name}`.\n\n"
             )
         else:
             doc = replacements[directive.member_name]

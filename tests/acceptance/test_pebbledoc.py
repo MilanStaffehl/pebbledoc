@@ -6,10 +6,8 @@ import importlib
 import re
 import sys
 from pathlib import Path
-from typing import Final
 from unittest.mock import Mock
 
-import colorama
 import pytest
 from pytest_mock import MockerFixture
 
@@ -17,10 +15,6 @@ from pebbledoc import cli_logic
 
 sys.path.insert(0, str(Path(__file__).parents[1]))
 import utils
-
-ERROR_PREFIX: Final[str] = (
-    f"{colorama.Fore.RED}Error:{colorama.Style.RESET_ALL}"
-)
 
 
 def assert_write_call(
@@ -843,7 +837,7 @@ def test_pebbledoc_missing_package_name(
 
     out = capsys.readouterr()
     expected_error = (
-        f"{ERROR_PREFIX} No package to document was specified - use the "
+        f"{utils.ERROR_PREFIX} No package to document was specified - use the "
         f"`--package` option to specify a package\n"
     )
     assert out.err == expected_error
@@ -863,7 +857,8 @@ def test_pebbledoc_invalid_output_file(
 
     out = capsys.readouterr()
     assert (
-        out.err == f"{ERROR_PREFIX} Output must be a file, not a directory\n"
+        out.err
+        == f"{utils.ERROR_PREFIX} Output must be a file, not a directory\n"
     )
     assert exit_code == cli_logic._ErrorCodes.EX_INVALID_PATH
 
@@ -877,7 +872,7 @@ def test_pebbledoc_invalid_output_file(
 
     out = capsys.readouterr()
     expected_msg = (
-        f"{ERROR_PREFIX} Output directory {output_path.parent.resolve()} does "
+        f"{utils.ERROR_PREFIX} Output directory {output_path.parent.resolve()} does "
         f"not exist\n"
     )
     assert out.err == expected_msg
@@ -897,7 +892,7 @@ def test_pebbledoc_invalid_source_directory(
 
     out = capsys.readouterr()
     expected_msg = (
-        f"{ERROR_PREFIX} Source directory {source_dir} does not exist\n"
+        f"{utils.ERROR_PREFIX} Source directory {source_dir} does not exist\n"
     )
     assert out.err == expected_msg
     assert exit_code == cli_logic._ErrorCodes.EX_INVALID_PATH
@@ -915,7 +910,7 @@ def test_pebbledoc_import_error(
 
     out = capsys.readouterr()
     expected_msg = (
-        f"{ERROR_PREFIX} Could not import package makebelieve or its "
+        f"{utils.ERROR_PREFIX} Could not import package makebelieve or its "
         f"dependencies: No module named 'makebelieve'\n"
     )
     assert out.err == expected_msg
@@ -939,9 +934,11 @@ def test_pebbledoc_unable_to_write_output(
 
     out = capsys.readouterr()
     output = Path("API.md").resolve()
+    # fmt: off
     expected_msg = (
-        f"{ERROR_PREFIX} Could not write {output}: Not allowed to write\n"
+        f"{utils.ERROR_PREFIX} Could not write {output}: Not allowed to write\n"
     )
+    # fmt: on
     assert out.err == expected_msg
     assert exit_code == cli_logic._ErrorCodes.EX_CANT_WRITE
 
@@ -960,7 +957,7 @@ def test_pebbledoc_invalid_config_file(
 
     out = capsys.readouterr()
     expected_msg = (
-        f"{ERROR_PREFIX} Could not locate config file: {config_file.resolve()} "
+        f"{utils.ERROR_PREFIX} Could not locate config file: {config_file.resolve()} "
         f"is not a file or does not exist\n"
     )
     assert out.err == expected_msg
@@ -977,7 +974,7 @@ def test_pebbledoc_invalid_config_file(
 
     out = capsys.readouterr()
     expected_msg = (
-        f"{ERROR_PREFIX} Could not locate config file: Config file must be "
+        f"{utils.ERROR_PREFIX} Could not locate config file: Config file must be "
         f"one of the following: pebbledoc.toml, .pebbledoc.toml, "
         f"pyproject.toml\n"
     )
@@ -1010,7 +1007,7 @@ def test_pebbledoc_no_package_origin(
 
     out = capsys.readouterr()
     expected_msg = (
-        f"{ERROR_PREFIX} One or more (sub-)packages could not be found: "
+        f"{utils.ERROR_PREFIX} One or more (sub-)packages could not be found: "
         f"Unable to find origin of module stellarium_lite\n"
     )
     assert out.err == expected_msg
