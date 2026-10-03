@@ -142,7 +142,7 @@ This creates a file `API.md` in the current working directory. From there, you c
 
 ```
 usage: pebbledoc [-h] [--version] [-p PACKAGE] [-s DIR] [-x MEMBER [MEMBER ...]] [--config-file FILE]
-                 [-o FILE] [--target HEADER] [--diff] [--exit-code]
+                 [--template FILE] [-o FILE] [--target HEADER] [--diff] [--exit-code]
                  [--admonition-style {classic,mix,github,map}]
                  [--main-docstring {default,pre,post,omit}] [--title TITLE] [--no-generic-intro]
                  [--no-module-docstrings] [--no-include-constants] [--no-toc] [--no-back-to-top]
@@ -166,6 +166,7 @@ source:
                            installed in the current environment
   -x, --exclude            names of members to exclude from the documentation, separated by whitespace
       --config-file        file containing pebbledoc configuration instructions, optional
+      --template           optional template file from which to build the documentation
 
 output:
   -o, --output             name and filepath of the output file
@@ -217,6 +218,46 @@ The options in the "output" group can change the behavior of `pebbledoc`, which 
 > [!NOTE]
 >
 > The comparison for both the `--diff` and `--exit-code` options ignores trailing newline characters (`\n`) at the end of the file. This is because they are sometimes added or removed by linters, formatters, or IDEs.
+
+
+### Templating
+
+Instead of letting `pebbledoc` generate the entire documentation, you can also generate the documentation file from a template. To create a template, write a Markdown document with whatever content you need, and place directives anywhere you want `pebbledoc` to insert member documentation. The format is borrowed from `mkdocstrings`:
+
+```Markdown
+::: my_package.MyClass
+    options:
+        heading_level: 3
+        include_members: true
+```
+
+The example above shows all relevant details:
+
+- The directive opens with a triple colon `:::` followed by the fully qualified name of the member (see [Sphinx roles & directives](#sphinx-roles--directives) for name resolution rules).
+- Below the first line, a YAML string determines how the documentation will be rendered. Currently, only the `options/heading_level` and `options/include_members` options are supported, all other options are ignored.
+  - The `heading_level` is an integer that sets the level of the header that the member section will have. If the member has child members, their heading level is `heading_level + 1`. When not given, a default level based on the type of member is used (the same level that `pebbledoc` uses for standalone documents).
+  - The `include_members` is a boolean that decides whether children of the member (methods, class variables, etc.) will also be included in the documentation. When not given, this defaults to `true`.
+
+Since all other options are ignored, already existing documents using the `mkdocstrings` format might work as a template file out-of-the-box. If a directive points to a member that cannot be found, the following warning is inserted in its place:
+
+> :exclamation: **ERROR:** Unable to insert documentation for `my_package.MyClass`.
+
+To use a template file, use the `--template` option in the CLI:
+
+```bash
+pebbledoc --package my_package --template docs/my_template.md
+```
+
+Note that it is an error to use `--template` together with `--target`. Additionally, the following options have no effect when using `--template`:
+
+- `--title`
+- `--no-module-docstrings`
+- `--no-toc`
+- `--no-generic-intro`
+- `--no-full-toc-name`
+
+For `--main-docstring`, only the `omit` option has an effect.
+
 
 ### As a library
 
