@@ -11,6 +11,7 @@ GitHub-flavored Markdown.
 from __future__ import annotations
 
 import ast
+import functools
 import importlib
 import inspect
 from collections.abc import Callable
@@ -22,6 +23,14 @@ from typing import Any
 from . import util
 from .config import PebbledocConfig
 from .util import full_qualified_name
+
+
+class OriginNotFoundError(LookupError):
+    """
+    Raised when the origin of a module cannot be determined.
+    """
+
+    pass
 
 
 @dataclass
@@ -85,7 +94,12 @@ def discover_public_members(module: ModuleType) -> list[str]:
     return public_members
 
 
-def build_member_tree(package: str, config: PebbledocConfig) -> Member:
+def build_member_tree(
+    package: str,
+    config: PebbledocConfig,
+    full_name: str | None = None,
+    include_children: bool = True,
+) -> Member | None:
     """
     Construct a member tree of a package by importing it.
 
@@ -95,12 +109,120 @@ def build_member_tree(package: str, config: PebbledocConfig) -> Member:
 
     :param package: The name of the package. The package must be importable.
     :param config: The pebbledoc config object.
+    :param full_name: The full qualified name of the member, including
+        the root package. If the root package is to be inspected, this
+        can be left as None.
+    :param include_children: Whether to include children or not. Defaults
+        to True.
+    :raises AttributeError: If the name does not point to an existing
+        member of the package.
     :return: A :class:`Member` object for the package with its children
-        nodes filled, according to its public members.
+        nodes filled, according to its public members. If the member is
+        excluded in the config object, the function returns None instead.
     """
+    if full_name is None:
+        full_name = package
+    if "." not in full_name and full_name != package:
+        raise AttributeError(
+            f"Member name '{full_name}' does not match package name '{package}'."
+        )
     root_module = importlib.import_module(package)
-    root = _member_module(package, root_module, config, package)
-    return root
+    return build_member_node(root_module, config, full_name, include_children)
+
+
+def build_member_node(  # noqa: C901
+    package: ModuleType,
+    config: PebbledocConfig,
+    full_name: str,
+    include_children: bool = True,
+) -> Member | None:
+    """
+    Build a :class:`Member` node for an arbitrary object.
+
+    The function takes a Python object and creates a :class:`Member`
+    node holding all information required to build a documentation
+    section. If the member is excluded from the documentation for any
+    reason (i.e. constants are excluded, or the user has explicitly
+    excluded the member), the function returns None instead.
+
+    Generally, the function differentiates between the following kinds
+    of members: modules, classes, class variables, class properties,
+    methods (with recognition of between normal methods, static methods,
+    class methods, and abstract methods), functions, and constants.
+
+    :param package: The imported package containing the member whose
+        node to build.
+    :param config: The ``pebbledoc`` config object.
+    :param full_name: The full qualified name of the member, including
+        the package name as the first particle. Example:
+        ``my_package.my_module.my_class.my_method``.
+    :param include_children: Whether to include children or not.
+        Defaults to True.
+    :raises AttributeError: If the name does not point to an existing
+        member in the package.
+    :return: A :class:`Member` object or None if the member is excluded
+        from the documentation.
+    """
+    if "." not in full_name:
+        parent_name, name = "", full_name
+        parent_obj = None
+        obj = package
+    else:
+        parent_name, name = full_name.rsplit(".", maxsplit=1)
+        parent_path = parent_name.split(".")
+        parent_obj = functools.reduce(getattr, parent_path[1:], package)
+        obj = getattr(parent_obj, name)
+
+    all_names = util.all_qualified_names(name, parent_name)
+    if any(n in config.exclude for n in all_names):
+        return None
+
+    parent_is_class = inspect.isclass(parent_obj)
+
+    if parent_obj is None:
+        annotations_dict = {}
+        kind = None
+    else:
+        annotations_dict = inspect.get_annotations(parent_obj)
+        kind = parent_obj.__dict__.get(name, None)
+    if is_dataclass(parent_obj):
+        fields_set = {f.name for f in fields(parent_obj)}
+    else:
+        fields_set = set()
+
+    if not parent_is_class and inspect.isfunction(obj):
+        return _member_function(name, obj, parent_name)
+    elif inspect.isclass(obj):
+        return _member_class(
+            name, obj, parent_name, config, package, include_children
+        )
+    elif inspect.ismodule(obj):
+        return _member_module(
+            name, obj, config, parent_name, package, include_children
+        )
+    elif inspect.isroutine(obj):
+        if isinstance(kind, staticmethod):
+            decorator = "staticmethod"
+        elif isinstance(kind, classmethod):
+            decorator = "classmethod"
+        elif getattr(kind, "__isabstractmethod__", False):
+            decorator = "abstractmethod"
+        else:
+            decorator = None
+        return _member_method(name, obj, parent_name, decorator)
+    elif isinstance(kind, property):
+        return _member_property(name, obj, parent_name)
+    elif name in fields_set:
+        return None
+    else:
+        annotation = annotations_dict.get(name, None)
+        if annotation is not None and not isinstance(annotation, str):
+            annotation = inspect.formatannotation(annotation, parent_name)
+        if parent_is_class:
+            return _member_classvar(name, obj, parent_name, annotation)
+        if not config.document_constants:
+            return None  # skip constants
+        return _member_constant(name, obj, parent_name, annotation)
 
 
 def _signature_str(
@@ -202,7 +324,7 @@ def _explicitly_reexported(package: ModuleType) -> list[str]:
     if init_file is None:
         init_file = package.__file__
     if init_file is None:
-        raise FileNotFoundError(
+        raise OriginNotFoundError(
             f"Unable to find origin of module {package.__name__}"
         )
 
@@ -384,7 +506,12 @@ def _member_classvar(
 
 
 def _member_class(
-    name: str, klass: type, parent: str, config: PebbledocConfig
+    name: str,
+    klass: type,
+    parent: str,
+    config: PebbledocConfig,
+    root: ModuleType,
+    include_children: bool = True,
 ) -> Member:
     """
     Create a :class:`Member` node for a class.
@@ -395,6 +522,8 @@ def _member_class(
     :param klass: The class object itself.
     :param parent: The name of the parent module or class.
     :param config: The PebbledocConfig, needed for its exclusion list.
+    :param root: The root module of the project that is being documented.
+    :param include_children: Whether to include children members.
     :return: A :class:`Member` node for the class, filled with all
         relevant data.
     """
@@ -406,50 +535,6 @@ def _member_class(
     sig += f"{name}({parents})"
     doc = inspect.getdoc(klass) or ""
 
-    # find dataclass fields if the class is a dataclass
-    if is_dataclass(klass):
-        fields_set = {f.name for f in fields(klass)}
-    else:
-        fields_set = set()
-
-    # find all public members of the class
-    class_members = [m for m in klass.__dict__.keys() if not m.startswith("_")]
-    annotations_dict = inspect.get_annotations(klass)
-    children = []
-    new_parent = full_qualified_name(name, parent)
-    for child_name in class_members:
-        obj = getattr(klass, child_name)
-        child_kind = klass.__dict__[child_name]
-        all_names = util.all_qualified_names(child_name, new_parent)
-        if any(name in config.exclude for name in all_names):
-            continue  # member was explicitly excluded
-        if inspect.isroutine(obj):
-            if isinstance(child_kind, staticmethod):
-                decorator = "staticmethod"
-            elif isinstance(child_kind, classmethod):
-                decorator = "classmethod"
-            elif getattr(child_kind, "__isabstractmethod__", False):
-                decorator = "abstractmethod"
-            else:
-                decorator = None
-            children.append(
-                _member_method(child_name, obj, new_parent, decorator)
-            )
-        elif isinstance(child_kind, property):
-            children.append(_member_property(child_name, obj, new_parent))
-        elif inspect.isclass(obj):
-            children.append(_member_class(child_name, obj, new_parent, config))
-        elif child_name in fields_set:
-            continue  # we do not document fields with defaults
-        else:
-            annotation = annotations_dict.get(child_name, None)
-            if annotation is not None and not isinstance(annotation, str):
-                annotation = inspect.formatannotation(annotation)
-            children.append(
-                _member_classvar(child_name, obj, new_parent, annotation)
-            )
-
-    # construct the node
     node = Member(
         name=name,
         parent=parent,
@@ -457,8 +542,23 @@ def _member_class(
         signature=sig,
         raw_docstring=doc,
         header_level=3,
-        children=children,
+        children=[],
     )
+    if not include_children:
+        return node
+
+    # find all public members of the class
+    class_members = [m for m in klass.__dict__.keys() if not m.startswith("_")]
+    children = []
+    new_parent = full_qualified_name(name, parent)
+    for child_name in class_members:
+        full_name = full_qualified_name(child_name, new_parent)
+        child_node = build_member_node(root, config, full_name)
+        if child_node is not None:
+            children.append(child_node)
+
+    # update the node
+    node.children = children
     return node
 
 
@@ -466,8 +566,9 @@ def _member_module(
     name: str,
     module: ModuleType,
     config: PebbledocConfig,
-    library_name: str,
     parent: str = "",
+    root: ModuleType | None = None,
+    include_children: bool = True,
 ) -> Member:
     """
     Create a :class:`Member` node for a module.
@@ -477,52 +578,14 @@ def _member_module(
     :param name: Name of the module.
     :param module: The module object itself.
     :param config: The pebbledoc config object.
-    :param library_name: The top level package under which the current
-        module exists, i.e. the name of the project that is being
-        documented.
     :param parent: The name of the parent module, or an empty string
         if there is no parent module.
+    :param root: The root module of the project that is being documented.
+    :param include_children: Whether to include children members.
     :return: A :class:`Member` node for the module, filled with all
         relevant data.
     """
     doc = inspect.getdoc(module) or ""
-
-    # find all public members of the module
-    public_members = discover_public_members(module)
-
-    # find children, create their nodes
-    children = []
-    sub_modules = []
-    annotations_dict = inspect.get_annotations(module)
-    new_parent = full_qualified_name(name, parent)
-    for member_name in public_members:
-        member = getattr(module, member_name)
-        all_names = util.all_qualified_names(member_name, new_parent)
-        if any(n in config.exclude for n in all_names):
-            continue  # member was explicitly excluded
-        if inspect.isfunction(member):
-            children.append(_member_function(member_name, member, new_parent))
-        elif inspect.isclass(member):
-            children.append(
-                _member_class(member_name, member, new_parent, config)
-            )
-        elif inspect.ismodule(member):
-            sub_modules.append(
-                _member_module(
-                    member_name, member, config, library_name, new_parent
-                )
-            )
-        else:
-            if not config.document_constants:
-                continue  # skip constants
-            annotation = annotations_dict.get(member_name, None)
-            if annotation is not None and not isinstance(annotation, str):
-                annotation = inspect.formatannotation(annotation, new_parent)
-            children.append(
-                _member_constant(member_name, member, new_parent, annotation)
-            )
-
-    # create module member node
     node = Member(
         name=name,
         parent=parent,
@@ -530,6 +593,33 @@ def _member_module(
         signature="",  # modules get no signature section
         raw_docstring=doc,
         header_level=2,  # modules always have h2 header
-        children=children + sub_modules,  # submodules follow other members
+        children=[],
     )
+    if not include_children:
+        return node
+
+    # find all public members of the module
+    public_members = discover_public_members(module)
+
+    # if no root was provided, assume the module itself is the root
+    if root is None:
+        root = module
+
+    # find children, create their nodes
+    children = []
+    sub_modules = []
+    new_parent = full_qualified_name(name, parent)
+    for member_name in public_members:
+        full_name = full_qualified_name(member_name, new_parent)
+        child_node = build_member_node(root, config, full_name)
+        member = getattr(module, member_name)
+        if child_node is None:
+            continue
+        elif inspect.ismodule(member):
+            sub_modules.append(child_node)
+        else:
+            children.append(child_node)
+
+    # update module member node
+    node.children = children + sub_modules  # submodules follow other members
     return node

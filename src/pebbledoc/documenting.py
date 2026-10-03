@@ -2,9 +2,13 @@
 
 from __future__ import annotations
 
+import re
+from pathlib import Path
+
 from . import parsing, util
 from .config import PebbledocConfig
 from .inspect_runtime import Member, build_member_tree
+from .templating import parse_template, replace_template_directives
 
 
 def markdown_documentation(
@@ -56,6 +60,8 @@ def markdown_documentation(
 
     # construct a node tree view of the package
     root = build_member_tree(package_name, config)
+    if root is None:
+        raise ImportError(f"Could not import {package_name}")
     valid_targets = _valid_reference_targets(root)
 
     # check where the main docstring goes
@@ -93,10 +99,120 @@ def markdown_documentation(
 
     # generate the main body of the docs
     main_body = _document_member(
-        root, config, valid_targets, additional_header_level
+        root,
+        config,
+        valid_targets,
+        additional_header_level=additional_header_level,
     )
 
     return f"{header}{intro}{toc}{main_body}"
+
+
+def markdown_documentation_from_template(
+    package_name: str,
+    config: PebbledocConfig,
+) -> str:
+    """
+    Create a documentation for the given package from a template file.
+
+    The function takes a configuration object that points to a template
+    Markdown file, which includes directives in places where documentation
+    shall be placed. It imports the package of name ``package_name`` and
+    finds all directives in the template, replacing them with rendered
+    documentation for the members specified by the directives. Whether
+    only single members or the member with all its children are included
+    is specified in the directive. An example directive could be::
+
+        ::: my_package.my_module.MyClass
+            options:
+                heading_level: 3
+                include_members: false
+
+    This would insert in place of the directive, the documentation for
+    the ``MyClass`` class, but *not* its methods, class variables, etc.
+    due to the ``include_members`` option. The header of the corresponding
+    section will be a h3 header, according to the ``heading_level``
+    option. This format closely resembles the popular ``mkdocstrings``
+    syntax for directives.
+
+    Members have a default header level that will be used for their
+    section (e.g. h2 for modules) if no header level is provided.
+
+    Some of ``pebbledoc``'s options are disabled or have no effect when
+    building a documentation from a template. This includes the following
+    options:
+
+    - ``title``: The template must provide its own title.
+    - ``main_docstring``: Only the option ``"omit"`` has a meaningful
+      effect, allowing the insertion of the main module without its
+      docstring.
+    - ``module_docstrings``: When requested, module docstrings are
+       always rendered.
+    - ``include_intro``: No intro is generated either way.
+    - ``include_toc``: A TOC is never generated.
+    - ``full_toc_name``: In lieu of a TOC, this has no effect.
+
+    :param package_name: The name of the package as it should appear in
+        the header of the document.
+    :param config: A filled pebbledoc config object, detailing how to
+        parse the found docstrings and how to arrange them into the final
+        document. This crucially must include the template file path.
+    :raises ValueError: If the template file path is not provided in the
+        config object.
+    :return: A full API document for the package, formatted as GitHub-
+        flavored Markdown, ready for use as a single-file documentation
+        or insertion into a template.
+    """
+    if config.template is None:
+        # should never occur
+        raise ValueError("Template must be provided.")
+    template = Path(config.template).resolve()
+
+    # normalize config for templating
+    config.module_docstrings = True
+
+    # parse template for its main heading (required for "back to top" links)
+    pattern = re.compile(r"^#\s(.+)\n")
+    match = re.search(pattern, template.read_text())
+    if match is not None:
+        config.document_title = match.group(1)
+
+    # parse template for insertions
+    insertions = parse_template(template)
+
+    # build member object for every requested insertion
+    members: dict[str, Member] = {}
+    for insertion in insertions:
+        name = insertion.member_name
+        if "include_members" in insertion.options:
+            include_children = insertion.options["include_members"]
+        else:
+            include_children = True
+        node = build_member_tree(package_name, config, name, include_children)
+        if node is not None:
+            members[name] = node
+
+    if not members:
+        return template.read_text()
+
+    # build a list of valid targets from the members
+    valid_targets = set()
+    for member in members.values():
+        valid_targets = valid_targets | _valid_reference_targets(member)
+
+    # build the documentation for every insertion
+    docs: dict[str, str] = {}
+    for insertion in insertions:
+        name = insertion.member_name
+        if name not in members:
+            docs[name] = ""
+        else:
+            header_level = insertion.options.get("heading_level")
+            docs[name] = _document_member(
+                members[name], config, valid_targets, header_level
+            )
+
+    return replace_template_directives(template, insertions, docs)
 
 
 def _build_toc(root: Member, config: PebbledocConfig) -> str:
@@ -179,6 +295,7 @@ def _document_member(
     member: Member,
     config: PebbledocConfig,
     valid_reference_targets: set[str] | None = None,
+    header_level: int | None = None,
     additional_header_level: int = 0,
 ) -> str:
     """
@@ -197,6 +314,11 @@ def _document_member(
         inline literals instead of links. When set to None, all
         references will be rendered as links, even if they end up leading
         to invalid targets. Defaults to None.
+    :param header_level: An integer indicating the level of the header.
+        When not given, the default header level for the member is used.
+        When given, children members will automatically receive header
+        level of +1 compared to their parent. Additional header levels
+        are added on top, if provided.
     :param additional_header_level: If the members must be rendered with
         a header level greater than their default level, this must set
         the additional level each member section header receives. This
@@ -205,6 +327,7 @@ def _document_member(
         as GitHub-flavored Markdown.
     """
     snippet = ""
+    provided_header_level = header_level  # copy for safekeeping
 
     # add a header, unless suppressed
     is_pkg_root = member.name == config.package_name
@@ -216,7 +339,9 @@ def _document_member(
         targets = [".".join(parts[i:]) for i in range(1, len(parts))]
         for target in targets:
             snippet += f'<a name="{util.name_to_ref(target)}"></a>\n'
-        header_level = min(member.header_level + additional_header_level, 6)
+        if header_level is None:
+            header_level = member.header_level
+        header_level = min(header_level + additional_header_level, 6)
         snippet += f"{'#' * header_level} "
         snippet += f"`{full_name}`\n\n"
 
@@ -251,9 +376,17 @@ def _document_member(
 
     # Recursively render children as well
     if member.children:
+        if provided_header_level is None:
+            child_header_level = None
+        else:
+            child_header_level = provided_header_level + 1
         for child in member.children:
             snippet += _document_member(
-                child, config, valid_reference_targets, additional_header_level
+                child,
+                config,
+                valid_reference_targets,
+                child_header_level,
+                additional_header_level,
             )
 
     return snippet

@@ -1,0 +1,29 @@
+\x1b[31m--- templating_base.md\x1b[0m
+\x1b[32m+++ templating_base.md\x1b[0m
+\x1b[34m@@ -2,6 +2,7 @@\x1b[0m
+
+ This documents guides you through the most important features of the package.
+ It also serves as a documentation for the most important members of `stelarium_lite`.
+\x1b[32m+Note that this package does not actually work!\x1b[0m
+
+ ## `stellarium_lite`
+
+\x1b[34m@@ -20,9 +21,8 @@\x1b[0m
+
+ Most often, you will want to load a catalog from one of the well established
+ galaxy catalogs or surveys. For this purpose, `stellarium_lite` provides the
+\x1b[31m-versatile function [`load_catalog`](#load_catalog). This always returns a\x1b[0m
+\x1b[31m-mapping of object names to instances of the [`CelestialObject`](#celestialbody)\x1b[0m
+\x1b[31m-base class. Both are documented below:\x1b[0m
+\x1b[32m+versatile function [`load_catalog`](#load_catalog). This and the [`CelestialObject`](#celestialbody)\x1b[0m
+\x1b[32m+class are documented below:\x1b[0m
+
+ <a name="load_catalog"></a>
+ ### `stellarium_lite.load_catalog`
+\x1b[34m@@ -447,5 +447,4 @@\x1b[0m
+
+ ## Further resources
+
+\x1b[31m-This guide is a small introduction into the most important members of `stellarium_lite`.\x1b[0m
+\x1b[31m-For a more in-depth tutorial, see the documentation.\x1b[0m
+\x1b[32m+This guide is a small introduction into the most important members of `stellarium_lite`.\x1b[0m

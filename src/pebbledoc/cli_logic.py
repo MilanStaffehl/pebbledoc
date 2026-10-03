@@ -15,6 +15,7 @@ import colorama
 from . import documenting
 from .cli_parser import _build_parser
 from .config import PebbledocConfig, build_config
+from .inspect_runtime import OriginNotFoundError
 
 type DocsHandlerFunc = Callable[
     [Path, Path | None, PebbledocConfig], tuple[str, str, str]
@@ -263,10 +264,80 @@ def _handler_default(
             f"dependencies",
         )
         raise fatal_exc from prev_exc
-    except FileNotFoundError as prev_exc:
+    except OriginNotFoundError as prev_exc:
         fatal_exc = _PebbledocError(
             _ErrorCodes.EX_NO_ORIGIN,
             "One or more (sub-)packages could not be found",
+        )
+        raise fatal_exc from prev_exc
+
+    # check if the file would change
+    old_content = _read_existing_docs(output)
+
+    return old_content, document_str, document_str
+
+
+def _handler_template(
+    output: Path,
+    source_dir: Path | None,
+    config: PebbledocConfig,
+) -> tuple[str, str, str]:
+    """
+    Handler for generating a documentation file from a template.
+
+    This function handles generating a documentation file from a provided
+    template file and configuration. For templates, the function makes
+    no distinction between changes in the generated documentation and
+    the surrounding text of the template; changes in either will be
+    marked as a diff. As such, the function returns the full old file
+    content and the full new file content for the diff comparison, same
+    as :func:`_handler_default`.
+
+    :param output: The path to the documentation file that will be
+        created and which might already exist from a previous run.
+    :param source_dir: The path to the source directory from where to
+        import the package, if it isn't already installed. Can be None
+        to signal that the package is already installed.
+    :param config: The configuration object, constructed from CLI args
+        and potentially discovered or provided config files.
+    :return: A tuple of three strings:
+
+        1. The content of the old documentation file (all of it), if an
+           older version exists. Otherwise, this will be an empty string.
+        2. The content of the newly generated documentation file (the
+           full file content),as generated from the template. This will
+           be used in the diff check.
+        3. Same as 2; this is the content that will be written into the
+           file at the end.
+    """
+    try:
+        with _source_path_inserted_to_path(source_dir):
+            document_str = documenting.markdown_documentation_from_template(
+                config.package_name, config
+            )
+    except ImportError as prev_exc:
+        fatal_exc = _PebbledocError(
+            _ErrorCodes.EX_IMPORT_ERR,
+            f"Could not import package {config.package_name} or its "
+            f"dependencies",
+        )
+        raise fatal_exc from prev_exc
+    except OriginNotFoundError as prev_exc:
+        fatal_exc = _PebbledocError(
+            _ErrorCodes.EX_NO_ORIGIN,
+            "One or more (sub-)packages could not be found",
+        )
+        raise fatal_exc from prev_exc
+    except FileNotFoundError as prev_exc:
+        fatal_exc = _PebbledocError(
+            _ErrorCodes.EX_INVALID_PATH,
+            "Unable to parse template",
+        )
+        raise fatal_exc from prev_exc
+    except AttributeError as prev_exc:
+        fatal_exc = _PebbledocError(
+            _ErrorCodes.EX_IMPORT_ERR,
+            "Invalid member name in template",
         )
         raise fatal_exc from prev_exc
 
@@ -422,6 +493,11 @@ def _handle_args(args: argparse.Namespace) -> int:
         )
         return _ErrorCodes.EX_BAD_ARGS  # equivalent to a missing argument
 
+    # check that template and target are not both provided
+    if config.template is not None and config.target_header is not None:
+        _error("argument --template: not allowed with argument --target")
+        return _ErrorCodes.EX_BAD_ARGS
+
     # check that the given output and source dir are valid
     try:
         output = _validate_output_path(config.output)
@@ -434,6 +510,8 @@ def _handle_args(args: argparse.Namespace) -> int:
     handler: DocsHandlerFunc
     if config.target_header is not None:
         handler = _handler_targeted_header
+    elif config.template is not None:
+        handler = _handler_template
     else:
         handler = _handler_default
     try:
