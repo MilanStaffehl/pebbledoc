@@ -9,6 +9,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 ### Added
 
 - Option `--target` to allow inserting generated documentation into an existing file ([#142](https://github.com/MilanStaffehl/pebbledoc/pull/142))
+- Option `--template` to build documentation from a Markdown template file ([#148](https://github.com/MilanStaffehl/pebbledoc/pull/148))
 
 ### Changed
 
