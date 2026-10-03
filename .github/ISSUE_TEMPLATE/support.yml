@@ -1,5 +1,5 @@
 name: Support Request
-description: Request a feature or an improvement.
+description: Ask for help with using pebbledoc.
 title: "Support: "
 labels: ["support"]
 body:
