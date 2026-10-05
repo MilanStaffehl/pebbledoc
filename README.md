@@ -481,7 +481,7 @@ You can use this repository as a pre-commit hook. Add the following to your `.pr
 
 ```yaml
 -   repo: https://github.com/MilanStaffehl/pebbledoc
-    rev: 0.2.0
+    rev: 0.3.0
     hooks:
       - id: pebbledoc
         name: Update docs (pebbledoc)
